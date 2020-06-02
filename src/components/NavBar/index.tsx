@@ -18,7 +18,7 @@ const NavBar: React.FC = () => {
         Menu
       </button>
       <p>
-        {user.CODIGO} - {user.NOME} F{user.FILIAL}
+        {user.code} - {user.nome} F{user.filial}
       </p>
       <button type="button" onClick={signOut}>
         <FiLogOut />

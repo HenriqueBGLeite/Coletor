@@ -2,7 +2,7 @@ import styled, { keyframes } from 'styled-components';
 import { shade } from 'polished';
 
 export const Container = styled.div`
-  height: 100vh;
+  height: 100%;
 
   display: flex;
   align-items: stretch;
@@ -39,6 +39,7 @@ export const AnimationContainer = styled.div`
 
   img {
     width: 100%;
+    max-height: 370px;
     border-radius: 8px;
   }
 
@@ -56,6 +57,7 @@ export const AnimationContainer = styled.div`
       width: 100%;
       color: #005129;
       margin-bottom: 24px;
+      font-size: 25px;
       font: bold;
     }
 

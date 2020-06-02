@@ -3,7 +3,7 @@ import api from '../services/api';
 
 interface AuthState {
   token: string;
-  user: object;
+  usuario: object;
 }
 
 interface SignInCredentials {
@@ -13,7 +13,7 @@ interface SignInCredentials {
 }
 
 interface AuthContextData {
-  user: object;
+  usuario: object;
   signIn(credentials: SignInCredentials): Promise<void>;
   signOut(): void;
 }
@@ -21,30 +21,37 @@ interface AuthContextData {
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 const AuthProvider: React.FC = ({ children }) => {
-  const [data, setData] = useState<AuthState>(() => {
+  const [data, setData] = useState(() => {
     const token = localStorage.getItem('@EpocaColetor:token');
-    const user = localStorage.getItem('@EpocaColetor:user');
+    const usuario = localStorage.getItem('@EpocaColetor:user');
 
-    if (token && user) {
-      return { token, user: JSON.parse(user) };
+    if (token && usuario) {
+      return { token, usuario: JSON.parse(usuario) };
     }
 
     return {} as AuthState;
   });
 
   const signIn = useCallback(async ({ code, password, base }) => {
-    const response = await api.post('sessions', {
+    const response = await api.post('Login/getUsuario/', {
       code,
       password,
       base,
     });
 
-    const { token, user } = response.data;
+    const { erro, warning } = response.data;
 
-    localStorage.setItem('@EpocaColetor:token', token);
-    localStorage.setItem('@EpocaColetor:user', JSON.stringify(user));
+    if (erro === 'N' && warning === 'N') {
+      const usuario = response.data;
+      const { token } = usuario;
 
-    setData({ token, user });
+      localStorage.setItem('@EpocaColetor:token', token);
+      localStorage.setItem('@EpocaColetor:user', JSON.stringify(usuario));
+
+      setData({ token, usuario });
+    } else {
+      throw new Error('Erro ao efetuar login.');
+    }
   }, []);
 
   const signOut = useCallback(() => {
@@ -55,7 +62,7 @@ const AuthProvider: React.FC = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user: data.user, signIn, signOut }}>
+    <AuthContext.Provider value={{ usuario: data.usuario, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 
 export const Container = styled.div`
-  height: 100vh;
+  height: 100%;
 
   display: flex;
   align-items: stretch;
@@ -14,15 +14,23 @@ export const Content = styled.div`
 
   width: 100%;
   max-width: 700px;
-  margin: 50px auto;
+  margin: 16px auto;
+`;
+
+export const Loanding = styled.div`
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   button {
     background: #fff;
     border-radius: 10px;
     border: 0;
     width: 100%;
-    padding: 40px;
-    font-size: 20px;
+    padding: 20px;
+    font-size: 16px;
     display: block;
     text-decoration: none;
 
@@ -43,5 +51,15 @@ export const Content = styled.div`
       margin-left: auto;
       color: #000000;
     }
+  }
+
+  .loading {
+    border-radius: 10px;
+    border: 0;
+    padding: 0 16px;
+    margin-top: 16px;
+
+    align-items: center;
+    justify-content: center;
   }
 `;

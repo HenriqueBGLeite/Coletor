@@ -81,11 +81,11 @@ const SignIn: React.FC = () => {
           <Form ref={formRef} onSubmit={handleSubmit}>
             <h1>Entre com seus dados</h1>
             <Input
-              percWidth={100}
               name="code"
               icon={FiUser}
               type="number"
               placeholder="Código de usuário"
+              percWidth={100}
             />
             <Input
               name="password"
