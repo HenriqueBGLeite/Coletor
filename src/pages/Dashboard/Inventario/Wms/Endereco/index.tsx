@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useState } from 'react';
+import React, { useRef, useCallback, useState, useEffect } from 'react';
 import { GoSearch } from 'react-icons/go';
 import { useHistory } from 'react-router-dom';
 import { Form } from '@unform/web';
@@ -13,7 +13,13 @@ import Input from '../../../../../components/Input';
 import { Container, Content } from './style';
 
 interface EnderecoOrig {
-  codigo: number;
+  codendereco: number;
+  numinvent: number;
+  status: string;
+  codprod: number;
+  qt: number;
+  contagem: number;
+  deposito: number;
   rua: number;
   predio: number;
   nivel: number;
@@ -21,10 +27,17 @@ interface EnderecoOrig {
 }
 
 const Endereco: React.FC = () => {
-  const history = useHistory<EnderecoOrig>();
+  const history = useHistory<EnderecoOrig[]>();
   const formRef = useRef<FormHandles>(null);
-  const [endereco, setEndereco] = useState('');
-  const enderecoOrig = history.location.state;
+
+  const [enderecoDigitado, setEnderecoDigitado] = useState('');
+  const [endereco, setEndereco] = useState<EnderecoOrig>();
+  const [enderecoOrig, setEnderecoOrig] = useState<EnderecoOrig[]>([]);
+
+  useEffect(() => {
+    setEnderecoOrig(history.location.state);
+    setEndereco(enderecoOrig[5]);
+  }, [history.location.state, enderecoOrig]);
 
   const handleValidateAddress = useCallback(
     async (data) => {
@@ -39,7 +52,7 @@ const Endereco: React.FC = () => {
           abortEarly: false,
         });
 
-        if (Number(endereco) !== enderecoOrig.codigo) {
+        if (endereco?.codendereco !== Number(enderecoDigitado)) {
           formRef.current?.setFieldValue('codEndereco', null);
 
           createMessage({
@@ -66,32 +79,45 @@ const Endereco: React.FC = () => {
         formRef.current?.setFieldValue('codEndereco', null);
       }
     },
-    [endereco, enderecoOrig, history],
+    [endereco, history, enderecoDigitado],
   );
 
   return (
     <>
-      <NavBar />
+      <NavBar numInvent={endereco?.numinvent} />
 
       <Container>
         <Content>
           <legend>Dados Endereço</legend>
           <div>
-            <strong>Rua: {enderecoOrig.rua}</strong>
-            <strong>Prédio: {enderecoOrig.predio}</strong>
-            <strong>Nível: {enderecoOrig.nivel}</strong>
-            <strong>Apto: {enderecoOrig.apto}</strong>
+            <strong>
+              <p>Rua</p>
+              <p>{endereco?.rua}</p>
+            </strong>
+            <strong>
+              <p>Prédio</p>
+              <p>{endereco?.predio}</p>
+            </strong>
+            <strong>
+              <p>Nível</p>
+              <p>{endereco?.nivel}</p>
+            </strong>
+            <strong>
+              <p>Apto</p>
+              <p>{endereco?.apto}</p>
+            </strong>
           </div>
         </Content>
 
         <Form ref={formRef} onSubmit={handleValidateAddress}>
           <Input
+            focus
             icon={GoSearch}
             percWidth={100}
             type="number"
             name="codEndereco"
             placeholder="Confirme o endereço"
-            onChange={(e) => setEndereco(e.target.value)}
+            onChange={(e) => setEnderecoDigitado(e.target.value)}
           />
         </Form>
       </Container>

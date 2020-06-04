@@ -30,7 +30,7 @@ export const Loanding = styled.div`
     border: 0;
     width: 100%;
     padding: 20px;
-    font-size: 16px;
+    font-size: 18px;
     display: block;
     text-decoration: none;
 

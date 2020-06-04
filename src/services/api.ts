@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const api = axios.create({
   // Teste
-  baseURL: 'https://localhost:44318/api/',
+  // baseURL: 'https://localhost:44318/api/',
   // Produção
   // baseURL: 'http://192.168.0.118:81/api/',
 });

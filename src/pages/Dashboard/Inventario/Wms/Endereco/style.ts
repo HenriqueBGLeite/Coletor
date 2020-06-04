@@ -10,6 +10,7 @@ export const Container = styled.div`
 
   width: 100%;
   max-width: 700px;
+  padding: 0 8px;
   margin: auto;
 
   form {
@@ -38,7 +39,7 @@ export const Content = styled.fieldset`
     flex-wrap: wrap;
 
     strong {
-      width: 48%;
+      width: 23%;
       border-radius: 10px;
       margin: 8px 5px 0 0;
       padding: 8px;
@@ -48,6 +49,11 @@ export const Content = styled.fieldset`
       color: #666360;
       text-align: center;
       align-items: center;
+
+      p + p {
+        margin-top: 8px;
+        font-size: 30px;
+      }
     }
   }
 `;

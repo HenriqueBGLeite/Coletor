@@ -6,10 +6,15 @@ import { useAuth } from '../../hooks/auth';
 
 import { Container } from './style';
 
-const NavBar: React.FC = () => {
+interface NavBarProps {
+  numInvent?: number;
+}
+
+const NavBar: React.FC<NavBarProps> = (props) => {
   const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
   const history = useHistory();
   const { signOut } = useAuth();
+  const { numInvent } = props;
 
   return (
     <Container>
@@ -17,9 +22,12 @@ const NavBar: React.FC = () => {
         <FiHome />
         Menu
       </button>
-      <p>
-        {user.code} - {user.nome} F{user.filial}
-      </p>
+      <div id="info">
+        <p>
+          {user.code} - {user.nome} F{user.filial}
+        </p>
+        {numInvent ? <p>INVENTÁRIO {numInvent}</p> : ''}
+      </div>
       <button type="button" onClick={signOut}>
         <FiLogOut />
         Sair

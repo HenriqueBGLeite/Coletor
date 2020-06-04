@@ -14,12 +14,14 @@ import { Container, Error } from './style';
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   name: string;
   percWidth: number;
+  focus?: boolean;
   icon?: React.ComponentType<IconBaseProps>;
 }
 
 const Input: React.FC<InputProps> = ({
   name,
   percWidth,
+  focus,
   icon: Icon,
   ...rest
 }) => {
@@ -34,7 +36,11 @@ const Input: React.FC<InputProps> = ({
       ref: inputRef.current,
       path: 'value',
     });
-  }, [fieldName, registerField]);
+
+    if (focus) {
+      inputRef.current?.focus();
+    }
+  }, [fieldName, registerField, focus]);
 
   const handleInputFocus = useCallback(() => {
     setIsFocused(true);

@@ -81,6 +81,7 @@ const SignIn: React.FC = () => {
           <Form ref={formRef} onSubmit={handleSubmit}>
             <h1>Entre com seus dados</h1>
             <Input
+              focus
               name="code"
               icon={FiUser}
               type="number"

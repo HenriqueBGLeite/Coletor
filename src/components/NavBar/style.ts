@@ -30,8 +30,13 @@ export const Container = styled.div`
     }
   }
 
-  p {
+  #info {
     margin-left: -10px;
     font-size: 14px;
+    text-justify: center;
+
+    p {
+      text-align: center;
+    }
   }
 `;

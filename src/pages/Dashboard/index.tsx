@@ -8,6 +8,19 @@ import api from '../../services/api';
 import NavBar from '../../components/NavBar';
 import { Container, Content, Loanding } from './style';
 
+interface EnderecoInventario {
+  codendereco: number;
+  status: string;
+  codprod: number;
+  qt: number;
+  contagem: number;
+  deposito: number;
+  rua: number;
+  predio: number;
+  nivel: number;
+  apto: number;
+}
+
 const Dashboard: React.FC = () => {
   const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
   const [loading, setLoading] = useState(false);
@@ -19,18 +32,18 @@ const Dashboard: React.FC = () => {
 
     if (usaWms === 'S') {
       try {
-        const response = await api.get(
-          `Inventario/getProxEndereco/${user.code}`,
+        const response = await api.get<EnderecoInventario[]>(
+          `Inventario/getProxOs/${user.code}`,
         );
 
-        const proxEndereco = response.data;
+        const enderecoOs = response.data;
 
-        if (proxEndereco === '-1') {
+        if (enderecoOs === null) {
           setLoading(false);
           history.push('inventario');
         } else {
           setLoading(false);
-          history.push('endereco-inventario', [proxEndereco]);
+          history.push('endereco-inventario', enderecoOs);
         }
       } catch (err) {
         setLoading(false);
@@ -49,15 +62,15 @@ const Dashboard: React.FC = () => {
           {!loading ? (
             <Content>
               <button type="button" onClick={() => history.push('#')} disabled>
-                Conferência Entrada
+                CONFERÊNCIA ENTRADA
                 <FiTruck />
               </button>
               <button type="button" onClick={() => history.push('#')} disabled>
-                Conferência Saída
+                CONFERÊNCIA SAÍDA
                 <FiShoppingCart />
               </button>
               <button type="button" onClick={validaTelaSeguinte}>
-                Inventário
+                INVENTÁRIO
                 <FiBox />
               </button>
               <button
@@ -65,11 +78,11 @@ const Dashboard: React.FC = () => {
                 onClick={() => history.push('consult-products')}
                 disabled
               >
-                Alterar Dados do Produto
+                DADOS PRODUTO
                 <FiEdit />
               </button>
               <button type="button" onClick={() => history.push('#')} disabled>
-                Listar Endereço
+                LISTAR ENDEREÇOS
                 <FiList />
               </button>
             </Content>

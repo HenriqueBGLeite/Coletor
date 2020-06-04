@@ -15,9 +15,24 @@ import Input from '../../../components/Input';
 
 import { Container, Content } from './style';
 
+interface OsInventario {
+  codendereco: number;
+  status: string;
+  codprod: number;
+  qt: number;
+  contagem: number;
+  deposito: number;
+  rua: number;
+  predio: number;
+  nivel: number;
+  apto: number;
+}
+
 const Inventario: React.FC = () => {
   const formRef = useRef<FormHandles>(null);
+  const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
   const [endereco, setEndereco] = useState('');
+  const [enderecoOs, setEnderecoOS] = useState<OsInventario[]>([]);
   const history = useHistory();
 
   const handleEndereco = useCallback(
@@ -33,22 +48,13 @@ const Inventario: React.FC = () => {
           abortEarly: false,
         });
 
-        const response = await api.get(
-          `Inventario/getDadosEndereco/${endereco}`,
+        const response = await api.get<OsInventario[]>(
+          `Inventario/getProxOs/${user.code}/${endereco}`,
         );
-        const proxEndereco = response.data;
-        const { erro, warning } = proxEndereco;
 
-        if (erro === 'N' && warning === 'N') {
-          history.push('endereco-inventario', proxEndereco);
-        } else {
-          createMessage({
-            type: 'alert',
-            message: 'Código de endereço inválido.',
-          });
+        setEnderecoOS(response.data);
 
-          formRef.current?.setFieldValue('endereco', null);
-        }
+        history.push('endereco-inventario', enderecoOs);
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
           const errors = getValidationErrors(err);
@@ -66,8 +72,9 @@ const Inventario: React.FC = () => {
         formRef.current?.setFieldValue('endereco', null);
       }
     },
-    [endereco, history],
+    [endereco, enderecoOs, user.code, history],
   );
+
   return (
     <>
       <NavBar />
