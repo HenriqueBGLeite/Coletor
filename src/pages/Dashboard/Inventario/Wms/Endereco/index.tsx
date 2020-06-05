@@ -14,9 +14,12 @@ import { Container, Content } from './style';
 
 interface EnderecoOrig {
   codendereco: number;
+  inventos: number;
+  tipoender: string;
   numinvent: number;
   status: string;
   codprod: number;
+  descricao: string;
   qt: number;
   contagem: number;
   deposito: number;
@@ -27,7 +30,8 @@ interface EnderecoOrig {
 }
 
 const Endereco: React.FC = () => {
-  const history = useHistory<EnderecoOrig[]>();
+  const history = useHistory();
+  const endOrig = useHistory<EnderecoOrig[]>();
   const formRef = useRef<FormHandles>(null);
 
   const [enderecoDigitado, setEnderecoDigitado] = useState('');
@@ -35,9 +39,9 @@ const Endereco: React.FC = () => {
   const [enderecoOrig, setEnderecoOrig] = useState<EnderecoOrig[]>([]);
 
   useEffect(() => {
-    setEnderecoOrig(history.location.state);
-    setEndereco(enderecoOrig[5]);
-  }, [history.location.state, enderecoOrig]);
+    setEnderecoOrig(endOrig.location.state);
+    setEndereco(enderecoOrig[0]);
+  }, [endOrig.location.state, enderecoOrig]);
 
   const handleValidateAddress = useCallback(
     async (data) => {
@@ -60,7 +64,7 @@ const Endereco: React.FC = () => {
             message: 'Código informado não confere com o esperado.',
           });
         } else {
-          history.push('conferencia-invetario');
+          history.push('conferencia-invetario', endereco);
         }
       } catch (err) {
         if (err instanceof Yup.ValidationError) {

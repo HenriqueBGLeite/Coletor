@@ -17,6 +17,7 @@ import { Container, Content } from './style';
 
 interface OsInventario {
   codendereco: number;
+  tipoender: string;
   status: string;
   codprod: number;
   qt: number;
@@ -32,7 +33,6 @@ const Inventario: React.FC = () => {
   const formRef = useRef<FormHandles>(null);
   const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
   const [endereco, setEndereco] = useState('');
-  const [enderecoOs, setEnderecoOS] = useState<OsInventario[]>([]);
   const history = useHistory();
 
   const handleEndereco = useCallback(
@@ -52,9 +52,18 @@ const Inventario: React.FC = () => {
           `Inventario/getProxOs/${user.code}/${endereco}`,
         );
 
-        setEnderecoOS(response.data);
+        const encontrouEndereco = response.data;
 
-        history.push('endereco-inventario', enderecoOs);
+        if (encontrouEndereco) {
+          history.push('endereco-inventario', encontrouEndereco);
+        } else {
+          createMessage({
+            type: 'alert',
+            message: 'Nenhuma O.S. encontrada.',
+          });
+
+          formRef.current?.setFieldValue('endereco', null);
+        }
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
           const errors = getValidationErrors(err);
@@ -72,7 +81,7 @@ const Inventario: React.FC = () => {
         formRef.current?.setFieldValue('endereco', null);
       }
     },
-    [endereco, enderecoOs, user.code, history],
+    [endereco, user.code, history],
   );
 
   return (

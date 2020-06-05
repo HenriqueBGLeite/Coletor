@@ -54,6 +54,10 @@ export const Content = styled.fieldset`
         margin-top: 8px;
         font-size: 30px;
       }
+
+      strong & {
+        margin-right: -5px;
+      }
     }
   }
 `;

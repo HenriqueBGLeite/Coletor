@@ -10,6 +10,7 @@ import { Container, Content, Loanding } from './style';
 
 interface EnderecoInventario {
   codendereco: number;
+  tipoender: string;
   status: string;
   codprod: number;
   qt: number;
@@ -43,6 +44,7 @@ const Dashboard: React.FC = () => {
           history.push('inventario');
         } else {
           setLoading(false);
+
           history.push('endereco-inventario', enderecoOs);
         }
       } catch (err) {
