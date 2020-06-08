@@ -13,6 +13,7 @@ interface EnderecoInventario {
   tipoender: string;
   status: string;
   codprod: number;
+  qtunitcx: number;
   qt: number;
   contagem: number;
   deposito: number;

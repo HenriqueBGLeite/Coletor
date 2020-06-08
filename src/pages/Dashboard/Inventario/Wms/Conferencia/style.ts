@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { shade } from 'polished';
 
 export const Container = styled.div`
   height: 100%;
@@ -30,6 +31,52 @@ export const Container = styled.div`
 
     &::placeholder {
       color: #878787;
+    }
+  }
+
+  .loading {
+    border-radius: 10px;
+    border: 0;
+    padding: 0 16px;
+    margin-top: 16px;
+
+    align-items: center;
+    justify-content: center;
+  }
+`;
+
+export const Content = styled.div`
+  display: flex;
+  width: 100%;
+  margin-top: 8px;
+
+  flex-wrap: wrap;
+
+  input + input {
+    margin-left: 2px;
+  }
+
+  p {
+    width: 100;
+    margin: 20px 2px;
+    font-size: 20px;
+    color: #000000;
+  }
+
+  button {
+    background: #c22e2c;
+    color: #fff;
+    height: 56px;
+    border-radius: 10px;
+    border: 0;
+    padding: 0 16px;
+    width: 100%;
+    font-weight: bold;
+    margin-top: 16px;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background: ${shade(0.2, '#c84241')};
     }
   }
 `;

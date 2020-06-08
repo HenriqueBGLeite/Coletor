@@ -19,6 +19,7 @@ interface EnderecoOrig {
   numinvent: number;
   status: string;
   codprod: number;
+  qtunitcx: number;
   descricao: string;
   qt: number;
   contagem: number;

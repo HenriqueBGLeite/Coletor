@@ -16,7 +16,7 @@ const App: React.FC = () => {
       <AppProvider>
         <ToastContainer
           position="top-center"
-          autoClose={3000}
+          autoClose={4000}
           newestOnTop
           closeOnClick
         />
