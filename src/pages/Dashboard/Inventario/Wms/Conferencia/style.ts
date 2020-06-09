@@ -7,13 +7,15 @@ export const Container = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
+  padding: 8px 8px;
 
   width: 100%;
   margin-top: auto;
 
   form {
-    flex: 1;
-    margin: 8px 8px 0 8px;
+    width: 100%;
+    margin: 0 8px 0 8px;
   }
 
   textarea {
@@ -52,6 +54,14 @@ export const Content = styled.div`
 
   flex-wrap: wrap;
 
+  input {
+    font-size: 24px;
+
+    &::placeholder {
+      font-size: 16px;
+    }
+  }
+
   input + input {
     margin-left: 2px;
   }
@@ -72,7 +82,7 @@ export const Content = styled.div`
     padding: 0 16px;
     width: 100%;
     font-weight: bold;
-    margin-top: 16px;
+    margin-top: 8px;
     transition: background-color 0.2s;
 
     &:hover {

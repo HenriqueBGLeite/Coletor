@@ -34,19 +34,31 @@ interface ProdutoInventario {
   qtunitcx: number;
 }
 
+interface SubmitForm {
+  codprod: number;
+}
+
 const ConferenciaWms: React.FC = () => {
   const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
-  const endAtual = useHistory<EndAtualProps>();
+  const history = useHistory();
+  const endAtual = history.location.state as EndAtualProps;
+  const formRefProd = useRef<FormHandles>(null);
   const formRef = useRef<FormHandles>(null);
   const [mostrarDescricao, setMostrarDescricao] = useState(false);
   const [endereco, setEndereco] = useState({} as EndAtualProps);
   const [produto, setProduto] = useState(0);
 
+  const [lastro, setLastro] = useState(0);
+  const [camada, setCamada] = useState(0);
+  const [cx, setCx] = useState(0);
+  const [un, setUn] = useState(0);
+  const [total, setTotal] = useState(0);
+
   const [loading, setLoanding] = useState(false);
 
   useEffect(() => {
-    setEndereco(endAtual.location.state);
-  }, [endAtual.location.state]);
+    setEndereco(endAtual);
+  }, [endAtual]);
 
   const handleInputChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
@@ -58,7 +70,7 @@ const ConferenciaWms: React.FC = () => {
   const handleGetProduct = useCallback(
     async (data: object) => {
       try {
-        formRef.current?.setErrors({});
+        formRefProd.current?.setErrors({});
 
         const schema = Yup.object().shape({
           produto: Yup.string().required('Código obrigatório.'),
@@ -73,8 +85,9 @@ const ConferenciaWms: React.FC = () => {
             type: 'error',
             message: 'Endereço de picking. Não foi possível alterar o produto.',
           });
-          formRef.current?.setFieldValue('produto', null);
+          formRefProd.current?.setFieldValue('produto', null);
         } else if (endereco.codprod === produto) {
+          document.getElementById('lastro')?.focus();
           setMostrarDescricao(true);
         } else {
           setLoanding(true);
@@ -93,7 +106,7 @@ const ConferenciaWms: React.FC = () => {
         if (err instanceof Yup.ValidationError) {
           const errors = getValidationErrors(err);
 
-          formRef.current?.setErrors(errors);
+          formRefProd.current?.setErrors(errors);
 
           setLoanding(false);
           return;
@@ -104,11 +117,42 @@ const ConferenciaWms: React.FC = () => {
           message: 'Erro ao realizar o login. Verifique suas credenciais.',
         });
 
-        formRef.current?.setFieldValue('produto', null);
+        formRefProd.current?.setFieldValue('produto', null);
         setLoanding(false);
       }
     },
     [endereco, produto, user],
+  );
+
+  const handleCalcTotal = useCallback(
+    (event) => {
+      if (event.target.id === 'lastro' && event.key === 'Enter') {
+        document.getElementById('camada')?.focus();
+      }
+      if (event.target.id === 'camada' && event.key === 'Enter') {
+        document.getElementById('qtcx')?.focus();
+      }
+      if (event.target.id === 'qtcx' && event.key === 'Enter') {
+        document.getElementById('qtun')?.focus();
+      }
+      if (event.target.id === 'qtun' && event.key === 'Enter') {
+        document.getElementById('button')?.focus();
+      }
+
+      setTotal(
+        ((lastro * camada) * endereco.qtunitcx) + // eslint-disable-line
+          (Number(un) + Number(cx) * endereco.qtunitcx),
+      );
+    },
+    [endereco.qtunitcx, lastro, camada, cx, un],
+  );
+
+  const handleSubmitForm = useCallback(
+    (data: object) => {
+      alert('Formulario enviado');
+      history.push('inventario');
+    },
+    [history],
   );
 
   return (
@@ -116,99 +160,120 @@ const ConferenciaWms: React.FC = () => {
       <NavBar numInvent={endereco?.numinvent} />
       <Container>
         {!loading ? (
-          <Form ref={formRef} onSubmit={handleGetProduct}>
-            <Input
-              focus
-              icon={FiSearch}
-              percWidth={100}
-              type="number"
-              name="produto"
-              placeholder="EAN/DUN/CODPROD"
-              onChange={handleInputChange}
-            />
-            {!mostrarDescricao ? (
-              <textarea
-                name="descricao"
-                rows={3}
-                placeholder="DESCRIÇÃO DO PRODUTO"
-                disabled
+          <>
+            <Form ref={formRefProd} onSubmit={handleGetProduct}>
+              <Input
+                focus
+                icon={FiSearch}
+                percWidth={100}
+                type="number"
+                id="produto"
+                name="produto"
+                placeholder="EAN/DUN/CODPROD"
+                onChange={handleInputChange}
               />
-            ) : (
-              <textarea
-                name="descricao"
-                rows={3}
-                value={endereco.descricao}
-                placeholder="DESCRIÇÃO DO PRODUTO"
-                disabled
-              />
-            )}
-            <Content>
+            </Form>
+            <Form ref={formRef} onSubmit={handleSubmitForm}>
               {!mostrarDescricao ? (
-                <Input
-                  percWidth={31}
-                  name="qtunitcx"
-                  type="number"
-                  placeholder="Qt.Unit.Cx"
+                <textarea
+                  name="descricao"
+                  rows={3}
+                  placeholder="DESCRIÇÃO/EMBALAGEM"
                   disabled
                 />
               ) : (
-                <Input
-                  percWidth={31}
-                  name="qtunitcx"
-                  type="number"
-                  defaultValue={endereco.qtunitcx}
-                  placeholder="Qt.Unit.Cx"
+                <textarea
+                  id="descricao"
+                  name="descricao"
+                  rows={3}
+                  value={endereco.descricao}
                   disabled
                 />
               )}
-              <p />
-              <Input
-                percWidth={31}
-                name="lastro"
-                type="number"
-                placeholder="Lastro"
-              />
-              <p>X</p>
-              <Input
-                percWidth={31}
-                name="camada"
-                type="number"
-                placeholder="Camada"
-              />
-              <Input
-                icon={FiCalendar}
-                percWidth={99}
-                name="dtvalidade"
-                type="text"
-                placeholder="Data validade"
-                disabled
-              />
               <Content>
+                {!mostrarDescricao ? (
+                  <Input
+                    percWidth={31}
+                    name="qtunitcx"
+                    type="number"
+                    placeholder="Qt.Unit.Cx"
+                    disabled
+                  />
+                ) : (
+                  <Input
+                    percWidth={31}
+                    name="qtunitcx"
+                    type="number"
+                    defaultValue={endereco.qtunitcx}
+                    placeholder="Qt.Unit.Cx"
+                    disabled
+                  />
+                )}
+                <p />
                 <Input
-                  percWidth={30}
-                  name="qtcx"
+                  percWidth={31}
+                  id="lastro"
+                  name="lastro"
                   type="number"
-                  placeholder="Qt.Cx"
+                  placeholder="Lastro"
+                  onChange={(e) => setLastro(Number(e.target.value))}
+                  onKeyPress={handleCalcTotal}
                 />
-                <p>+</p>
+                <p>X</p>
                 <Input
-                  percWidth={30}
-                  name="qtun"
+                  percWidth={31}
+                  id="camada"
+                  name="camada"
                   type="number"
-                  placeholder="Qt.Un"
+                  placeholder="Camada"
+                  onChange={(e) => setCamada(Number(e.target.value))}
+                  onKeyPress={handleCalcTotal}
                 />
-                <p>=</p>
                 <Input
-                  percWidth={30}
-                  name="total"
-                  type="number"
-                  placeholder="Total"
+                  icon={FiCalendar}
+                  percWidth={99}
+                  name="dtvalidade"
+                  type="text"
+                  placeholder="Data validade"
                   disabled
                 />
+                <Content>
+                  <Input
+                    percWidth={30}
+                    id="qtcx"
+                    name="qtcx"
+                    type="number"
+                    placeholder="Qt.Cx"
+                    onChange={(e) => setCx(Number(e.target.value))}
+                    onKeyPress={handleCalcTotal}
+                  />
+                  <p>+</p>
+                  <Input
+                    percWidth={30}
+                    id="qtun"
+                    name="qtun"
+                    type="number"
+                    placeholder="Qt.Un"
+                    onChange={(e) => setUn(Number(e.target.value))}
+                    onKeyPress={handleCalcTotal}
+                  />
+                  <p>=</p>
+                  <Input
+                    percWidth={30}
+                    id="total"
+                    name="total"
+                    type="number"
+                    placeholder="Total"
+                    value={total}
+                    disabled
+                  />
+                </Content>
+                <button id="button" type="button" onClick={handleSubmitForm}>
+                  CONFIRMAR
+                </button>
               </Content>
-              <button type="submit">CONFIRMAR</button>
-            </Content>
-          </Form>
+            </Form>
+          </>
         ) : (
           <ReactLoading
             className="loading"
