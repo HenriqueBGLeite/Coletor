@@ -86,14 +86,12 @@ const SignIn: React.FC = () => {
               icon={FiUser}
               type="number"
               placeholder="Código de usuário"
-              percWidth={100}
             />
             <Input
               name="password"
               icon={FiLock}
               type="password"
               placeholder="Senha"
-              percWidth={100}
             />
             <Select name="base" icon={FiHome} percWidth={100}>
               <option value="EPOCA">Época</option>

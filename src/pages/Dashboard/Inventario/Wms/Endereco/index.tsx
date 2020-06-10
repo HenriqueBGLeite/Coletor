@@ -118,7 +118,6 @@ const Endereco: React.FC = () => {
           <Input
             focus
             icon={GoSearch}
-            percWidth={100}
             type="number"
             name="codEndereco"
             placeholder="Confirme o endereço"

@@ -224,7 +224,6 @@ const ConferenciaWms: React.FC = () => {
             <Form ref={formRefProd} onSubmit={handleGetProduct}>
               <Input
                 icon={FiSearch}
-                percWidth={100}
                 type="number"
                 id="produto"
                 name="produto"

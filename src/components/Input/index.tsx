@@ -13,7 +13,8 @@ import { Container, Error } from './style';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   name: string;
-  percWidth: number;
+  percWidth?: number;
+  description?: string;
   focus?: boolean;
   icon?: React.ComponentType<IconBaseProps>;
 }
@@ -57,7 +58,7 @@ const Input: React.FC<InputProps> = ({
       isErrored={!!error}
       isFilled={isFilled}
       isFocused={isFocused}
-      percWidth={percWidth}
+      width={percWidth || 100}
     >
       {Icon && <Icon size={20} />}
       <input

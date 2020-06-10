@@ -97,7 +97,6 @@ const Inventario: React.FC = () => {
           <Form ref={formRef} onSubmit={handleEndereco}>
             <Input
               focus
-              percWidth={100}
               icon={GoSearch}
               name="endereco"
               type="number"

@@ -6,7 +6,7 @@ interface ContainerProps {
   isFocused: boolean;
   isFilled: boolean;
   isErrored: boolean;
-  percWidth: number;
+  width: number;
 }
 
 export const Container = styled.div<ContainerProps>`
@@ -25,9 +25,9 @@ export const Container = styled.div<ContainerProps>`
   }
 
   ${(props) =>
-    props.percWidth &&
+    props.width &&
     css`
-      width: ${props.percWidth}%;
+      width: ${props.width}%;
     `}
 
   ${(props) =>
