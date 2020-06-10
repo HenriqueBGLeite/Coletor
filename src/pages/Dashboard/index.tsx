@@ -3,6 +3,7 @@ import { useHistory } from 'react-router-dom';
 import ReactLoading from 'react-loading';
 import { FiTruck, FiShoppingCart, FiList, FiEdit, FiBox } from 'react-icons/fi';
 
+import { createMessage } from '../../components/Toast';
 import api from '../../services/api';
 
 import NavBar from '../../components/NavBar';
@@ -53,7 +54,11 @@ const Dashboard: React.FC = () => {
       }
     } else {
       setLoading(false);
-      console.log('Filial não usa WMS. Tela de conferencia MRURAL.');
+      createMessage({
+        type: 'info',
+        message:
+          'Ops... Não foi possível acessar o recurso. Tela em desenvolvimento.',
+      });
     }
   }, [user, history]);
 

@@ -17,10 +17,13 @@ import { Container, Content } from './style';
 
 interface OsInventario {
   codendereco: number;
+  inventos: number;
   tipoender: string;
+  numinvent: number;
   status: string;
   codprod: number;
   qtunitcx: number;
+  descricao: string;
   qt: number;
   contagem: number;
   deposito: number;

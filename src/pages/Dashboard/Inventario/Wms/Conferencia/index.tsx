@@ -19,8 +19,40 @@ import { createMessage } from '../../../../../components/Toast';
 import NavBar from '../../../../../components/NavBar';
 import { Container, Content } from './style';
 
+interface Props {
+  enderecoOrig: [
+    {
+      codendereco: number;
+      inventos: number;
+      tipoender: string;
+      numinvent: number;
+      status: string;
+      codprod: number;
+      qtunitcx: number;
+      descricao: string;
+      qt: number;
+      contagem: number;
+      deposito: number;
+      rua: number;
+      predio: number;
+      nivel: number;
+      apto: number;
+    },
+  ];
+  endereco: {
+    codendereco: number;
+    contagem: number;
+    tipoender: string;
+    codprod: number;
+    qtunitcx: number;
+    descricao: string;
+    numinvent: number;
+  };
+}
+
 interface EndAtualProps {
   codendereco: number;
+  contagem: number;
   tipoender: string;
   codprod: number;
   qtunitcx: number;
@@ -41,7 +73,7 @@ interface SubmitForm {
 const ConferenciaWms: React.FC = () => {
   const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
   const history = useHistory();
-  const endAtual = history.location.state as EndAtualProps;
+  const endAtual = history.location.state as Props;
   const formRefProd = useRef<FormHandles>(null);
   const formRef = useRef<FormHandles>(null);
   const [mostrarDescricao, setMostrarDescricao] = useState(false);
@@ -57,7 +89,8 @@ const ConferenciaWms: React.FC = () => {
   const [loading, setLoanding] = useState(false);
 
   useEffect(() => {
-    setEndereco(endAtual);
+    setEndereco(endAtual.endereco);
+    document.getElementById('produto')?.focus();
   }, [endAtual]);
 
   const handleInputChange = useCallback(
@@ -98,9 +131,9 @@ const ConferenciaWms: React.FC = () => {
           const { codprod, descricao, qtunitcx } = response.data;
 
           setEndereco({ ...endereco, codprod, descricao, qtunitcx });
-
           setMostrarDescricao(true);
           setLoanding(false);
+          document.getElementById('lastro')?.focus();
         }
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
@@ -148,11 +181,38 @@ const ConferenciaWms: React.FC = () => {
   );
 
   const handleSubmitForm = useCallback(
-    (data: object) => {
-      alert('Formulario enviado');
-      history.push('inventario');
+    async (data: object) => {
+      if (window.document.activeElement?.tagName === 'BUTTON') {
+        console.log(data);
+
+        const excludeEndereco = endAtual.enderecoOrig.findIndex(
+          (end) => end.codendereco === endereco.codendereco,
+        );
+
+        if (excludeEndereco >= 0) {
+          const filteredEndereco = endAtual.enderecoOrig.filter(
+            (end) => end.codendereco !== endereco.codendereco,
+          );
+
+          if (filteredEndereco.length > 0) {
+            history.push('endereco-inventario', filteredEndereco);
+          } else {
+            const response = await api.get(
+              `Inventario/getProxOs/${user.code}/${endereco.codendereco}/${endereco.contagem}`,
+            );
+
+            const encontrouEndereco = response.data;
+
+            if (encontrouEndereco) {
+              history.push('endereco-inventario', encontrouEndereco);
+            } else {
+              history.push('inventario');
+            }
+          }
+        }
+      }
     },
-    [history],
+    [history, user.code, endereco, endAtual.enderecoOrig],
   );
 
   return (
@@ -163,7 +223,6 @@ const ConferenciaWms: React.FC = () => {
           <>
             <Form ref={formRefProd} onSubmit={handleGetProduct}>
               <Input
-                focus
                 icon={FiSearch}
                 percWidth={100}
                 type="number"
@@ -268,7 +327,7 @@ const ConferenciaWms: React.FC = () => {
                     disabled
                   />
                 </Content>
-                <button id="button" type="button" onClick={handleSubmitForm}>
+                <button id="button" type="submit">
                   CONFIRMAR
                 </button>
               </Content>

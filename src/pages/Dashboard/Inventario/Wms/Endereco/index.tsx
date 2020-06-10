@@ -42,7 +42,7 @@ const Endereco: React.FC = () => {
   useEffect(() => {
     setEnderecoOrig(endOrig.location.state);
     setEndereco(enderecoOrig[0]);
-  }, [endOrig.location.state, enderecoOrig]);
+  }, [endOrig, enderecoOrig]);
 
   const handleValidateAddress = useCallback(
     async (data) => {
@@ -65,7 +65,7 @@ const Endereco: React.FC = () => {
             message: 'Código informado não confere com o esperado.',
           });
         } else {
-          history.push('conferencia-invetario', endereco);
+          history.push('conferencia-invetario', { endereco, enderecoOrig });
         }
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
@@ -84,7 +84,7 @@ const Endereco: React.FC = () => {
         formRef.current?.setFieldValue('codEndereco', null);
       }
     },
-    [endereco, history, enderecoDigitado],
+    [endereco, history, enderecoDigitado, enderecoOrig],
   );
 
   return (
