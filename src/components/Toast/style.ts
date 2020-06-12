@@ -13,6 +13,7 @@ export const Toast = styled(ToastContainer)`
     background: #ffffd4;
   }
   .Toastify__toast--error {
+    display: contents;
     background: #2b803f;
   }
 `;

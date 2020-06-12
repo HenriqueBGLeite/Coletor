@@ -41,33 +41,50 @@ interface Props {
   ];
   endereco: {
     codendereco: number;
+    status: string;
     contagem: number;
     tipoender: string;
     codprod: number;
     qtunitcx: number;
     descricao: string;
     numinvent: number;
+    inventos: number;
   };
 }
 
 interface EndAtualProps {
   codendereco: number;
+  status: string;
   contagem: number;
   tipoender: string;
   codprod: number;
   qtunitcx: number;
   descricao: string;
   numinvent: number;
+  inventos: number;
 }
 
 interface ProdutoInventario {
   codprod: number;
   descricao: string;
   qtunitcx: number;
+  erro?: string;
+  warning?: string;
 }
 
 interface SubmitForm {
+  numinvent: number;
+  inventos: number;
+  codendereco: number;
+  matdig: number;
+  status: string;
   codprod: number;
+  contagem: number;
+  lastro: number;
+  camada: number;
+  qtcx: number;
+  qtun: number;
+  total: number;
 }
 
 const ConferenciaWms: React.FC = () => {
@@ -113,7 +130,18 @@ const ConferenciaWms: React.FC = () => {
           abortEarly: false,
         });
 
-        if (endereco.codprod !== produto && endereco.tipoender === 'AP') {
+        if (produto === 0 && endereco.tipoender === 'AP') {
+          // mater os dados do endereço e zerar a quantidade
+          document.getElementById('button')?.focus();
+        } else if (produto === 0 && endereco.tipoender === 'AE') {
+          // tiro o produto atual e coloco 0 e zero a quantidade
+          const codprod = 0;
+          setEndereco({ ...endereco, codprod });
+          document.getElementById('button')?.focus();
+        } else if (
+          endereco.codprod !== produto &&
+          endereco.tipoender === 'AP'
+        ) {
           createMessage({
             type: 'error',
             message: 'Endereço de picking. Não foi possível alterar o produto.',
@@ -128,12 +156,23 @@ const ConferenciaWms: React.FC = () => {
             `Inventario/getProdutoInventario/${produto}/${user.filial}`,
           );
 
-          const { codprod, descricao, qtunitcx } = response.data;
+          const { erro, warning } = response.data;
 
-          setEndereco({ ...endereco, codprod, descricao, qtunitcx });
-          setMostrarDescricao(true);
-          setLoanding(false);
-          document.getElementById('lastro')?.focus();
+          if (warning === 'N' && erro === 'N') {
+            const { codprod, descricao, qtunitcx } = response.data;
+
+            setEndereco({ ...endereco, codprod, descricao, qtunitcx });
+            setMostrarDescricao(true);
+            setLoanding(false);
+            document.getElementById('lastro')?.focus();
+          } else {
+            createMessage({
+              type: 'error',
+              message: 'Produto informado não foi encontrado.',
+            });
+            setLoanding(false);
+            document.getElementById('produto')?.focus();
+          }
         }
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
@@ -169,7 +208,7 @@ const ConferenciaWms: React.FC = () => {
         document.getElementById('qtun')?.focus();
       }
       if (event.target.id === 'qtun' && event.key === 'Enter') {
-        document.getElementById('button')?.focus();
+        document.getElementById('total')?.focus();
       }
 
       setTotal(
@@ -181,34 +220,69 @@ const ConferenciaWms: React.FC = () => {
   );
 
   const handleSubmitForm = useCallback(
-    async (data: object) => {
+    async (data: SubmitForm) => {
       if (window.document.activeElement?.tagName === 'BUTTON') {
-        console.log(data);
+        setLoanding(true);
 
-        const excludeEndereco = endAtual.enderecoOrig.findIndex(
-          (end) => end.codendereco === endereco.codendereco,
-        );
+        const {
+          numinvent,
+          inventos,
+          codendereco,
+          codprod,
+          contagem,
+        } = endereco;
 
-        if (excludeEndereco >= 0) {
-          const filteredEndereco = endAtual.enderecoOrig.filter(
-            (end) => end.codendereco !== endereco.codendereco,
+        data.codendereco = codendereco;
+        data.status = endereco.status;
+        data.matdig = user.code;
+        data.inventos = inventos;
+        data.numinvent = numinvent;
+        data.codprod = codprod;
+        data.contagem = contagem;
+        try {
+          const salvou = await api.post(
+            'Inventario/gravaProdutoInventario',
+            data,
           );
 
-          if (filteredEndereco.length > 0) {
-            history.push('endereco-inventario', filteredEndereco);
-          } else {
-            const response = await api.get(
-              `Inventario/getProxOs/${user.code}/${endereco.codendereco}/${endereco.contagem}`,
+          if (salvou.data) {
+            const excludeEndereco = endAtual.enderecoOrig.findIndex(
+              (end) => end.codendereco === endereco.codendereco,
             );
 
-            const encontrouEndereco = response.data;
+            if (excludeEndereco >= 0) {
+              const filteredEndereco = endAtual.enderecoOrig.filter(
+                (end) => end.codendereco !== endereco.codendereco,
+              );
+              if (filteredEndereco.length > 0) {
+                history.push('endereco-inventario', filteredEndereco);
+              } else {
+                const response = await api.get(
+                  `Inventario/getProxOs/${user.code}/${endereco.codendereco}/${endereco.contagem}`,
+                );
 
-            if (encontrouEndereco) {
-              history.push('endereco-inventario', encontrouEndereco);
-            } else {
-              history.push('inventario');
+                const encontrouEndereco = response.data;
+
+                if (encontrouEndereco.length > 0) {
+                  history.push('endereco-inventario', encontrouEndereco);
+                } else {
+                  history.push('inventario');
+                }
+              }
             }
+          } else {
+            createMessage({
+              type: 'error',
+              message: 'Erro ao salvar conferência. Tente novamente.',
+            });
+            setLoanding(false);
           }
+        } catch (err) {
+          createMessage({
+            type: 'error',
+            message: err,
+          });
+          setLoanding(false);
         }
       }
     },
@@ -323,7 +397,7 @@ const ConferenciaWms: React.FC = () => {
                     type="number"
                     placeholder="Total"
                     value={total}
-                    disabled
+                    readOnly
                   />
                 </Content>
                 <button id="button" type="submit">

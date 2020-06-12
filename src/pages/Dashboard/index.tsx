@@ -41,7 +41,7 @@ const Dashboard: React.FC = () => {
 
         const enderecoOs = response.data;
 
-        if (enderecoOs === null) {
+        if (enderecoOs === null || enderecoOs.length === 0) {
           setLoading(false);
           history.push('inventario');
         } else {

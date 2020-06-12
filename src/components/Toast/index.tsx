@@ -8,7 +8,7 @@ interface ToastDTO {
   message: string;
 }
 
-export const createMessage = ({ type, message }: ToastDTO): void => {
+const createMessage = ({ type, message }: ToastDTO): void => {
   switch (type) {
     case 'success':
       toast.success(message);
@@ -26,4 +26,4 @@ export const createMessage = ({ type, message }: ToastDTO): void => {
 
 const ToastAnimated: React.FC = () => <Toast />;
 
-export { ToastAnimated };
+export { ToastAnimated, createMessage };
