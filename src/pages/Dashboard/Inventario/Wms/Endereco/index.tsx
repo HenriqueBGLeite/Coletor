@@ -120,7 +120,7 @@ const Endereco: React.FC = () => {
             icon={GoSearch}
             type="number"
             name="codEndereco"
-            placeholder="Confirme o endereço"
+            description="Confirme o endereço"
             onChange={(e) => setEnderecoDigitado(e.target.value)}
           />
         </Form>

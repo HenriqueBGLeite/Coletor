@@ -100,7 +100,7 @@ const Inventario: React.FC = () => {
               icon={GoSearch}
               name="endereco"
               type="number"
-              placeholder="Cod.Endereço"
+              description="Cód.Endereço"
               onChange={(e) => setEndereco(e.target.value)}
             />
           </Form>

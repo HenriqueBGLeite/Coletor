@@ -39,8 +39,7 @@ export const AnimationContainer = styled.div`
 
   img {
     width: 100%;
-    max-height: 370px;
-    border-radius: 8px;
+    max-height: 200px;
   }
 
   form {
@@ -56,16 +55,12 @@ export const AnimationContainer = styled.div`
     h1 {
       width: 100%;
       color: #005129;
-      margin-bottom: 24px;
+      margin-bottom: 16px;
       font-size: 25px;
-      font: bold;
     }
 
-    select {
-      option {
-        flex: 1;
-        background: #dcdce6;
-      }
+    option {
+      background: #dcdce6;
     }
   }
 `;

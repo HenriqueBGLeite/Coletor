@@ -85,15 +85,16 @@ const SignIn: React.FC = () => {
               name="code"
               icon={FiUser}
               type="number"
-              placeholder="Código de usuário"
+              description="Código de usuário"
             />
             <Input
               name="password"
               icon={FiLock}
               type="password"
-              placeholder="Senha"
+              description="Código de usuário"
             />
-            <Select name="base" icon={FiHome} percWidth={100}>
+            <Select name="base" icon={FiHome}>
+              <option value="">Selecione sua filial...</option>
               <option value="EPOCA">Época</option>
               <option value="MRURAL">Minas Rural</option>
               <option value="TESTE-EPOCA">Época Teste</option>

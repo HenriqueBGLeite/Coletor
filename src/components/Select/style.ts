@@ -5,7 +5,7 @@ interface ContainerProps {
   isFocused: boolean;
   isFilled: boolean;
   isErrored: boolean;
-  percWidth: number;
+  width: number;
 }
 
 export const Container = styled.div<ContainerProps>`
@@ -20,9 +20,9 @@ export const Container = styled.div<ContainerProps>`
   align-items: center;
 
   ${(props) =>
-    props.percWidth &&
+    props.width &&
     css`
-      width: ${props.percWidth}%;
+      width: ${props.width}%;
     `}
 
   ${(props) =>
@@ -49,6 +49,7 @@ export const Container = styled.div<ContainerProps>`
     flex: 1;
     background: transparent;
     border: 0;
+    border-radius: 8px;
     color: #333;
   }
 

@@ -84,7 +84,6 @@ const Dashboard: React.FC = () => {
               <button
                 type="button"
                 onClick={() => history.push('consult-products')}
-                disabled
               >
                 DADOS PRODUTO
                 <FiEdit />

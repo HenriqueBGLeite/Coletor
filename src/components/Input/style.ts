@@ -64,6 +64,45 @@ export const Container = styled.div<ContainerProps>`
   svg {
     margin-right: 16px;
   }
+
+  .label-float{
+    position: relative;
+    padding-top: 13px;
+  }
+
+  .label-float input {
+    flex: 1;
+    width: 100%;
+    background: transparent;
+    border: 0;
+    color: #333;
+    font-size: 20px;
+    transition: all .3s ease-out;
+  }
+
+  .label-float input::placeholder{
+    color:transparent;
+  }
+
+  .label-float label{
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: #878787;
+    margin-top: 10px;
+    transition: all .3s ease-out;
+    -webkit-transition: all .3s ease-out;
+    -moz-transition: all .3s ease-out;
+  }
+
+  .label-float input:focus + label,
+
+  .label-float input:not(:placeholder-shown) + label {
+      font-size: 10px;
+      margin-top: 0;
+      color: #878787;
+  }
 `;
 
 export const Error = styled(Tooltip)`

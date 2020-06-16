@@ -10,7 +10,7 @@ const api = axios.create({
 api.interceptors.request.use(async (config) => {
   const token = localStorage.getItem('@EpocaColetor:token');
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`; // eslint-disable-line
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });

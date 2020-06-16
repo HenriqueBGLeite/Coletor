@@ -13,7 +13,7 @@ import { Container, Error } from './style';
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   name: string;
-  percWidth: number;
+  percWidth?: number;
   icon?: React.ComponentType<IconBaseProps>;
 }
 
@@ -51,7 +51,7 @@ const Select: React.FC<SelectProps> = ({
       isErrored={!!error}
       isFilled={isFilled}
       isFocused={isFocused}
-      percWidth={percWidth}
+      width={percWidth || 100}
     >
       {Icon && <Icon size={20} />}
       <select

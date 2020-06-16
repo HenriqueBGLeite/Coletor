@@ -79,6 +79,7 @@ interface SubmitForm {
   matdig: number;
   status: string;
   codprod: number;
+  qtunitcx: number;
   contagem: number;
   lastro: number;
   camada: number;
@@ -132,10 +133,12 @@ const ConferenciaWms: React.FC = () => {
 
         if (produto === 0 && endereco.tipoender === 'AP') {
           // mater os dados do endereço e zerar a quantidade
+          setTotal(0);
           document.getElementById('button')?.focus();
         } else if (produto === 0 && endereco.tipoender === 'AE') {
           // tiro o produto atual e coloco 0 e zero a quantidade
           const codprod = 0;
+          setTotal(0);
           setEndereco({ ...endereco, codprod });
           document.getElementById('button')?.focus();
         } else if (
@@ -230,6 +233,7 @@ const ConferenciaWms: React.FC = () => {
           codendereco,
           codprod,
           contagem,
+          qtunitcx,
         } = endereco;
 
         data.codendereco = codendereco;
@@ -239,6 +243,8 @@ const ConferenciaWms: React.FC = () => {
         data.numinvent = numinvent;
         data.codprod = codprod;
         data.contagem = contagem;
+        data.qtunitcx = qtunitcx;
+
         try {
           const salvou = await api.post(
             'Inventario/gravaProdutoInventario',
@@ -301,7 +307,7 @@ const ConferenciaWms: React.FC = () => {
                 type="number"
                 id="produto"
                 name="produto"
-                placeholder="EAN/DUN/CODPROD"
+                description="EAN/DUN/CODPROD"
                 onChange={handleInputChange}
               />
             </Form>
@@ -328,7 +334,7 @@ const ConferenciaWms: React.FC = () => {
                     percWidth={31}
                     name="qtunitcx"
                     type="number"
-                    placeholder="Qt.Unit.Cx"
+                    description="Qt.Unit.Cx"
                     disabled
                   />
                 ) : (
@@ -337,7 +343,7 @@ const ConferenciaWms: React.FC = () => {
                     name="qtunitcx"
                     type="number"
                     defaultValue={endereco.qtunitcx}
-                    placeholder="Qt.Unit.Cx"
+                    description="Qt.Unit.Cx"
                     disabled
                   />
                 )}
@@ -347,7 +353,7 @@ const ConferenciaWms: React.FC = () => {
                   id="lastro"
                   name="lastro"
                   type="number"
-                  placeholder="Lastro"
+                  description="Lastro"
                   onChange={(e) => setLastro(Number(e.target.value))}
                   onKeyPress={handleCalcTotal}
                 />
@@ -357,7 +363,7 @@ const ConferenciaWms: React.FC = () => {
                   id="camada"
                   name="camada"
                   type="number"
-                  placeholder="Camada"
+                  description="Camada"
                   onChange={(e) => setCamada(Number(e.target.value))}
                   onKeyPress={handleCalcTotal}
                 />
@@ -366,7 +372,7 @@ const ConferenciaWms: React.FC = () => {
                   percWidth={99}
                   name="dtvalidade"
                   type="text"
-                  placeholder="Data validade"
+                  description="Data validade"
                   disabled
                 />
                 <Content>
@@ -375,7 +381,7 @@ const ConferenciaWms: React.FC = () => {
                     id="qtcx"
                     name="qtcx"
                     type="number"
-                    placeholder="Qt.Cx"
+                    description="Qt.Cx"
                     onChange={(e) => setCx(Number(e.target.value))}
                     onKeyPress={handleCalcTotal}
                   />
@@ -385,7 +391,7 @@ const ConferenciaWms: React.FC = () => {
                     id="qtun"
                     name="qtun"
                     type="number"
-                    placeholder="Qt.Un"
+                    description="Qt.Un"
                     onChange={(e) => setUn(Number(e.target.value))}
                     onKeyPress={handleCalcTotal}
                   />
@@ -395,7 +401,7 @@ const ConferenciaWms: React.FC = () => {
                     id="total"
                     name="total"
                     type="number"
-                    placeholder="Total"
+                    description="Total"
                     value={total}
                     readOnly
                   />

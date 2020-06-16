@@ -23,6 +23,7 @@ const Input: React.FC<InputProps> = ({
   name,
   percWidth,
   focus,
+  description,
   icon: Icon,
   ...rest
 }) => {
@@ -61,13 +62,17 @@ const Input: React.FC<InputProps> = ({
       width={percWidth || 100}
     >
       {Icon && <Icon size={20} />}
-      <input
-        onFocus={handleInputFocus}
-        onBlur={handleInputBlur}
-        defaultValue={defaultValue}
-        ref={inputRef}
-        {...rest}
-      />
+      <div className="label-float">
+        <input
+          onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
+          defaultValue={defaultValue}
+          ref={inputRef}
+          placeholder=" "
+          {...rest}
+        />
+        {description && <label htmlFor={description}>{description}</label>}
+      </div>
 
       {error && (
         <Error title={error}>
