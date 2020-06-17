@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { useHistory } from 'react-router-dom';
 import ReactLoading from 'react-loading';
-import { FiZoomIn } from 'react-icons/fi';
+import { FiZoomIn, FiHome } from 'react-icons/fi';
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
+import * as Yup from 'yup';
 import api from '../../../services/api';
 
 import { createMessage } from '../../../components/Toast';
@@ -51,29 +53,58 @@ const ConsultProducts: React.FC = () => {
   const [produto, setProduto] = useState<Produto>({} as Produto);
   const [inputProduto, setInputProduto] = useState(0);
 
+  const history = useHistory();
+
   useEffect(() => {
     api.get(`PesquisaProduto/getFiliais/${user.code}`).then((response) => {
       const filiaisData = response.data;
-      setFiliais(filiaisData);
+      if (filiaisData) {
+        setFiliais(filiaisData);
+      } else {
+        history.goBack();
+      }
     });
-  }, [user.code]);
+  }, [user.code, history]);
 
   const handleGetProduct = useCallback(
     async (data: DataForm) => {
       setLoading(true);
-      const response = await api.get(
-        `PesquisaProduto/getProduto/${inputProduto}/${data.filial}`,
-      );
+      try {
+        const schema = Yup.object().shape({
+          codprod: Yup.string().required('Código obrigatório.'),
+          filial: Yup.string().required('Filial obrigatória.'),
+        });
 
-      const prod = response.data;
-      setProduto(prod);
-      setLoading(false);
+        await schema.validate(data, {
+          abortEarly: false,
+        });
+
+        const response = await api.get(
+          `PesquisaProduto/getProduto/${inputProduto}/${data.filial}`,
+        );
+
+        const prod = response.data;
+        setProduto(prod);
+        setLoading(false);
+      } catch (err) {
+        if (err instanceof Yup.ValidationError) {
+          createMessage({
+            type: 'error',
+            message:
+              'Verifique se o código e a filial estão informados corretamente.',
+          });
+          setLoading(false);
+          return;
+        }
+        setLoading(false);
+      }
     },
     [inputProduto],
   );
 
   const handleSubmit = useCallback(async (data: DataForm) => {
     if (window.document.activeElement?.tagName === 'BUTTON') {
+      console.log(data);
       createMessage({
         type: 'info',
         message: 'Ops... ainda não esta pronto. Tela em construção.',
@@ -92,7 +123,7 @@ const ConsultProducts: React.FC = () => {
             <Header>
               <Input
                 focus
-                percWidth={77}
+                percWidth={68}
                 name="codprod"
                 id="codprod"
                 icon={FiZoomIn}
@@ -100,7 +131,8 @@ const ConsultProducts: React.FC = () => {
                 description="EAN/DUN/CODPROD"
                 onChange={(e) => setInputProduto(Number(e.target.value))}
               />
-              <Select name="filial" percWidth={20}>
+              <Select name="filial" percWidth={30} icon={FiHome}>
+                <option value=""> </option>
                 {filiais.map((filial) => (
                   <option key={filial.codfilial} value={filial.codfilial}>
                     {filial.codfilial}

@@ -40,6 +40,7 @@ export const Content = styled.div`
 `;
 
 export const Header = styled.div`
+  width: 100%;
   display: flex;
   margin-bottom: 8px;
   flex-wrap: wrap;
@@ -54,6 +55,7 @@ export const Header = styled.div`
 `;
 
 export const Fieldset = styled.fieldset`
+  width: 100%;
   padding: 6px;
   border-radius: 10px;
   margin: 6px 0 6px 0;

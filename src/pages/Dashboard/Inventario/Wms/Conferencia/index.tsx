@@ -268,8 +268,7 @@ const ConferenciaWms: React.FC = () => {
                 );
 
                 const encontrouEndereco = response.data;
-
-                if (encontrouEndereco.length > 0) {
+                if (encontrouEndereco !== null) {
                   history.push('endereco-inventario', encontrouEndereco);
                 } else {
                   history.push('inventario');
