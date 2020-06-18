@@ -182,6 +182,7 @@ const ConsultProducts: React.FC = () => {
                       defaultValue={produto.qtunit}
                       disabled
                     />
+                    <p style={{ margin: 0, width: '100%' }} />
                     <Input
                       name="ean"
                       type="number"
@@ -219,12 +220,14 @@ const ConsultProducts: React.FC = () => {
                       defaultValue={produto.qtcx}
                       disabled
                     />
+                    <p style={{ margin: 0, width: '100%' }} />
                     <Input
                       name="dun"
                       type="number"
                       description="Cód.Barras Master"
                       defaultValue={produto.dun}
                     />
+                    <p style={{ margin: 0, width: '100%' }} />
                     <Input
                       percWidth={20}
                       name="alt"
@@ -233,7 +236,7 @@ const ConsultProducts: React.FC = () => {
                       defaultValue={produto.alt}
                     />
                     <Input
-                      percWidth={20}
+                      percWidth={21}
                       name="larg"
                       type="number"
                       description="Larg"
@@ -247,7 +250,7 @@ const ConsultProducts: React.FC = () => {
                       defaultValue={produto.comp}
                     />
                     <Input
-                      percWidth={29}
+                      percWidth={30}
                       name="peso"
                       type="number"
                       description="Peso(kg)"

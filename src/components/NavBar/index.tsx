@@ -1,6 +1,6 @@
 import React from 'react';
 import { useHistory } from 'react-router-dom';
-import { FiHome, FiLogOut } from 'react-icons/fi';
+import { FiHome, FiLogOut, FiArrowLeft } from 'react-icons/fi';
 
 import { useAuth } from '../../hooks/auth';
 
@@ -15,6 +15,7 @@ const NavBar: React.FC<NavBarProps> = (props) => {
   const history = useHistory();
   const { signOut } = useAuth();
   const { numInvent } = props;
+  const validaButtonSair = history.location.pathname;
 
   return (
     <Container>
@@ -28,10 +29,17 @@ const NavBar: React.FC<NavBarProps> = (props) => {
         </p>
         {numInvent ? <p>INVENTÁRIO {numInvent}</p> : ''}
       </div>
-      <button type="button" onClick={signOut}>
-        <FiLogOut />
-        Sair
-      </button>
+      {validaButtonSair === '/dashboard' ? (
+        <button type="button" onClick={signOut}>
+          <FiLogOut />
+          Sair
+        </button>
+      ) : (
+        <button type="button" onClick={() => history.goBack()}>
+          <FiArrowLeft />
+          Voltar
+        </button>
+      )}
     </Container>
   );
 };
