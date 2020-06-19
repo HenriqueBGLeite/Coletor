@@ -14,6 +14,8 @@ interface EnderecoInventario {
   tipoender: string;
   status: string;
   codprod: number;
+  ean: number;
+  dun: number;
   qtunitcx: number;
   qt: number;
   contagem: number;
@@ -64,7 +66,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <>
-      <NavBar />
+      <NavBar voltar />
       <Container>
         <Loanding>
           {!loading ? (

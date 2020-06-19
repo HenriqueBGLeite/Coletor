@@ -20,6 +20,20 @@ export const Content = styled.div`
       font-size: 16px;
     }
 
+    #detalhe {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+
+      button {
+        width: 49%;
+      }
+
+      button + button {
+        margin-left: 5px;
+      }
+    }
+
     button {
       background: #c22e2c;
       color: #fff;

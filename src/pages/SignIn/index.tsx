@@ -91,7 +91,7 @@ const SignIn: React.FC = () => {
               name="password"
               icon={FiLock}
               type="password"
-              description="Código de usuário"
+              description="Senha do usuário"
             />
             <Select name="base" icon={FiHome}>
               <option value="">Selecione sua filial...</option>

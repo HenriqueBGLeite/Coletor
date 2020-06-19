@@ -45,6 +45,8 @@ interface Props {
     contagem: number;
     tipoender: string;
     codprod: number;
+    ean: number;
+    dun: number;
     qtunitcx: number;
     descricao: string;
     numinvent: number;
@@ -58,6 +60,8 @@ interface EndAtualProps {
   contagem: number;
   tipoender: string;
   codprod: number;
+  ean: number;
+  dun: number;
   qtunitcx: number;
   descricao: string;
   numinvent: number;
@@ -142,40 +146,48 @@ const ConferenciaWms: React.FC = () => {
           setEndereco({ ...endereco, codprod });
           document.getElementById('button')?.focus();
         } else if (
-          endereco.codprod !== produto &&
-          endereco.tipoender === 'AP'
+          (endereco.codprod === produto && endereco.tipoender === 'AP') ||
+          (endereco.ean === produto && endereco.tipoender === 'AP') ||
+          (endereco.dun === produto && endereco.tipoender === 'AP') ||
+          endereco.tipoender === 'AE'
         ) {
+          if (
+            endereco.codprod === produto ||
+            endereco.ean === produto ||
+            endereco.dun === produto
+          ) {
+            document.getElementById('lastro')?.focus();
+            setMostrarDescricao(true);
+          } else {
+            setLoanding(true);
+            const response = await api.get<ProdutoInventario>(
+              `Inventario/getProdutoInventario/${produto}/${user.filial}`,
+            );
+
+            const { erro, warning } = response.data;
+
+            if (warning === 'N' && erro === 'N') {
+              const { codprod, descricao, qtunitcx } = response.data;
+
+              setEndereco({ ...endereco, codprod, descricao, qtunitcx });
+              setMostrarDescricao(true);
+              setLoanding(false);
+              document.getElementById('lastro')?.focus();
+            } else {
+              createMessage({
+                type: 'error',
+                message: 'Produto informado não foi encontrado.',
+              });
+              setLoanding(false);
+              document.getElementById('produto')?.focus();
+            }
+          }
+        } else {
           createMessage({
             type: 'error',
             message: 'Endereço de picking. Não foi possível alterar o produto.',
           });
           formRefProd.current?.setFieldValue('produto', null);
-        } else if (endereco.codprod === produto) {
-          document.getElementById('lastro')?.focus();
-          setMostrarDescricao(true);
-        } else {
-          setLoanding(true);
-          const response = await api.get<ProdutoInventario>(
-            `Inventario/getProdutoInventario/${produto}/${user.filial}`,
-          );
-
-          const { erro, warning } = response.data;
-
-          if (warning === 'N' && erro === 'N') {
-            const { codprod, descricao, qtunitcx } = response.data;
-
-            setEndereco({ ...endereco, codprod, descricao, qtunitcx });
-            setMostrarDescricao(true);
-            setLoanding(false);
-            document.getElementById('lastro')?.focus();
-          } else {
-            createMessage({
-              type: 'error',
-              message: 'Produto informado não foi encontrado.',
-            });
-            setLoanding(false);
-            document.getElementById('produto')?.focus();
-          }
         }
       } catch (err) {
         if (err instanceof Yup.ValidationError) {

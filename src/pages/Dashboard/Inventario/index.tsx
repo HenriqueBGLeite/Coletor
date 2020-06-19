@@ -22,6 +22,8 @@ interface OsInventario {
   numinvent: number;
   status: string;
   codprod: number;
+  ean: number;
+  dun: number;
   qtunitcx: number;
   descricao: string;
   qt: number;

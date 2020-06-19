@@ -8,13 +8,14 @@ import { Container } from './style';
 
 interface NavBarProps {
   numInvent?: number;
+  voltar?: boolean;
 }
 
 const NavBar: React.FC<NavBarProps> = (props) => {
   const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
   const history = useHistory();
   const { signOut } = useAuth();
-  const { numInvent } = props;
+  const { numInvent, voltar } = props;
   const validaButtonSair = history.location.pathname;
 
   return (
@@ -29,13 +30,13 @@ const NavBar: React.FC<NavBarProps> = (props) => {
         </p>
         {numInvent ? <p>INVENTÁRIO {numInvent}</p> : ''}
       </div>
-      {validaButtonSair === '/dashboard' ? (
+      {voltar && validaButtonSair === '/dashboard' ? (
         <button type="button" onClick={signOut}>
           <FiLogOut />
           Sair
         </button>
       ) : (
-        <button type="button" onClick={() => history.goBack()}>
+        <button type="button" onClick={() => history.push('/dashboard')}>
           <FiArrowLeft />
           Voltar
         </button>

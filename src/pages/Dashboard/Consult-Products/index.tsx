@@ -34,9 +34,17 @@ interface Produto {
   larg: number;
   comp: number;
   peso: number;
+  altUn: number;
+  largUn: number;
+  compUn: number;
+  pesoUn: number;
   lastro: number;
   camada: number;
   total: number;
+  capacidade: number;
+  reposicao: number;
+  prazoValidade: number;
+  shelfLife: number;
 }
 
 interface DataForm {
@@ -104,12 +112,11 @@ const ConsultProducts: React.FC = () => {
 
   const handleSubmit = useCallback(async (data: DataForm) => {
     if (window.document.activeElement?.tagName === 'BUTTON') {
-      console.log(data);
       createMessage({
         type: 'info',
         message: 'Ops... ainda não esta pronto. Tela em construção.',
       });
-      formRefProd.current?.clearField('codprod');
+      // formRefProd.current?.clearField('codprod');
       document.getElementById('codprod')?.focus();
     }
   }, []);
@@ -175,7 +182,7 @@ const ConsultProducts: React.FC = () => {
                       disabled
                     />
                     <Input
-                      percWidth={25}
+                      percWidth={25.6}
                       name="qtunit"
                       type="text"
                       description="Qt.Unit"
@@ -188,6 +195,35 @@ const ConsultProducts: React.FC = () => {
                       type="number"
                       description="Cód.Barras Unit."
                       defaultValue={produto.ean}
+                    />
+                    <p style={{ margin: 0, width: '100%' }} />
+                    <Input
+                      percWidth={20}
+                      name="altUn"
+                      type="number"
+                      description="Alt"
+                      defaultValue={produto.altUn}
+                    />
+                    <Input
+                      percWidth={21.4}
+                      name="largUn"
+                      type="number"
+                      description="Larg"
+                      defaultValue={produto.largUn}
+                    />
+                    <Input
+                      percWidth={22.4}
+                      name="compUn"
+                      type="number"
+                      description="Comp"
+                      defaultValue={produto.compUn}
+                    />
+                    <Input
+                      percWidth={30}
+                      name="pesoUn"
+                      type="number"
+                      description="Peso(kg)"
+                      defaultValue={produto.pesoUn}
                     />
                   </div>
                 </Fieldset>
@@ -213,7 +249,7 @@ const ConsultProducts: React.FC = () => {
                       disabled
                     />
                     <Input
-                      percWidth={25}
+                      percWidth={25.6}
                       name="qtcx"
                       type="text"
                       description="Qt.Cx"
@@ -236,14 +272,14 @@ const ConsultProducts: React.FC = () => {
                       defaultValue={produto.alt}
                     />
                     <Input
-                      percWidth={21}
+                      percWidth={21.4}
                       name="larg"
                       type="number"
                       description="Larg"
                       defaultValue={produto.larg}
                     />
                     <Input
-                      percWidth={22}
+                      percWidth={22.4}
                       name="comp"
                       type="number"
                       description="Comp"
@@ -264,14 +300,14 @@ const ConsultProducts: React.FC = () => {
                   </legend>
                   <div className="wrap">
                     <Input
-                      percWidth={31}
+                      percWidth={31.4}
                       name="lastro"
                       type="number"
                       description="Lastro"
                       defaultValue={produto.lastro}
                     />
                     <Input
-                      percWidth={31}
+                      percWidth={31.4}
                       name="camada"
                       type="number"
                       description="Camada"
@@ -287,7 +323,84 @@ const ConsultProducts: React.FC = () => {
                     />
                   </div>
                 </Fieldset>
-                <button type="submit">Gravar</button>
+                <Fieldset title="Dados Adicionais">
+                  <legend>
+                    <span>DADOS ADICIONAIS</span>
+                  </legend>
+                  <div className="wrap">
+                    <Input
+                      percWidth={49}
+                      name="capacidade"
+                      type="number"
+                      description="Capacidade"
+                      defaultValue={produto.capacidade}
+                    />
+                    <Input
+                      percWidth={49}
+                      name="reposicao"
+                      type="number"
+                      description="Reposicao"
+                      defaultValue={produto.reposicao}
+                    />
+                    <p style={{ margin: 0, width: '100%' }} />
+                    <Input
+                      percWidth={49}
+                      name="prazoValidade"
+                      type="number"
+                      description="Prazo Validade"
+                      defaultValue={produto.prazoValidade}
+                    />
+                    <Input
+                      percWidth={49}
+                      name="shelfLife"
+                      type="number"
+                      description="Shelf Life (%)"
+                      defaultValue={produto.shelfLife}
+                    />
+                  </div>
+                </Fieldset>
+
+                {produto.codprod ? (
+                  <>
+                    <div id="detalhe">
+                      <button
+                        type="button"
+                        onClick={() => console.log('Tela de estoque')}
+                      >
+                        Estoque
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => console.log('Tela de endereços')}
+                      >
+                        Endereços
+                      </button>
+                    </div>
+                    <button type="submit">Gravar</button>
+                  </>
+                ) : (
+                  <>
+                    <div id="detalhe">
+                      <button
+                        type="button"
+                        onClick={() => console.log('Tela de estoque')}
+                        disabled
+                      >
+                        Estoque
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => console.log('Tela de endereços')}
+                        disabled
+                      >
+                        Endereços
+                      </button>
+                    </div>
+                    <button type="submit" disabled>
+                      Gravar
+                    </button>
+                  </>
+                )}
               </Form>
             ) : (
               <ReactLoading
