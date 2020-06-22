@@ -95,6 +95,7 @@ interface SubmitForm {
 const ConferenciaWms: React.FC = () => {
   const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
   const history = useHistory();
+  const location = history.location.pathname;
   const endAtual = history.location.state as Props;
   const formRefProd = useRef<FormHandles>(null);
   const formRef = useRef<FormHandles>(null);
@@ -138,12 +139,15 @@ const ConferenciaWms: React.FC = () => {
         if (produto === 0 && endereco.tipoender === 'AP') {
           // mater os dados do endereço e zerar a quantidade
           setTotal(0);
+          setMostrarDescricao(true);
           document.getElementById('button')?.focus();
         } else if (produto === 0 && endereco.tipoender === 'AE') {
           // tiro o produto atual e coloco 0 e zero a quantidade
           const codprod = 0;
+          const Newdescricao = '';
           setTotal(0);
-          setEndereco({ ...endereco, codprod });
+          setEndereco({ ...endereco, codprod, descricao: Newdescricao });
+          setMostrarDescricao(true);
           document.getElementById('button')?.focus();
         } else if (
           (endereco.codprod === produto && endereco.tipoender === 'AP') ||
@@ -239,71 +243,98 @@ const ConferenciaWms: React.FC = () => {
       if (window.document.activeElement?.tagName === 'BUTTON') {
         setLoanding(true);
 
-        const {
-          numinvent,
-          inventos,
-          codendereco,
-          codprod,
-          contagem,
-          qtunitcx,
-        } = endereco;
+        if (
+          (endereco.tipoender === 'AP' || endereco.tipoender === 'AE') &&
+          produto !== 0 &&
+          total === 0
+        ) {
+          createMessage({
+            type: 'error',
+            message: 'Não é possível salvar o item sem quantidade.',
+          });
+          setLoanding(false);
+          document.getElementById('lastro')?.focus();
+        } else {
+          const {
+            numinvent,
+            inventos,
+            codendereco,
+            codprod,
+            contagem,
+            qtunitcx,
+          } = endereco;
 
-        data.codendereco = codendereco;
-        data.status = endereco.status;
-        data.matdig = user.code;
-        data.inventos = inventos;
-        data.numinvent = numinvent;
-        data.codprod = codprod;
-        data.contagem = contagem;
-        data.qtunitcx = qtunitcx;
+          data.codendereco = codendereco;
+          data.status = endereco.status;
+          data.matdig = user.code;
+          data.inventos = inventos;
+          data.numinvent = numinvent;
+          data.codprod = codprod;
+          data.contagem = contagem;
+          data.qtunitcx = qtunitcx;
 
-        try {
-          const salvou = await api.post(
-            'Inventario/gravaProdutoInventario',
-            data,
-          );
-
-          if (salvou.data) {
-            const excludeEndereco = endAtual.enderecoOrig.findIndex(
-              (end) => end.codendereco === endereco.codendereco,
+          try {
+            const salvou = await api.post(
+              'Inventario/gravaProdutoInventario',
+              data,
             );
 
-            if (excludeEndereco >= 0) {
-              const filteredEndereco = endAtual.enderecoOrig.filter(
-                (end) => end.codendereco !== endereco.codendereco,
+            if (salvou.data) {
+              const excludeEndereco = endAtual.enderecoOrig.findIndex(
+                (end) => end.codendereco === endereco.codendereco,
               );
-              if (filteredEndereco.length > 0) {
-                history.push('endereco-inventario', filteredEndereco);
-              } else {
-                const response = await api.get(
-                  `Inventario/getProxOs/${user.code}/${endereco.codendereco}/${endereco.contagem}`,
-                );
 
-                const encontrouEndereco = response.data;
-                if (encontrouEndereco !== null) {
-                  history.push('endereco-inventario', encontrouEndereco);
+              if (excludeEndereco >= 0) {
+                const filteredEndereco = endAtual.enderecoOrig.filter(
+                  (end) => end.codendereco !== endereco.codendereco,
+                );
+                if (filteredEndereco.length > 0) {
+                  history.push(
+                    `${location}/endereco-inventario`,
+                    filteredEndereco,
+                  );
                 } else {
-                  history.push('inventario');
+                  const response = await api.get(
+                    `Inventario/getProxOs/${user.code}/${endereco.codendereco}/${endereco.contagem}`,
+                  );
+
+                  const encontrouEndereco = response.data;
+                  if (encontrouEndereco !== null) {
+                    history.push(
+                      `${location}/endereco-inventario`,
+                      encontrouEndereco,
+                    );
+                  } else {
+                    history.push(`${location}/inventario`);
+                  }
                 }
               }
+            } else {
+              createMessage({
+                type: 'error',
+                message: 'Erro ao salvar conferência. Tente novamente.',
+              });
+              setLoanding(false);
             }
-          } else {
+          } catch (err) {
             createMessage({
               type: 'error',
-              message: 'Erro ao salvar conferência. Tente novamente.',
+              message: err,
             });
             setLoanding(false);
           }
-        } catch (err) {
-          createMessage({
-            type: 'error',
-            message: err,
-          });
-          setLoanding(false);
         }
       }
     },
-    [history, user.code, endereco, endAtual.enderecoOrig],
+    [
+      history,
+      location,
+      produto,
+      total,
+      user.code,
+      endereco,
+      endAtual.enderecoOrig,
+    ],
   );
 
   return (
@@ -366,7 +397,8 @@ const ConferenciaWms: React.FC = () => {
                   type="number"
                   description="Lastro"
                   onChange={(e) => setLastro(Number(e.target.value))}
-                  onKeyPress={handleCalcTotal}
+                  // onKeyPress={handleCalcTotal}
+                  onKeyUp={handleCalcTotal}
                 />
                 <p>X</p>
                 <Input
@@ -376,7 +408,8 @@ const ConferenciaWms: React.FC = () => {
                   type="number"
                   description="Camada"
                   onChange={(e) => setCamada(Number(e.target.value))}
-                  onKeyPress={handleCalcTotal}
+                  // onKeyPress={handleCalcTotal}
+                  onKeyUp={handleCalcTotal}
                 />
                 <Input
                   icon={FiCalendar}
@@ -394,7 +427,8 @@ const ConferenciaWms: React.FC = () => {
                     type="number"
                     description="Qt.Cx"
                     onChange={(e) => setCx(Number(e.target.value))}
-                    onKeyPress={handleCalcTotal}
+                    // onKeyPress={handleCalcTotal}
+                    onKeyUp={handleCalcTotal}
                   />
                   <p>+</p>
                   <Input
@@ -404,7 +438,8 @@ const ConferenciaWms: React.FC = () => {
                     type="number"
                     description="Qt.Un"
                     onChange={(e) => setUn(Number(e.target.value))}
-                    onKeyPress={handleCalcTotal}
+                    // onKeyPress={handleCalcTotal}
+                    onKeyUp={handleCalcTotal}
                   />
                   <p>=</p>
                   <Input
@@ -417,9 +452,15 @@ const ConferenciaWms: React.FC = () => {
                     readOnly
                   />
                 </Content>
-                <button id="button" type="submit">
-                  CONFIRMAR
-                </button>
+                {!mostrarDescricao ? (
+                  <button id="button" type="submit" disabled>
+                    CONFIRMAR
+                  </button>
+                ) : (
+                  <button id="button" type="submit">
+                    CONFIRMAR
+                  </button>
+                )}
               </Content>
             </Form>
           </>

@@ -40,6 +40,7 @@ const Inventario: React.FC = () => {
   const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
   const [endereco, setEndereco] = useState('');
   const history = useHistory();
+  const location = history.location.pathname;
 
   const handleEndereco = useCallback(
     async (data) => {
@@ -61,7 +62,7 @@ const Inventario: React.FC = () => {
         const encontrouEndereco = response.data;
 
         if (encontrouEndereco) {
-          history.push('endereco-inventario', encontrouEndereco);
+          history.push(`${location}/endereco-inventario`, encontrouEndereco);
         } else {
           createMessage({
             type: 'alert',
@@ -87,7 +88,7 @@ const Inventario: React.FC = () => {
         formRef.current?.setFieldValue('endereco', null);
       }
     },
-    [endereco, user.code, history],
+    [endereco, user.code, history, location],
   );
 
   return (

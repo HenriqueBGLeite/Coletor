@@ -15,7 +15,7 @@ export const Content = styled.div`
     p {
       color: #404040;
       font-weight: bold;
-      margin: 8px 6px 0 0;
+      margin: 8px 0 0 6px;
       width: 68%;
       font-size: 16px;
     }

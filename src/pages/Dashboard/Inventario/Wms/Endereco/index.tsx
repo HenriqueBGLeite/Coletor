@@ -34,6 +34,7 @@ interface EnderecoOrig {
 
 const Endereco: React.FC = () => {
   const history = useHistory();
+  const location = history.location.pathname;
   const endOrig = useHistory<EnderecoOrig[]>();
   const formRef = useRef<FormHandles>(null);
 
@@ -67,7 +68,10 @@ const Endereco: React.FC = () => {
             message: 'Código informado não confere com o esperado.',
           });
         } else {
-          history.push('conferencia-invetario', { endereco, enderecoOrig });
+          history.push(`${location}/conferencia-invetario`, {
+            endereco,
+            enderecoOrig,
+          });
         }
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
@@ -86,7 +90,7 @@ const Endereco: React.FC = () => {
         formRef.current?.setFieldValue('codEndereco', null);
       }
     },
-    [endereco, history, enderecoDigitado, enderecoOrig],
+    [endereco, history, location, enderecoDigitado, enderecoOrig],
   );
 
   return (

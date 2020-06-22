@@ -62,6 +62,7 @@ const ConsultProducts: React.FC = () => {
   const [inputProduto, setInputProduto] = useState(0);
 
   const history = useHistory();
+  const location = history.location.pathname;
 
   useEffect(() => {
     api.get(`PesquisaProduto/getFiliais/${user.code}`).then((response) => {
@@ -128,16 +129,6 @@ const ConsultProducts: React.FC = () => {
         <Content>
           <Form ref={formRefProd} onSubmit={handleGetProduct}>
             <Header>
-              <Input
-                focus
-                percWidth={68}
-                name="codprod"
-                id="codprod"
-                icon={FiZoomIn}
-                type="number"
-                description="EAN/DUN/CODPROD"
-                onChange={(e) => setInputProduto(Number(e.target.value))}
-              />
               <Select name="filial" percWidth={30} icon={FiHome}>
                 <option value=""> </option>
                 {filiais.map((filial) => (
@@ -146,12 +137,20 @@ const ConsultProducts: React.FC = () => {
                   </option>
                 ))}
               </Select>
+              <Input
+                percWidth={68}
+                name="codprod"
+                id="codprod"
+                icon={FiZoomIn}
+                type="number"
+                description="EAN/DUN/CODPROD"
+                onChange={(e) => setInputProduto(Number(e.target.value))}
+              />
             </Header>
           </Form>
           <Loanding>
             {!loading ? (
               <Form ref={formRef} onSubmit={handleSubmit}>
-                <p>{produto.descricao}</p>
                 <Input
                   percWidth={30}
                   name="codProd"
@@ -160,6 +159,7 @@ const ConsultProducts: React.FC = () => {
                   defaultValue={produto.codprod}
                   disabled
                 />
+                <p>{produto.descricao}</p>
                 <Fieldset title="Unidade">
                   <legend>
                     <span>UNIDADE</span>
@@ -219,7 +219,7 @@ const ConsultProducts: React.FC = () => {
                       defaultValue={produto.compUn}
                     />
                     <Input
-                      percWidth={30}
+                      percWidth={29.8}
                       name="pesoUn"
                       type="number"
                       description="Peso(kg)"
@@ -286,7 +286,7 @@ const ConsultProducts: React.FC = () => {
                       defaultValue={produto.comp}
                     />
                     <Input
-                      percWidth={30}
+                      percWidth={29.8}
                       name="peso"
                       type="number"
                       description="Peso(kg)"
@@ -314,7 +314,7 @@ const ConsultProducts: React.FC = () => {
                       defaultValue={produto.camada}
                     />
                     <Input
-                      percWidth={33}
+                      percWidth={32.9}
                       name="total"
                       type="number"
                       description="Total"
@@ -329,29 +329,29 @@ const ConsultProducts: React.FC = () => {
                   </legend>
                   <div className="wrap">
                     <Input
-                      percWidth={49}
+                      percWidth={48.8}
                       name="capacidade"
                       type="number"
-                      description="Capacidade"
+                      description="Capacidade Picking"
                       defaultValue={produto.capacidade}
                     />
                     <Input
-                      percWidth={49}
+                      percWidth={48.8}
                       name="reposicao"
                       type="number"
-                      description="Reposicao"
+                      description="Ponto de reposicao"
                       defaultValue={produto.reposicao}
                     />
                     <p style={{ margin: 0, width: '100%' }} />
                     <Input
-                      percWidth={49}
+                      percWidth={48.8}
                       name="prazoValidade"
                       type="number"
                       description="Prazo Validade"
                       defaultValue={produto.prazoValidade}
                     />
                     <Input
-                      percWidth={49}
+                      percWidth={48.8}
                       name="shelfLife"
                       type="number"
                       description="Shelf Life (%)"
@@ -365,13 +365,13 @@ const ConsultProducts: React.FC = () => {
                     <div id="detalhe">
                       <button
                         type="button"
-                        onClick={() => console.log('Tela de estoque')}
+                        onClick={() => history.push(`${location}/estoque`)}
                       >
                         Estoque
                       </button>
                       <button
                         type="button"
-                        onClick={() => console.log('Tela de endereços')}
+                        onClick={() => history.push(`${location}/enderecos`)}
                       >
                         Endereços
                       </button>

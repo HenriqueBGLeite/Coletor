@@ -30,6 +30,7 @@ const Dashboard: React.FC = () => {
   const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
   const [loading, setLoading] = useState(false);
   const history = useHistory();
+  const location = history.location.pathname;
 
   const validaTelaSeguinte = useCallback(async () => {
     const { usaWms } = user;
@@ -49,7 +50,7 @@ const Dashboard: React.FC = () => {
         } else {
           setLoading(false);
 
-          history.push('endereco-inventario', enderecoOs);
+          history.push(`${location}/endereco-inventario`, enderecoOs);
         }
       } catch (err) {
         setLoading(false);
@@ -62,7 +63,7 @@ const Dashboard: React.FC = () => {
           'Ops... Não foi possível acessar o recurso. Tela em desenvolvimento.',
       });
     }
-  }, [user, history]);
+  }, [user, history, location]);
 
   return (
     <>

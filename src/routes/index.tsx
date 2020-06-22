@@ -5,11 +5,8 @@ import Route from './Route';
 
 import SignIn from '../pages/SignIn';
 import Dashboard from '../pages/Dashboard';
-import ConsultProducts from '../pages/Dashboard/Consult-Products';
-
-import Inventario from '../pages/Dashboard/Inventario';
-import Endereco from '../pages/Dashboard/Inventario/Wms/Endereco';
-import Conferencia from '../pages/Dashboard/Inventario/Wms/Conferencia';
+import ProductsRoutes from '../pages/Dashboard/Consult-Products/routes';
+import InventarioRoutes from '../pages/Dashboard/Inventario/routes';
 
 const Routes: React.FC = () => (
   <Switch>
@@ -17,13 +14,9 @@ const Routes: React.FC = () => (
 
     <Route path="/dashboard" component={Dashboard} isPrivate />
 
-    <Route path="/consult-products" component={ConsultProducts} isPrivate />
+    <Route path="/consult-products" component={ProductsRoutes} isPrivate />
 
-    <Route path="/inventario" component={Inventario} isPrivate />
-
-    <Route path="/endereco-inventario" component={Endereco} isPrivate />
-
-    <Route path="/conferencia-invetario" component={Conferencia} isPrivate />
+    <Route path="/inventario" component={InventarioRoutes} isPrivate />
   </Switch>
 );
 
