@@ -413,7 +413,6 @@ const ConferenciaWms: React.FC = () => {
                 />
                 <Input
                   icon={FiCalendar}
-                  percWidth={99}
                   name="dtvalidade"
                   type="text"
                   description="Data validade"
@@ -443,7 +442,7 @@ const ConferenciaWms: React.FC = () => {
                   />
                   <p>=</p>
                   <Input
-                    percWidth={30}
+                    percWidth={29.8}
                     id="total"
                     name="total"
                     type="number"

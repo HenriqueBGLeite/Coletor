@@ -34,7 +34,6 @@ interface EnderecoOrig {
 
 const Endereco: React.FC = () => {
   const history = useHistory();
-  const location = history.location.pathname;
   const endOrig = useHistory<EnderecoOrig[]>();
   const formRef = useRef<FormHandles>(null);
 
@@ -68,7 +67,7 @@ const Endereco: React.FC = () => {
             message: 'Código informado não confere com o esperado.',
           });
         } else {
-          history.push(`${location}/conferencia-invetario`, {
+          history.push('conferencia-invetario', {
             endereco,
             enderecoOrig,
           });
@@ -90,12 +89,12 @@ const Endereco: React.FC = () => {
         formRef.current?.setFieldValue('codEndereco', null);
       }
     },
-    [endereco, history, location, enderecoDigitado, enderecoOrig],
+    [endereco, history, enderecoDigitado, enderecoOrig],
   );
 
   return (
     <>
-      <NavBar numInvent={endereco?.numinvent} />
+      <NavBar caminho="/inventario" numInvent={endereco?.numinvent} />
 
       <Container>
         <Content>

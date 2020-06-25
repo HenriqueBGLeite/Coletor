@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+  ChangeEvent,
+} from 'react';
 import { useHistory } from 'react-router-dom';
 import ReactLoading from 'react-loading';
 import { FiZoomIn, FiHome } from 'react-icons/fi';
@@ -20,6 +26,7 @@ interface Filial {
 }
 
 interface Produto {
+  codfilial: number;
   codprod: number;
   descricao: string;
   embalagem: string;
@@ -60,6 +67,9 @@ const ConsultProducts: React.FC = () => {
   const [filiais, setFiliais] = useState<Filial[]>([]);
   const [produto, setProduto] = useState<Produto>({} as Produto);
   const [inputProduto, setInputProduto] = useState(0);
+  const [lastro, setLastro] = useState(0);
+  const [camada, setCamada] = useState(0);
+  const [total, setTotal] = useState(0);
 
   const history = useHistory();
   const location = history.location.pathname;
@@ -73,6 +83,14 @@ const ConsultProducts: React.FC = () => {
         history.goBack();
       }
     });
+
+    const produtoState = history.location.state as Produto;
+    if (produtoState) {
+      setProduto(produtoState);
+      setLastro(produtoState.lastro);
+      setCamada(produtoState.camada);
+      setTotal(produtoState.lastro * produtoState.camada);
+    }
   }, [user.code, history]);
 
   const handleGetProduct = useCallback(
@@ -94,6 +112,9 @@ const ConsultProducts: React.FC = () => {
 
         const prod = response.data;
         setProduto(prod);
+        setLastro(prod.lastro);
+        setCamada(prod.camada);
+        setTotal(prod.total);
         setLoading(false);
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
@@ -111,43 +132,133 @@ const ConsultProducts: React.FC = () => {
     [inputProduto],
   );
 
-  const handleSubmit = useCallback(async (data: DataForm) => {
+  const telaEstoque = useCallback(() => {
+    history.push(`${location}/estoque`, produto);
+  }, [history, location, produto]);
+
+  const telaEndereco = useCallback(() => {
+    history.push(`${location}/enderecos`, produto);
+  }, [history, location, produto]);
+
+  const handleCalcTotal = useCallback(() => {
+    setTotal(lastro * camada);
+    setProduto({ ...produto, total });
+  }, [produto, lastro, camada, total]);
+
+  const handleAltDadosProd = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const campoValidacao = event.target.id;
+      const valorCampoValidacao = Number(event.target.value);
+
+      if (campoValidacao === 'ean') {
+        setProduto({ ...produto, ean: valorCampoValidacao });
+      } else if (campoValidacao === 'altUn') {
+        setProduto({ ...produto, altUn: valorCampoValidacao });
+      } else if (campoValidacao === 'largUn') {
+        setProduto({ ...produto, largUn: valorCampoValidacao });
+      } else if (campoValidacao === 'compUn') {
+        setProduto({ ...produto, compUn: valorCampoValidacao });
+      } else if (campoValidacao === 'pesoUn') {
+        setProduto({ ...produto, pesoUn: valorCampoValidacao });
+      } else if (campoValidacao === 'dun') {
+        setProduto({ ...produto, dun: valorCampoValidacao });
+      } else if (campoValidacao === 'alt') {
+        setProduto({ ...produto, alt: valorCampoValidacao });
+      } else if (campoValidacao === 'larg') {
+        setProduto({ ...produto, larg: valorCampoValidacao });
+      } else if (campoValidacao === 'comp') {
+        setProduto({ ...produto, comp: valorCampoValidacao });
+      } else if (campoValidacao === 'peso') {
+        setProduto({ ...produto, peso: valorCampoValidacao });
+      } else if (campoValidacao === 'lastro') {
+        setLastro(valorCampoValidacao);
+        setProduto({ ...produto, lastro: valorCampoValidacao });
+      } else if (campoValidacao === 'camada') {
+        setCamada(valorCampoValidacao);
+        setProduto({ ...produto, camada: valorCampoValidacao });
+      } else if (campoValidacao === 'capacidade') {
+        setProduto({ ...produto, capacidade: valorCampoValidacao });
+      } else if (campoValidacao === 'reposicao') {
+        setProduto({ ...produto, reposicao: valorCampoValidacao });
+      } else if (campoValidacao === 'prazoValidade') {
+        setProduto({ ...produto, prazoValidade: valorCampoValidacao });
+      } else if (campoValidacao === 'shelfLife') {
+        setProduto({ ...produto, shelfLife: valorCampoValidacao });
+      }
+    },
+    [produto],
+  );
+
+  const handleSubmit = useCallback(async () => {
     if (window.document.activeElement?.tagName === 'BUTTON') {
-      createMessage({
-        type: 'info',
-        message: 'Ops... ainda não esta pronto. Tela em construção.',
+      setLoading(true);
+
+      setProduto({
+        ...produto,
+        lastro,
+        camada,
+        total: lastro * camada,
       });
-      // formRefProd.current?.clearField('codprod');
+
+      const response = await api.put('PesquisaProduto/editaDadosProd', produto);
+
+      const salvou = response.data;
+
+      if (!salvou) {
+        createMessage({
+          type: 'error',
+          message: 'Erro ao gravar as informações. Por favor, tente novamente.',
+        });
+        setLoading(false);
+      }
+
+      createMessage({
+        type: 'success',
+        message: 'Dados gravados com sucesso.',
+      });
+
+      formRef.current?.reset();
+      formRefProd.current?.reset();
+      setTotal(0);
+      setProduto({} as Produto);
+      setLoading(false);
+
       document.getElementById('codprod')?.focus();
     }
-  }, []);
+  }, [produto, lastro, camada]);
 
   return (
     <>
-      <NavBar />
+      <NavBar caminho="/" />
       <Container>
         <Content>
-          <Form ref={formRefProd} onSubmit={handleGetProduct}>
-            <Header>
-              <Select name="filial" percWidth={30} icon={FiHome}>
-                <option value=""> </option>
-                {filiais.map((filial) => (
-                  <option key={filial.codfilial} value={filial.codfilial}>
-                    {filial.codfilial}
-                  </option>
-                ))}
-              </Select>
-              <Input
-                percWidth={68}
-                name="codprod"
-                id="codprod"
-                icon={FiZoomIn}
-                type="number"
-                description="EAN/DUN/CODPROD"
-                onChange={(e) => setInputProduto(Number(e.target.value))}
-              />
-            </Header>
-          </Form>
+          <Loanding>
+            {!loading ? (
+              <Form ref={formRefProd} onSubmit={handleGetProduct}>
+                <Header>
+                  <Select name="filial" percWidth={30} icon={FiHome}>
+                    <option value=""> </option>
+                    {filiais.map((filial) => (
+                      <option key={filial.codfilial} value={filial.codfilial}>
+                        {filial.codfilial}
+                      </option>
+                    ))}
+                  </Select>
+                  <Input
+                    percWidth={68}
+                    name="codprod"
+                    id="codprod"
+                    icon={FiZoomIn}
+                    type="number"
+                    description="EAN/DUN/CODPROD"
+                    onChange={(e) => setInputProduto(Number(e.target.value))}
+                  />
+                </Header>
+              </Form>
+            ) : (
+              <></>
+            )}
+          </Loanding>
           <Loanding>
             {!loading ? (
               <Form ref={formRef} onSubmit={handleSubmit}>
@@ -159,7 +270,8 @@ const ConsultProducts: React.FC = () => {
                   defaultValue={produto.codprod}
                   disabled
                 />
-                <p>{produto.descricao}</p>
+                {produto.codprod ? <p>{produto.descricao}</p> : <p />}
+
                 <Fieldset title="Unidade">
                   <legend>
                     <span>UNIDADE</span>
@@ -191,39 +303,49 @@ const ConsultProducts: React.FC = () => {
                     />
                     <p style={{ margin: 0, width: '100%' }} />
                     <Input
+                      id="ean"
                       name="ean"
                       type="number"
                       description="Cód.Barras Unit."
                       defaultValue={produto.ean}
+                      onChange={handleAltDadosProd}
                     />
                     <p style={{ margin: 0, width: '100%' }} />
                     <Input
                       percWidth={20}
+                      id="altUn"
                       name="altUn"
                       type="number"
                       description="Alt"
                       defaultValue={produto.altUn}
+                      onChange={handleAltDadosProd}
                     />
                     <Input
                       percWidth={21.4}
+                      id="largUn"
                       name="largUn"
                       type="number"
                       description="Larg"
                       defaultValue={produto.largUn}
+                      onChange={handleAltDadosProd}
                     />
                     <Input
                       percWidth={22.4}
+                      id="compUn"
                       name="compUn"
                       type="number"
                       description="Comp"
                       defaultValue={produto.compUn}
+                      onChange={handleAltDadosProd}
                     />
                     <Input
                       percWidth={29.8}
+                      id="pesoUn"
                       name="pesoUn"
                       type="number"
                       description="Peso(kg)"
                       defaultValue={produto.pesoUn}
+                      onChange={handleAltDadosProd}
                     />
                   </div>
                 </Fieldset>
@@ -258,39 +380,49 @@ const ConsultProducts: React.FC = () => {
                     />
                     <p style={{ margin: 0, width: '100%' }} />
                     <Input
+                      id="dun"
                       name="dun"
                       type="number"
                       description="Cód.Barras Master"
                       defaultValue={produto.dun}
+                      onChange={handleAltDadosProd}
                     />
                     <p style={{ margin: 0, width: '100%' }} />
                     <Input
                       percWidth={20}
+                      id="alt"
                       name="alt"
                       type="number"
                       description="Alt"
                       defaultValue={produto.alt}
+                      onChange={handleAltDadosProd}
                     />
                     <Input
                       percWidth={21.4}
+                      id="larg"
                       name="larg"
                       type="number"
                       description="Larg"
                       defaultValue={produto.larg}
+                      onChange={handleAltDadosProd}
                     />
                     <Input
                       percWidth={22.4}
+                      id="comp"
                       name="comp"
                       type="number"
                       description="Comp"
                       defaultValue={produto.comp}
+                      onChange={handleAltDadosProd}
                     />
                     <Input
                       percWidth={29.8}
+                      id="peso"
                       name="peso"
                       type="number"
                       description="Peso(kg)"
                       defaultValue={produto.peso}
+                      onChange={handleAltDadosProd}
                     />
                   </div>
                 </Fieldset>
@@ -301,24 +433,30 @@ const ConsultProducts: React.FC = () => {
                   <div className="wrap">
                     <Input
                       percWidth={31.4}
+                      id="lastro"
                       name="lastro"
                       type="number"
                       description="Lastro"
                       defaultValue={produto.lastro}
+                      onChange={handleAltDadosProd}
+                      onKeyUp={handleCalcTotal}
                     />
                     <Input
                       percWidth={31.4}
+                      id="camada"
                       name="camada"
                       type="number"
                       description="Camada"
                       defaultValue={produto.camada}
+                      onChange={handleAltDadosProd}
+                      onKeyUp={handleCalcTotal}
                     />
                     <Input
                       percWidth={32.9}
                       name="total"
                       type="number"
                       description="Total"
-                      defaultValue={produto.total}
+                      value={total}
                       disabled
                     />
                   </div>
@@ -330,32 +468,40 @@ const ConsultProducts: React.FC = () => {
                   <div className="wrap">
                     <Input
                       percWidth={48.8}
+                      id="capacidade"
                       name="capacidade"
                       type="number"
                       description="Capacidade Picking"
                       defaultValue={produto.capacidade}
+                      onChange={handleAltDadosProd}
                     />
                     <Input
                       percWidth={48.8}
+                      id="reposicao"
                       name="reposicao"
                       type="number"
                       description="Ponto de reposicao"
                       defaultValue={produto.reposicao}
+                      onChange={handleAltDadosProd}
                     />
                     <p style={{ margin: 0, width: '100%' }} />
                     <Input
                       percWidth={48.8}
+                      id="prazoValidade"
                       name="prazoValidade"
                       type="number"
                       description="Prazo Validade"
                       defaultValue={produto.prazoValidade}
+                      onChange={handleAltDadosProd}
                     />
                     <Input
                       percWidth={48.8}
+                      id="shelfLife"
                       name="shelfLife"
                       type="number"
                       description="Shelf Life (%)"
                       defaultValue={produto.shelfLife}
+                      onChange={handleAltDadosProd}
                     />
                   </div>
                 </Fieldset>
@@ -363,16 +509,10 @@ const ConsultProducts: React.FC = () => {
                 {produto.codprod ? (
                   <>
                     <div id="detalhe">
-                      <button
-                        type="button"
-                        onClick={() => history.push(`${location}/estoque`)}
-                      >
+                      <button type="button" onClick={telaEstoque}>
                         Estoque
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => history.push(`${location}/enderecos`)}
-                      >
+                      <button type="button" onClick={telaEndereco}>
                         Endereços
                       </button>
                     </div>
@@ -381,18 +521,10 @@ const ConsultProducts: React.FC = () => {
                 ) : (
                   <>
                     <div id="detalhe">
-                      <button
-                        type="button"
-                        onClick={() => console.log('Tela de estoque')}
-                        disabled
-                      >
+                      <button type="button" disabled>
                         Estoque
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => console.log('Tela de endereços')}
-                        disabled
-                      >
+                      <button type="button" disabled>
                         Endereços
                       </button>
                     </div>

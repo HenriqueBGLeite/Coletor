@@ -61,7 +61,7 @@ const Inventario: React.FC = () => {
 
         const encontrouEndereco = response.data;
 
-        if (encontrouEndereco) {
+        if (encontrouEndereco !== null) {
           history.push(`${location}/endereco-inventario`, encontrouEndereco);
         } else {
           createMessage({
@@ -93,7 +93,7 @@ const Inventario: React.FC = () => {
 
   return (
     <>
-      <NavBar />
+      <NavBar caminho="/" />
       <Container>
         <Content>
           <h1>Onde estou?</h1>
