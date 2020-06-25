@@ -39,7 +39,7 @@ const AuthProvider: React.FC = ({ children }) => {
       base,
     });
 
-    const { erro, warning } = response.data;
+    const { erro, warning, mensagemErroWarning } = response.data;
 
     if (erro === 'N' && warning === 'N') {
       const usuario = response.data;
@@ -50,7 +50,7 @@ const AuthProvider: React.FC = ({ children }) => {
 
       setData({ token, usuario });
     } else {
-      throw new Error('Erro ao efetuar login.');
+      throw mensagemErroWarning;
     }
   }, []);
 

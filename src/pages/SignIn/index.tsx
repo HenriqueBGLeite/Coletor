@@ -62,7 +62,7 @@ const SignIn: React.FC = () => {
 
         createMessage({
           type: 'error',
-          message: 'Erro ao realizar o login. Verifique suas credenciais.',
+          message: err,
         });
 
         setLoading(false);
@@ -94,7 +94,7 @@ const SignIn: React.FC = () => {
               description="Senha do usuário"
             />
             <Select name="base" icon={FiHome}>
-              <option value="">Selecione sua filial...</option>
+              <option value="">Selecione sua base...</option>
               <option value="EPOCA">Época</option>
               <option value="MRURAL">Minas Rural</option>
               <option value="TESTE-EPOCA">Época Teste</option>
