@@ -59,7 +59,7 @@ const Enderecos: React.FC = () => {
             value={enderecos}
             scrollable
             paginator
-            rows={10}
+            rows={9}
             scrollHeight="500px"
             style={{ width: '100%' }}
           >

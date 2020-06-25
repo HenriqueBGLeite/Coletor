@@ -65,6 +65,7 @@ const ConsultProducts: React.FC = () => {
   const formRefProd = useRef<FormHandles>(null);
   const [loading, setLoading] = useState(false);
   const [filiais, setFiliais] = useState<Filial[]>([]);
+  const [selectedFilial, setSelectedFilial] = useState<number | undefined>();
   const [produto, setProduto] = useState<Produto>({} as Produto);
   const [inputProduto, setInputProduto] = useState(0);
   const [lastro, setLastro] = useState(0);
@@ -75,26 +76,43 @@ const ConsultProducts: React.FC = () => {
   const location = history.location.pathname;
 
   useEffect(() => {
-    api.get(`PesquisaProduto/getFiliais/${user.code}`).then((response) => {
-      const filiaisData = response.data;
-      if (filiaisData) {
-        setFiliais(filiaisData);
-      } else {
-        history.goBack();
-      }
-    });
-
+    setLoading(true);
     const produtoState = history.location.state as Produto;
+
     if (produtoState) {
-      setProduto(produtoState);
-      setLastro(produtoState.lastro);
-      setCamada(produtoState.camada);
-      setTotal(produtoState.lastro * produtoState.camada);
+      api
+        .get<Filial[]>(`PesquisaProduto/getFiliais/${user.code}`)
+        .then((response) => {
+          const filiaisData = response.data;
+          const filteredFiliais = filiaisData.filter(
+            (filial) =>
+              Number(filial.codfilial) !== Number(produtoState.codfilial),
+          );
+
+          setProduto(produtoState);
+          setLastro(produtoState.lastro);
+          setCamada(produtoState.camada);
+          setFiliais(filteredFiliais);
+          setSelectedFilial(produtoState.codfilial);
+          setTotal(produtoState.lastro * produtoState.camada);
+          setLoading(false);
+        });
+    } else {
+      api.get(`PesquisaProduto/getFiliais/${user.code}`).then((response) => {
+        const filiaisData = response.data;
+        if (filiaisData) {
+          setFiliais(filiaisData);
+          setLoading(false);
+        } else {
+          history.goBack();
+        }
+      });
     }
   }, [user.code, history]);
 
   const handleGetProduct = useCallback(
     async (data: DataForm) => {
+      setSelectedFilial(data.filial);
       setLoading(true);
       try {
         const schema = Yup.object().shape({
@@ -237,12 +255,14 @@ const ConsultProducts: React.FC = () => {
               <Form ref={formRefProd} onSubmit={handleGetProduct}>
                 <Header>
                   <Select name="filial" percWidth={30} icon={FiHome}>
-                    <option value=""> </option>
-                    {filiais.map((filial) => (
-                      <option key={filial.codfilial} value={filial.codfilial}>
-                        {filial.codfilial}
-                      </option>
-                    ))}
+                    <option value={selectedFilial}>{selectedFilial}</option>
+                    {filiais
+                      .filter((fil) => fil.codfilial !== selectedFilial)
+                      .map((filial) => (
+                        <option key={filial.codfilial} value={filial.codfilial}>
+                          {filial.codfilial}
+                        </option>
+                      ))}
                   </Select>
                   <Input
                     percWidth={68}
