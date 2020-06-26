@@ -95,7 +95,6 @@ interface SubmitForm {
 const ConferenciaWms: React.FC = () => {
   const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
   const history = useHistory();
-  const location = history.location.pathname;
   const endAtual = history.location.state as Props;
   const formRefProd = useRef<FormHandles>(null);
   const formRef = useRef<FormHandles>(null);
@@ -160,8 +159,8 @@ const ConferenciaWms: React.FC = () => {
             endereco.ean === produto ||
             endereco.dun === produto
           ) {
-            document.getElementById('lastro')?.focus();
             setMostrarDescricao(true);
+            document.getElementById('lastro')?.focus();
           } else {
             setLoanding(true);
             const response = await api.get<ProdutoInventario>(
@@ -215,28 +214,27 @@ const ConferenciaWms: React.FC = () => {
     [endereco, produto, user],
   );
 
-  const handleCalcTotal = useCallback(
-    (event) => {
-      if (event.target.id === 'lastro' && event.key === 'Enter') {
-        document.getElementById('camada')?.focus();
-      }
-      if (event.target.id === 'camada' && event.key === 'Enter') {
-        document.getElementById('qtcx')?.focus();
-      }
-      if (event.target.id === 'qtcx' && event.key === 'Enter') {
-        document.getElementById('qtun')?.focus();
-      }
-      if (event.target.id === 'qtun' && event.key === 'Enter') {
-        document.getElementById('total')?.focus();
-      }
+  const focusCampo = useCallback((event) => {
+    if (event.target.id === 'lastro' && event.key === 'Enter') {
+      document.getElementById('camada')?.focus();
+    }
+    if (event.target.id === 'camada' && event.key === 'Enter') {
+      document.getElementById('qtcx')?.focus();
+    }
+    if (event.target.id === 'qtcx' && event.key === 'Enter') {
+      document.getElementById('qtun')?.focus();
+    }
+    if (event.target.id === 'qtun' && event.key === 'Enter') {
+      document.getElementById('total')?.focus();
+    }
+  }, []);
 
-      setTotal(
-        ((lastro * camada) * endereco.qtunitcx) + // eslint-disable-line
-          (Number(un) + Number(cx) * endereco.qtunitcx),
-      );
-    },
-    [endereco.qtunitcx, lastro, camada, cx, un],
-  );
+  const handleCalcTotal = useCallback(() => {
+    setTotal(
+      lastro * camada * endereco.qtunitcx +
+        (Number(un) + Number(cx) * endereco.qtunitcx),
+    );
+  }, [endereco.qtunitcx, lastro, camada, cx, un]);
 
   const handleSubmitForm = useCallback(
     async (data: SubmitForm) => {
@@ -289,10 +287,7 @@ const ConferenciaWms: React.FC = () => {
                   (end) => end.codendereco !== endereco.codendereco,
                 );
                 if (filteredEndereco.length > 0) {
-                  history.push(
-                    `${location}/endereco-inventario`,
-                    filteredEndereco,
-                  );
+                  history.push('endereco-inventario', filteredEndereco);
                 } else {
                   const response = await api.get(
                     `Inventario/getProxOs/${user.code}/${endereco.codendereco}/${endereco.contagem}`,
@@ -300,12 +295,9 @@ const ConferenciaWms: React.FC = () => {
 
                   const encontrouEndereco = response.data;
                   if (encontrouEndereco !== null) {
-                    history.push(
-                      `${location}/endereco-inventario`,
-                      encontrouEndereco,
-                    );
+                    history.push('endereco-inventario', encontrouEndereco);
                   } else {
-                    history.push(`${location}/inventario`);
+                    history.push('/inventario');
                   }
                 }
               }
@@ -326,20 +318,16 @@ const ConferenciaWms: React.FC = () => {
         }
       }
     },
-    [
-      history,
-      location,
-      produto,
-      total,
-      user.code,
-      endereco,
-      endAtual.enderecoOrig,
-    ],
+    [history, produto, total, user.code, endereco, endAtual.enderecoOrig],
   );
 
   return (
     <>
-      <NavBar numInvent={endereco?.numinvent} />
+      <NavBar
+        numInvent={endereco?.numinvent}
+        caminho="/inventario/endereco-inventario"
+        params={endAtual.enderecoOrig}
+      />
       <Container>
         {!loading ? (
           <>
@@ -397,7 +385,7 @@ const ConferenciaWms: React.FC = () => {
                   type="number"
                   description="Lastro"
                   onChange={(e) => setLastro(Number(e.target.value))}
-                  // onKeyPress={handleCalcTotal}
+                  onKeyPress={(e) => focusCampo(e)}
                   onKeyUp={handleCalcTotal}
                 />
                 <p>X</p>
@@ -408,7 +396,7 @@ const ConferenciaWms: React.FC = () => {
                   type="number"
                   description="Camada"
                   onChange={(e) => setCamada(Number(e.target.value))}
-                  // onKeyPress={handleCalcTotal}
+                  onKeyPress={(e) => focusCampo(e)}
                   onKeyUp={handleCalcTotal}
                 />
                 <Input
@@ -426,7 +414,7 @@ const ConferenciaWms: React.FC = () => {
                     type="number"
                     description="Qt.Cx"
                     onChange={(e) => setCx(Number(e.target.value))}
-                    // onKeyPress={handleCalcTotal}
+                    onKeyPress={(e) => focusCampo(e)}
                     onKeyUp={handleCalcTotal}
                   />
                   <p>+</p>
@@ -437,7 +425,7 @@ const ConferenciaWms: React.FC = () => {
                     type="number"
                     description="Qt.Un"
                     onChange={(e) => setUn(Number(e.target.value))}
-                    // onKeyPress={handleCalcTotal}
+                    onKeyPress={(e) => focusCampo(e)}
                     onKeyUp={handleCalcTotal}
                   />
                   <p>=</p>
