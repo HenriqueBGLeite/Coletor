@@ -7,17 +7,22 @@ import { Footer } from './styles';
 interface DialogProps {
   title: string;
   message: string;
+  tipoEndereco?: string;
+  trocarProduto?: boolean;
   executar: Function;
 }
 
 const Dialog: React.FC<DialogProps> = (props) => {
-  const { title, message, executar } = props;
+  const { title, message, tipoEndereco, trocarProduto, executar } = props;
   const [action, setAction] = useState(false);
 
   const footer = useCallback(() => {
     return (
       <Footer>
-        <button type="submit" onClick={() => executar(true)}>
+        <button
+          type="submit"
+          onClick={() => executar(true, tipoEndereco, trocarProduto)}
+        >
           Confirmar
         </button>
         <button type="button" onClick={() => executar(false)}>
@@ -25,18 +30,17 @@ const Dialog: React.FC<DialogProps> = (props) => {
         </button>
       </Footer>
     );
-  }, [executar]);
+  }, [executar, tipoEndereco, trocarProduto]);
 
   return (
     <DialogPrime
       header={title}
       visible
-      style={{ width: '95vw' }}
+      style={{ width: '95vw', fontWeight: 'bold', fontSize: '16px' }}
       onHide={() => setAction(action)}
       blockScroll
       footer={footer()}
       closable={false}
-      className="dialog"
     >
       <p>{message}</p>
     </DialogPrime>

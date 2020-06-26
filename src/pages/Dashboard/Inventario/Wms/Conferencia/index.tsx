@@ -14,6 +14,7 @@ import * as Yup from 'yup';
 import api from '../../../../../services/api';
 import getValidationErrors from '../../../../../utils/getValidationErros';
 
+import Dialog from '../../../../../components/Dialog';
 import Input from '../../../../../components/Input';
 import { createMessage } from '../../../../../components/Toast';
 import NavBar from '../../../../../components/NavBar';
@@ -109,6 +110,7 @@ const ConferenciaWms: React.FC = () => {
   const [total, setTotal] = useState(0);
 
   const [loading, setLoanding] = useState(false);
+  const [buscaProduto, setBuscaProduto] = useState(false);
 
   useEffect(() => {
     setEndereco(endAtual.endereco);
@@ -120,6 +122,76 @@ const ConferenciaWms: React.FC = () => {
       setProduto(Number(event.target.value));
     },
     [],
+  );
+
+  const zerarAereo = useCallback(() => {
+    const codprod = 0;
+    setTotal(0);
+    setEndereco({
+      ...endereco,
+      codprod,
+      descricao: '',
+      qtunitcx: 0,
+    });
+    setMostrarDescricao(true);
+    document.getElementById('button')?.focus();
+  }, [endereco]);
+
+  const zerarPicking = useCallback(() => {
+    setTotal(0);
+    setMostrarDescricao(true);
+    document.getElementById('button')?.focus();
+  }, []);
+
+  const trocaProdutoAereo = useCallback(async () => {
+    setLoanding(true);
+    const response = await api.get<ProdutoInventario>(
+      `Inventario/getProdutoInventario/${produto}/${user.filial}`,
+    );
+
+    const { erro, warning } = response.data;
+
+    if (warning === 'N' && erro === 'N') {
+      const { codprod, descricao, qtunitcx } = response.data;
+
+      setEndereco({ ...endereco, codprod, descricao, qtunitcx });
+      setMostrarDescricao(true);
+      setLoanding(false);
+      document.getElementById('lastro')?.focus();
+    } else {
+      createMessage({
+        type: 'error',
+        message: 'Produto informado não foi encontrado.',
+      });
+      setLoanding(false);
+      document.getElementById('produto')?.focus();
+    }
+  }, [endereco, produto, user.filial]);
+
+  const chamaBuscaProduto = useCallback(
+    (retorno: boolean, tipoEndereco: string, trocarProduto: boolean) => {
+      if (retorno) {
+        if (tipoEndereco === 'AE' && !trocarProduto) {
+          setBuscaProduto(false);
+          zerarAereo();
+        } else if (tipoEndereco === 'AP' && !trocarProduto) {
+          setBuscaProduto(false);
+          zerarPicking();
+        } else {
+          setBuscaProduto(false);
+          trocaProdutoAereo();
+        }
+      } else {
+        setBuscaProduto(false);
+        createMessage({
+          type: 'info',
+          message: 'Operação abortada pelo usuário.',
+        });
+        formRefProd.current?.setFieldValue('produto', null);
+        document.getElementById('produto')?.focus();
+      }
+    },
+    [zerarAereo, zerarPicking, trocaProdutoAereo],
   );
 
   const handleGetProduct = useCallback(
@@ -137,17 +209,10 @@ const ConferenciaWms: React.FC = () => {
 
         if (produto === 0 && endereco.tipoender === 'AP') {
           // mater os dados do endereço e zerar a quantidade
-          setTotal(0);
-          setMostrarDescricao(true);
-          document.getElementById('button')?.focus();
+          setBuscaProduto(true);
         } else if (produto === 0 && endereco.tipoender === 'AE') {
           // tiro o produto atual e coloco 0 e zero a quantidade
-          const codprod = 0;
-          const Newdescricao = '';
-          setTotal(0);
-          setEndereco({ ...endereco, codprod, descricao: Newdescricao });
-          setMostrarDescricao(true);
-          document.getElementById('button')?.focus();
+          setBuscaProduto(true);
         } else if (
           (endereco.codprod === produto && endereco.tipoender === 'AP') ||
           (endereco.ean === produto && endereco.tipoender === 'AP') ||
@@ -162,28 +227,7 @@ const ConferenciaWms: React.FC = () => {
             setMostrarDescricao(true);
             document.getElementById('lastro')?.focus();
           } else {
-            setLoanding(true);
-            const response = await api.get<ProdutoInventario>(
-              `Inventario/getProdutoInventario/${produto}/${user.filial}`,
-            );
-
-            const { erro, warning } = response.data;
-
-            if (warning === 'N' && erro === 'N') {
-              const { codprod, descricao, qtunitcx } = response.data;
-
-              setEndereco({ ...endereco, codprod, descricao, qtunitcx });
-              setMostrarDescricao(true);
-              setLoanding(false);
-              document.getElementById('lastro')?.focus();
-            } else {
-              createMessage({
-                type: 'error',
-                message: 'Produto informado não foi encontrado.',
-              });
-              setLoanding(false);
-              document.getElementById('produto')?.focus();
-            }
+            setBuscaProduto(true);
           }
         } else {
           createMessage({
@@ -211,7 +255,7 @@ const ConferenciaWms: React.FC = () => {
         setLoanding(false);
       }
     },
-    [endereco, produto, user],
+    [endereco, produto],
   );
 
   const focusCampo = useCallback((event) => {
@@ -341,115 +385,147 @@ const ConferenciaWms: React.FC = () => {
                 onChange={handleInputChange}
               />
             </Form>
-            <Form ref={formRef} onSubmit={handleSubmitForm}>
-              {!mostrarDescricao ? (
-                <textarea
-                  name="descricao"
-                  rows={3}
-                  placeholder="DESCRIÇÃO/EMBALAGEM"
-                  disabled
-                />
-              ) : (
-                <textarea
-                  id="descricao"
-                  name="descricao"
-                  rows={3}
-                  value={endereco.descricao}
-                  disabled
-                />
-              )}
-              <Content>
+            {buscaProduto ? (
+              <>
+                {endereco.tipoender === 'AE' ? (
+                  <>
+                    {produto !== 0 ? (
+                      <Dialog
+                        title="ATENÇÃO!!!"
+                        message="Você está prestes a trocar o produto do endereço. Confirma a operação?"
+                        tipoEndereco="AE"
+                        trocarProduto
+                        executar={chamaBuscaProduto}
+                      />
+                    ) : (
+                      <Dialog
+                        title="ATENÇÃO!!!"
+                        message="Você está prestes a zerar o endereço. Confirma a operação?"
+                        tipoEndereco="AE"
+                        executar={chamaBuscaProduto}
+                      />
+                    )}
+                  </>
+                ) : (
+                  <Dialog
+                    title="ATENÇÃO!!!"
+                    message="Você está prestes a zerar o endereço. Confirma a operação?"
+                    tipoEndereco="AP"
+                    executar={chamaBuscaProduto}
+                  />
+                )}
+              </>
+            ) : (
+              <Form ref={formRef} onSubmit={handleSubmitForm}>
                 {!mostrarDescricao ? (
-                  <Input
-                    percWidth={31}
-                    name="qtunitcx"
-                    type="number"
-                    description="Qt.Unit.Cx"
+                  <textarea
+                    name="descricao"
+                    rows={3}
+                    placeholder="DESCRIÇÃO/EMBALAGEM"
                     disabled
                   />
                 ) : (
-                  <Input
-                    percWidth={31}
-                    name="qtunitcx"
-                    type="number"
-                    defaultValue={endereco.qtunitcx}
-                    description="Qt.Unit.Cx"
+                  <textarea
+                    id="descricao"
+                    name="descricao"
+                    rows={3}
+                    value={endereco.descricao}
                     disabled
                   />
                 )}
-                <p />
-                <Input
-                  percWidth={31}
-                  id="lastro"
-                  name="lastro"
-                  type="number"
-                  description="Lastro"
-                  onChange={(e) => setLastro(Number(e.target.value))}
-                  onKeyPress={(e) => focusCampo(e)}
-                  onKeyUp={handleCalcTotal}
-                />
-                <p>X</p>
-                <Input
-                  percWidth={31}
-                  id="camada"
-                  name="camada"
-                  type="number"
-                  description="Camada"
-                  onChange={(e) => setCamada(Number(e.target.value))}
-                  onKeyPress={(e) => focusCampo(e)}
-                  onKeyUp={handleCalcTotal}
-                />
-                <Input
-                  icon={FiCalendar}
-                  name="dtvalidade"
-                  type="text"
-                  description="Data validade"
-                  disabled
-                />
                 <Content>
+                  {!mostrarDescricao ? (
+                    <Input
+                      percWidth={31}
+                      name="qtunitcx"
+                      type="number"
+                      description="Qt.Unit.Cx"
+                      disabled
+                    />
+                  ) : (
+                    <Input
+                      percWidth={31}
+                      name="qtunitcx"
+                      type="number"
+                      defaultValue={endereco.qtunitcx}
+                      description="Qt.Unit.Cx"
+                      disabled
+                    />
+                  )}
+                  <p />
                   <Input
-                    percWidth={30}
-                    id="qtcx"
-                    name="qtcx"
+                    percWidth={31}
+                    id="lastro"
+                    name="lastro"
                     type="number"
-                    description="Qt.Cx"
-                    onChange={(e) => setCx(Number(e.target.value))}
+                    description="Lastro"
+                    onChange={(e) => setLastro(Number(e.target.value))}
                     onKeyPress={(e) => focusCampo(e)}
                     onKeyUp={handleCalcTotal}
                   />
-                  <p>+</p>
+                  <p>X</p>
                   <Input
-                    percWidth={30}
-                    id="qtun"
-                    name="qtun"
+                    percWidth={31}
+                    id="camada"
+                    name="camada"
                     type="number"
-                    description="Qt.Un"
-                    onChange={(e) => setUn(Number(e.target.value))}
+                    description="Camada"
+                    onChange={(e) => setCamada(Number(e.target.value))}
                     onKeyPress={(e) => focusCampo(e)}
                     onKeyUp={handleCalcTotal}
                   />
-                  <p>=</p>
                   <Input
-                    percWidth={29.8}
-                    id="total"
-                    name="total"
-                    type="number"
-                    description="Total"
-                    value={total}
-                    readOnly
+                    icon={FiCalendar}
+                    name="dtvalidade"
+                    type="text"
+                    description="Data validade"
+                    disabled
                   />
+                  <Content>
+                    <Input
+                      percWidth={30}
+                      id="qtcx"
+                      name="qtcx"
+                      type="number"
+                      description="Qt.Cx"
+                      onChange={(e) => setCx(Number(e.target.value))}
+                      onKeyPress={(e) => focusCampo(e)}
+                      onKeyUp={handleCalcTotal}
+                    />
+                    <p>+</p>
+                    <Input
+                      percWidth={30}
+                      id="qtun"
+                      name="qtun"
+                      type="number"
+                      description="Qt.Un"
+                      onChange={(e) => setUn(Number(e.target.value))}
+                      onKeyPress={(e) => focusCampo(e)}
+                      onKeyUp={handleCalcTotal}
+                    />
+                    <p>=</p>
+                    <Input
+                      percWidth={29.8}
+                      id="total"
+                      name="total"
+                      type="number"
+                      description="Total"
+                      value={total}
+                      readOnly
+                    />
+                  </Content>
+                  {!mostrarDescricao ? (
+                    <button id="button" type="submit" disabled>
+                      CONFIRMAR
+                    </button>
+                  ) : (
+                    <button id="button" type="submit">
+                      CONFIRMAR
+                    </button>
+                  )}
                 </Content>
-                {!mostrarDescricao ? (
-                  <button id="button" type="submit" disabled>
-                    CONFIRMAR
-                  </button>
-                ) : (
-                  <button id="button" type="submit">
-                    CONFIRMAR
-                  </button>
-                )}
-              </Content>
-            </Form>
+              </Form>
+            )}
           </>
         ) : (
           <ReactLoading
