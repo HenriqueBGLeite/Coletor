@@ -90,7 +90,10 @@ const Dashboard: React.FC = () => {
                 DADOS PRODUTO
                 <FiEdit />
               </button>
-              <button type="button" onClick={() => history.push('#')} disabled>
+              <button
+                type="button"
+                onClick={() => history.push('listar-enderecos')}
+              >
                 LISTAR ENDEREÇOS
                 <FiList />
               </button>
