@@ -7,7 +7,7 @@ import SignIn from '../pages/SignIn';
 import Dashboard from '../pages/Dashboard';
 import ProductsRoutes from '../pages/Dashboard/Consult-Products/routes';
 import InventarioRoutes from '../pages/Dashboard/Inventario/routes';
-import ListarEnderecos from '../pages/Dashboard/Listar-Enderecos';
+import ListarEnderecosRoutes from '../pages/Dashboard/Listar-Enderecos/routes';
 
 const Routes: React.FC = () => (
   <Switch>
@@ -19,7 +19,11 @@ const Routes: React.FC = () => (
 
     <Route path="/inventario" component={InventarioRoutes} isPrivate />
 
-    <Route path="/listar-enderecos" component={ListarEnderecos} isPrivate />
+    <Route
+      path="/listar-enderecos"
+      component={ListarEnderecosRoutes}
+      isPrivate
+    />
   </Switch>
 );
 

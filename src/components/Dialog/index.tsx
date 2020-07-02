@@ -1,19 +1,41 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
+import { FiLock } from 'react-icons/fi';
+import { Form } from '@unform/web';
+import { FormHandles } from '@unform/core';
 
 import { Dialog as DialogPrime } from 'primereact/dialog';
 
-import { Footer } from './styles';
+import Input from '../Input';
+
+import { Container, Footer } from './styles';
 
 interface DialogProps {
   title: string;
   message: string;
   tipoEndereco?: string;
   trocarProduto?: boolean;
+  mostraInput?: boolean;
   executar: Function;
 }
 
+interface ConfirmarProps {
+  confirmar: boolean;
+  tipoEndereco: string;
+  trocarProduto: boolean;
+  senha: string;
+}
 const Dialog: React.FC<DialogProps> = (props) => {
-  const { title, message, tipoEndereco, trocarProduto, executar } = props;
+  const formRef = useRef<FormHandles>(null);
+  const [senha, setSenha] = useState('');
+  const {
+    title,
+    message,
+    tipoEndereco,
+    trocarProduto,
+    executar,
+    mostraInput,
+  } = props;
+
   const [action, setAction] = useState(false);
 
   const footer = useCallback(() => {
@@ -21,7 +43,7 @@ const Dialog: React.FC<DialogProps> = (props) => {
       <Footer>
         <button
           type="submit"
-          onClick={() => executar(true, tipoEndereco, trocarProduto)}
+          onClick={() => executar(true, tipoEndereco, trocarProduto, senha)}
         >
           Confirmar
         </button>
@@ -30,7 +52,7 @@ const Dialog: React.FC<DialogProps> = (props) => {
         </button>
       </Footer>
     );
-  }, [executar, tipoEndereco, trocarProduto]);
+  }, [executar, tipoEndereco, trocarProduto, senha]);
 
   return (
     <DialogPrime
@@ -42,7 +64,25 @@ const Dialog: React.FC<DialogProps> = (props) => {
       footer={footer()}
       closable={false}
     >
-      <p>{message}</p>
+      <Container>
+        <p>{message}</p>
+        {mostraInput ? (
+          <Form
+            ref={formRef}
+            onSubmit={() => executar(true, tipoEndereco, trocarProduto, senha)}
+          >
+            <Input
+              icon={FiLock}
+              name="senha"
+              type="number"
+              description="Informe a senha"
+              onChange={(e) => setSenha(e.target.value)}
+            />
+          </Form>
+        ) : (
+          ''
+        )}
+      </Container>
     </DialogPrime>
   );
 };

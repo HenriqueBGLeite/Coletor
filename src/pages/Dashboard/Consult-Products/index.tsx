@@ -37,21 +37,21 @@ interface Produto {
   unidademaster: string;
   qtcx: number;
   dun: number;
-  alt: number;
-  larg: number;
-  comp: number;
-  peso: number;
-  altUn: number;
-  largUn: number;
-  compUn: number;
-  pesoUn: number;
+  alt?: number;
+  larg?: number;
+  comp?: number;
+  peso?: number;
+  altun?: number;
+  largun?: number;
+  compun?: number;
+  pesoun: number;
   lastro: number;
   camada: number;
   total: number;
-  capacidade: number;
-  reposicao: number;
-  prazoValidade: number;
-  shelfLife: number;
+  capacidade?: number;
+  reposicao?: number;
+  prazovalidade: number;
+  shelflife: number;
 }
 
 interface DataForm {
@@ -80,23 +80,31 @@ const ConsultProducts: React.FC = () => {
     const produtoState = history.location.state as Produto;
 
     if (produtoState) {
-      api
-        .get<Filial[]>(`PesquisaProduto/getFiliais/${user.code}`)
-        .then((response) => {
-          const filiaisData = response.data;
-          const filteredFiliais = filiaisData.filter(
-            (filial) =>
-              Number(filial.codfilial) !== Number(produtoState.codfilial),
-          );
+      try {
+        api
+          .get<Filial[]>(`PesquisaProduto/getFiliais/${user.code}`)
+          .then((response) => {
+            const filiaisData = response.data;
+            const filteredFiliais = filiaisData.filter(
+              (filial) =>
+                Number(filial.codfilial) !== Number(produtoState.codfilial),
+            );
 
-          setProduto(produtoState);
-          setLastro(produtoState.lastro);
-          setCamada(produtoState.camada);
-          setFiliais(filteredFiliais);
-          setSelectedFilial(produtoState.codfilial);
-          setTotal(produtoState.lastro * produtoState.camada);
-          setLoading(false);
+            setProduto(produtoState);
+            setLastro(produtoState.lastro);
+            setCamada(produtoState.camada);
+            setFiliais(filteredFiliais);
+            setSelectedFilial(produtoState.codfilial);
+            setTotal(produtoState.lastro * produtoState.camada);
+            setLoading(false);
+          });
+      } catch (err) {
+        createMessage({
+          type: 'error',
+          message: err,
         });
+        setLoading(false);
+      }
     } else {
       api.get(`PesquisaProduto/getFiliais/${user.code}`).then((response) => {
         const filiaisData = response.data;
@@ -112,8 +120,8 @@ const ConsultProducts: React.FC = () => {
 
   const handleGetProduct = useCallback(
     async (data: DataForm) => {
-      setSelectedFilial(data.filial);
       setLoading(true);
+      setSelectedFilial(data.filial);
       try {
         const schema = Yup.object().shape({
           codprod: Yup.string().required('Código obrigatório.'),
@@ -124,16 +132,31 @@ const ConsultProducts: React.FC = () => {
           abortEarly: false,
         });
 
-        const response = await api.get(
+        const response = await api.get<Produto[]>(
           `PesquisaProduto/getProduto/${inputProduto}/${data.filial}`,
         );
 
-        const prod = response.data;
-        setProduto(prod);
-        setLastro(prod.lastro);
-        setCamada(prod.camada);
-        setTotal(prod.total);
-        setLoading(false);
+        const responseProd = response.data;
+
+        if (responseProd !== null) {
+          const prod = responseProd[0];
+
+          setProduto(prod);
+          setLastro(prod.lastro);
+          setCamada(prod.camada);
+          setTotal(prod.total);
+          setLoading(false);
+        } else {
+          createMessage({
+            type: 'error',
+            message: 'Não foi possivel listar o produto.',
+          });
+          setProduto({} as Produto);
+          setLastro(0);
+          setCamada(0);
+          setTotal(0);
+          setLoading(false);
+        }
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
           createMessage({
@@ -170,14 +193,14 @@ const ConsultProducts: React.FC = () => {
 
       if (campoValidacao === 'ean') {
         setProduto({ ...produto, ean: valorCampoValidacao });
-      } else if (campoValidacao === 'altUn') {
-        setProduto({ ...produto, altUn: valorCampoValidacao });
-      } else if (campoValidacao === 'largUn') {
-        setProduto({ ...produto, largUn: valorCampoValidacao });
-      } else if (campoValidacao === 'compUn') {
-        setProduto({ ...produto, compUn: valorCampoValidacao });
-      } else if (campoValidacao === 'pesoUn') {
-        setProduto({ ...produto, pesoUn: valorCampoValidacao });
+      } else if (campoValidacao === 'altun') {
+        setProduto({ ...produto, altun: valorCampoValidacao });
+      } else if (campoValidacao === 'largun') {
+        setProduto({ ...produto, largun: valorCampoValidacao });
+      } else if (campoValidacao === 'compun') {
+        setProduto({ ...produto, compun: valorCampoValidacao });
+      } else if (campoValidacao === 'pesoun') {
+        setProduto({ ...produto, pesoun: valorCampoValidacao });
       } else if (campoValidacao === 'dun') {
         setProduto({ ...produto, dun: valorCampoValidacao });
       } else if (campoValidacao === 'alt') {
@@ -199,9 +222,9 @@ const ConsultProducts: React.FC = () => {
       } else if (campoValidacao === 'reposicao') {
         setProduto({ ...produto, reposicao: valorCampoValidacao });
       } else if (campoValidacao === 'prazoValidade') {
-        setProduto({ ...produto, prazoValidade: valorCampoValidacao });
+        setProduto({ ...produto, prazovalidade: valorCampoValidacao });
       } else if (campoValidacao === 'shelfLife') {
-        setProduto({ ...produto, shelfLife: valorCampoValidacao });
+        setProduto({ ...produto, shelflife: valorCampoValidacao });
       }
     },
     [produto],
@@ -228,20 +251,20 @@ const ConsultProducts: React.FC = () => {
           message: 'Erro ao gravar as informações. Por favor, tente novamente.',
         });
         setLoading(false);
+      } else {
+        createMessage({
+          type: 'success',
+          message: 'Dados gravados com sucesso.',
+        });
+
+        formRef.current?.reset();
+        formRefProd.current?.reset();
+        setTotal(0);
+        setProduto({} as Produto);
+        setLoading(false);
+
+        document.getElementById('codprod')?.focus();
       }
-
-      createMessage({
-        type: 'success',
-        message: 'Dados gravados com sucesso.',
-      });
-
-      formRef.current?.reset();
-      formRefProd.current?.reset();
-      setTotal(0);
-      setProduto({} as Produto);
-      setLoading(false);
-
-      document.getElementById('codprod')?.focus();
     }
   }, [produto, lastro, camada]);
 
@@ -333,38 +356,38 @@ const ConsultProducts: React.FC = () => {
                     <p style={{ margin: 0, width: '100%' }} />
                     <Input
                       percWidth={20}
-                      id="altUn"
-                      name="altUn"
+                      id="altun"
+                      name="altun"
                       type="number"
                       description="Alt"
-                      defaultValue={produto.altUn}
+                      defaultValue={produto.altun}
                       onChange={handleAltDadosProd}
                     />
                     <Input
                       percWidth={21.4}
-                      id="largUn"
-                      name="largUn"
+                      id="largun"
+                      name="largun"
                       type="number"
                       description="Larg"
-                      defaultValue={produto.largUn}
+                      defaultValue={produto.largun}
                       onChange={handleAltDadosProd}
                     />
                     <Input
                       percWidth={22.4}
-                      id="compUn"
-                      name="compUn"
+                      id="compun"
+                      name="compun"
                       type="number"
                       description="Comp"
-                      defaultValue={produto.compUn}
+                      defaultValue={produto.compun}
                       onChange={handleAltDadosProd}
                     />
                     <Input
                       percWidth={29.8}
-                      id="pesoUn"
-                      name="pesoUn"
+                      id="pesoun"
+                      name="pesoun"
                       type="number"
                       description="Peso(kg)"
-                      defaultValue={produto.pesoUn}
+                      defaultValue={produto.pesoun}
                       onChange={handleAltDadosProd}
                     />
                   </div>
@@ -507,20 +530,20 @@ const ConsultProducts: React.FC = () => {
                     <p style={{ margin: 0, width: '100%' }} />
                     <Input
                       percWidth={48.8}
-                      id="prazoValidade"
-                      name="prazoValidade"
+                      id="prazovalidade"
+                      name="prazovalidade"
                       type="number"
                       description="Prazo Validade"
-                      defaultValue={produto.prazoValidade}
+                      defaultValue={produto.prazovalidade}
                       onChange={handleAltDadosProd}
                     />
                     <Input
                       percWidth={48.8}
-                      id="shelfLife"
-                      name="shelfLife"
+                      id="shelflife"
+                      name="shelflife"
                       type="number"
                       description="Shelf Life (%)"
-                      defaultValue={produto.shelfLife}
+                      defaultValue={produto.shelflife}
                       onChange={handleAltDadosProd}
                     />
                   </div>

@@ -10,6 +10,7 @@ export const Container = styled.div`
 export const Content = styled.div`
   form {
     display: flex;
+    width: 100%;
     flex-wrap: wrap;
 
     p {
