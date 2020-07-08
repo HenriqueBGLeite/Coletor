@@ -59,7 +59,7 @@ interface DataForm {
   filial: number;
 }
 
-const ConsultProducts: React.FC = () => {
+const ConsultarProdutos: React.FC = () => {
   const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
   const formRef = useRef<FormHandles>(null);
   const formRefProd = useRef<FormHandles>(null);
@@ -106,15 +106,25 @@ const ConsultProducts: React.FC = () => {
         setLoading(false);
       }
     } else {
-      api.get(`PesquisaProduto/getFiliais/${user.code}`).then((response) => {
-        const filiaisData = response.data;
-        if (filiaisData) {
-          setFiliais(filiaisData);
-          setLoading(false);
-        } else {
+      api
+        .get(`PesquisaProduto/getFiliais/${user.code}`)
+        .then((response) => {
+          const filiaisData = response.data;
+          if (filiaisData) {
+            setFiliais(filiaisData);
+            setLoading(false);
+          } else {
+            history.goBack();
+          }
+        })
+        .catch(() => {
+          createMessage({
+            type: 'error',
+            message:
+              'Falha na comunicação com o BD. Não foi possivel carregar as filiais.',
+          });
           history.goBack();
-        }
-      });
+        });
     }
   }, [user.code, history]);
 
@@ -183,8 +193,8 @@ const ConsultProducts: React.FC = () => {
 
   const handleCalcTotal = useCallback(() => {
     setTotal(lastro * camada);
-    setProduto({ ...produto, total });
-  }, [produto, lastro, camada, total]);
+    setProduto({ ...produto, total: lastro * camada });
+  }, [produto, lastro, camada]);
 
   const handleAltDadosProd = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
@@ -238,8 +248,10 @@ const ConsultProducts: React.FC = () => {
         ...produto,
         lastro,
         camada,
-        total: lastro * camada,
+        total,
       });
+
+      console.log(produto);
 
       const response = await api.put('PesquisaProduto/editaDadosProd', produto);
 
@@ -266,7 +278,7 @@ const ConsultProducts: React.FC = () => {
         document.getElementById('codprod')?.focus();
       }
     }
-  }, [produto, lastro, camada]);
+  }, [produto, lastro, camada, total]);
 
   return (
     <>
@@ -592,4 +604,4 @@ const ConsultProducts: React.FC = () => {
   );
 };
 
-export default ConsultProducts;
+export default ConsultarProdutos;

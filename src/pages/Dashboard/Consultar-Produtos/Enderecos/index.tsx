@@ -51,7 +51,7 @@ const Enderecos: React.FC = () => {
 
   return (
     <>
-      <NavBar caminho="/consult-products" params={produto} />
+      <NavBar caminho="/consultar-produtos" params={produto} />
       <Loanding>
         {!loading ? (
           <DataTable

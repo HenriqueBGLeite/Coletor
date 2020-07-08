@@ -5,9 +5,10 @@ import Route from './Route';
 
 import SignIn from '../pages/SignIn';
 import Dashboard from '../pages/Dashboard';
-import ProductsRoutes from '../pages/Dashboard/Consult-Products/routes';
+import ProdutoRoutes from '../pages/Dashboard/Consultar-Produtos/routes';
 import InventarioRoutes from '../pages/Dashboard/Inventario/routes';
 import ListarEnderecosRoutes from '../pages/Dashboard/Listar-Enderecos/routes';
+import ConferenciaSaidaRoutes from '../pages/Dashboard/Conferencia-Saida/routes';
 
 const Routes: React.FC = () => (
   <Switch>
@@ -15,7 +16,13 @@ const Routes: React.FC = () => (
 
     <Route path="/dashboard" component={Dashboard} isPrivate />
 
-    <Route path="/consult-products" component={ProductsRoutes} isPrivate />
+    <Route
+      path="/conferencia-saida"
+      component={ConferenciaSaidaRoutes}
+      isPrivate
+    />
+
+    <Route path="/consultar-produtos" component={ProdutoRoutes} isPrivate />
 
     <Route path="/inventario" component={InventarioRoutes} isPrivate />
 

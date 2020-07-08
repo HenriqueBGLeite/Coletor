@@ -2,9 +2,9 @@ import axios from 'axios';
 
 const api = axios.create({
   // Teste
-  // baseURL: 'https://localhost:44318/api/',
+  baseURL: 'https://localhost:44318/api/',
   // Produção
-  baseURL: 'http://192.168.0.118:81/api/',
+  // baseURL: 'http://192.168.0.118:81/api/',
 });
 
 api.interceptors.request.use(async (config) => {
@@ -20,12 +20,16 @@ api.interceptors.response.use(
     return response;
   },
   async (err) => {
-    if (err.response.status === 401) {
-      localStorage.removeItem('@EpocaColetor:token');
-      localStorage.removeItem('@EpocaColetor:user');
-      window.location.href = '/';
+    const responseErr = err.response || null;
 
-      return Promise.reject(err);
+    if (responseErr) {
+      if (err.response.status === 401) {
+        localStorage.removeItem('@EpocaColetor:token');
+        localStorage.removeItem('@EpocaColetor:user');
+        window.location.href = '/';
+
+        return Promise.reject(err);
+      }
     }
     return Promise.reject(err);
   },

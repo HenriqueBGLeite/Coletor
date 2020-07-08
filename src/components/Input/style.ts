@@ -66,6 +66,7 @@ export const Container = styled.div<ContainerProps>`
   }
 
   .label-float{
+    width: 100%;
     position: relative;
     padding-top: 13px;
   }

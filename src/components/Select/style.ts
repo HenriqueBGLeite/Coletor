@@ -47,10 +47,16 @@ export const Container = styled.div<ContainerProps>`
 
   select {
     flex: 1;
+    width: 100%;
     background: transparent;
-    border: 0;
+    border: none;
     border-radius: 8px;
     color: #333;
+
+    option {
+      border: none;
+      background: #dcdce6;
+    }
   }
 
   svg {

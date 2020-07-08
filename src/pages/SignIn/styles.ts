@@ -58,10 +58,6 @@ export const AnimationContainer = styled.div`
       margin-bottom: 16px;
       font-size: 25px;
     }
-
-    option {
-      background: #dcdce6;
-    }
   }
 `;
 

@@ -4,6 +4,7 @@ import { FiSearch } from 'react-icons/fi';
 import ReactLoading from 'react-loading';
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
+import * as Yup from 'yup';
 
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -21,6 +22,7 @@ import { Container, Content, Loanding, Button } from './styles';
 interface ProdutoPicking {
   numreposicao: number;
   codfilial: number;
+  codfunc: number;
   codprod: number;
   qt: number;
   descricao: string;
@@ -49,64 +51,91 @@ const ListarEnderecos: React.FC = () => {
 
   useEffect(() => {
     setLoading(true);
-    api
-      .get<ProdutoPicking[]>(
-        `PesquisaProduto/getListaReposicaoAberta/${user.code}`,
-      )
-      .then((response) => {
-        setListaProdutos(response.data);
-        setLoading(false);
-      });
-  }, [user.code]);
-
-  const buscarPicking = useCallback(async () => {
-    setLoading(true);
     try {
-      const response = await api.get<ProdutoPicking>(
-        `PesquisaProduto/getEnderecoProdutoPicking/${inputProduto}/${user.filial}`,
-      );
-
-      const pickingProduto = response.data;
-
-      if (pickingProduto.erro === 'N' && pickingProduto.warning === 'N') {
-        const produtoRepetido = listaProdutos.find(
-          (prod) => prod.codprod === pickingProduto.codprod,
-        );
-
-        if (produtoRepetido) {
-          listaProdutos.map((prod) => {
-            if (prod.codprod === produtoRepetido.codprod) {
-              const newQt = prod.qt + pickingProduto.qt;
-              prod.qt = newQt;
-              return prod;
-            }
-            return prod;
-          });
-          formRef.current?.reset();
+      api
+        .get<ProdutoPicking[]>(
+          `PesquisaProduto/getListaReposicaoAberta/${user.code}`,
+        )
+        .then((response) => {
+          setListaProdutos(response.data);
           setLoading(false);
-        } else {
-          setListaProdutos([...listaProdutos, pickingProduto]);
-          formRef.current?.reset();
-          setLoading(false);
-        }
-      } else {
-        createMessage({
-          type: 'error',
-          message: pickingProduto.mensagemErroWarning,
         });
-        formRef.current?.reset();
-        setLoading(false);
-      }
     } catch (err) {
       createMessage({
         type: 'error',
-        message: `Código informado inválido. Por favor, verifique se o código informado esta correto. ${inputProduto}`,
+        message: 'Não foi possivel estabelece conexão com o banco de dados.',
       });
-
-      formRef.current?.reset();
-      setLoading(false);
+      history.push('/');
     }
-  }, [user.filial, listaProdutos, inputProduto]);
+  }, [user.code, history]);
+
+  const buscarPicking = useCallback(
+    async (codprod) => {
+      setLoading(true);
+      try {
+        const schema = Yup.object().shape({
+          codprod: Yup.string().required('Código obrigatório.'),
+        });
+
+        await schema.validate(codprod, {
+          abortEarly: false,
+        });
+
+        const response = await api.get<ProdutoPicking>(
+          `PesquisaProduto/getEnderecoProdutoPicking/${inputProduto}/${user.filial}`,
+        );
+
+        const pickingProduto = response.data;
+
+        if (pickingProduto.erro === 'N' && pickingProduto.warning === 'N') {
+          const produtoRepetido = listaProdutos.find(
+            (prod) => prod.codprod === pickingProduto.codprod,
+          );
+
+          if (produtoRepetido) {
+            listaProdutos.map((prod) => {
+              if (prod.codprod === produtoRepetido.codprod) {
+                const newQt = prod.qt + pickingProduto.qt;
+                prod.qt = newQt;
+                return prod;
+              }
+              return prod;
+            });
+            formRef.current?.reset();
+            setLoading(false);
+          } else {
+            setListaProdutos([...listaProdutos, pickingProduto]);
+            formRef.current?.reset();
+            setLoading(false);
+          }
+        } else {
+          createMessage({
+            type: 'error',
+            message: pickingProduto.mensagemErroWarning,
+          });
+          formRef.current?.reset();
+          setLoading(false);
+        }
+      } catch (err) {
+        if (err instanceof Yup.ValidationError) {
+          createMessage({
+            type: 'error',
+            message: 'É necessário bipar um produto para realizar a pesquisa.',
+          });
+          setLoading(false);
+        } else {
+          createMessage({
+            type: 'error',
+            message: `Código informado inválido. Por favor, verifique se o código informado esta correto. ${inputProduto}`,
+          });
+
+          formRef.current?.reset();
+          setLoading(false);
+        }
+      }
+    },
+    [user.filial, listaProdutos, inputProduto],
+  );
 
   const limparListagem = useCallback(
     async (retorno: boolean, x, y, senha: string) => {
@@ -168,6 +197,7 @@ const ListarEnderecos: React.FC = () => {
       if (numRequisicao !== 0) {
         listaProdutos.map((lista) => {
           lista.numreposicao = numRequisicao;
+          lista.codfunc = user.code;
           return lista;
         });
 
@@ -176,9 +206,12 @@ const ListarEnderecos: React.FC = () => {
           listaProdutos,
         );
 
-        const salvou = response.data;
-        if (salvou) {
-          history.push('listar-enderecos/endereco-inventario', listaProdutos);
+        const enderecoOrdenado = response.data;
+        if (enderecoOrdenado) {
+          history.push(
+            'listar-enderecos/endereco-inventario',
+            enderecoOrdenado,
+          );
         } else {
           createMessage({
             type: 'error',
@@ -190,7 +223,7 @@ const ListarEnderecos: React.FC = () => {
     } else {
       history.push('listar-enderecos/endereco-inventario', listaProdutos);
     }
-  }, [history, listaProdutos]);
+  }, [history, listaProdutos, user.code]);
 
   return (
     <>

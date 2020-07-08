@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { GoSearch } from 'react-icons/go';
+import { FiMapPin } from 'react-icons/fi';
 import { useHistory } from 'react-router-dom';
 
 import { Form } from '@unform/web';
@@ -13,7 +13,7 @@ import getValidationErrors from '../../../utils/getValidationErros';
 import NavBar from '../../../components/NavBar';
 import Input from '../../../components/Input';
 
-import { Container, Content } from './style';
+import { Container, Content } from './styles';
 
 interface OsInventario {
   codendereco: number;
@@ -100,7 +100,7 @@ const Inventario: React.FC = () => {
           <Form ref={formRef} onSubmit={handleEndereco}>
             <Input
               focus
-              icon={GoSearch}
+              icon={FiMapPin}
               name="endereco"
               type="number"
               description="Cód.Endereço"

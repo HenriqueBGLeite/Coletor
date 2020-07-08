@@ -3,7 +3,7 @@ import { Switch } from 'react-router';
 
 import Route from '../../../../routes/Route';
 
-import ConsultProducts from '..';
+import ConsultaProdutos from '..';
 import Enderecos from '../Enderecos';
 import Estoque from '../Estoque';
 
@@ -11,16 +11,16 @@ const ProductsRoutes: React.FC = () => {
   return (
     <Switch>
       <Route
-        path="/consult-products"
+        path="/consultar-produtos"
         exact
-        component={ConsultProducts}
+        component={ConsultaProdutos}
         isPrivate
       />
 
-      <Route path="/consult-products/estoque" component={Estoque} isPrivate />
+      <Route path="/consultar-produtos/estoque" component={Estoque} isPrivate />
 
       <Route
-        path="/consult-products/enderecos"
+        path="/consultar-produtos/enderecos"
         component={Enderecos}
         isPrivate
       />

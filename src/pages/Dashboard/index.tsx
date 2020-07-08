@@ -75,7 +75,10 @@ const Dashboard: React.FC = () => {
                 CONFERÊNCIA ENTRADA
                 <FiTruck />
               </button>
-              <button type="button" onClick={() => history.push('#')} disabled>
+              <button
+                type="button"
+                onClick={() => history.push('conferencia-saida')}
+              >
                 CONFERÊNCIA SAÍDA
                 <FiShoppingCart />
               </button>
@@ -85,7 +88,7 @@ const Dashboard: React.FC = () => {
               </button>
               <button
                 type="button"
-                onClick={() => history.push('consult-products')}
+                onClick={() => history.push('consultar-produtos')}
               >
                 DADOS PRODUTO
                 <FiEdit />
