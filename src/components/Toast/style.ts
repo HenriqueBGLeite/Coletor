@@ -4,15 +4,16 @@ import { ToastContainer } from 'react-toastify';
 
 export const Toast = styled(ToastContainer)`
   .Toastify__toast--info {
-    background: #4648c4;
+    background: rgb(51, 102, 255);
   }
   .Toastify__toast--success {
-    background: #2b803f;
+    background: rgb(51, 187, 102);
   }
   .Toastify__toast--warning {
-    background: #ffffd4;
+    background: rgb(254, 255, 20);
   }
   .Toastify__toast--error {
-    background: #2b803f;
+    background: rgb(51, 187, 102);
+    /* rgb(255, 102, 102) */
   }
 `;

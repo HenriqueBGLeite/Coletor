@@ -9,7 +9,7 @@ import { Container } from './style';
 interface NavBarProps {
   numInvent?: number;
   caminho?: string;
-  params?: object;
+  params?: object | number;
   simpleNav?: boolean;
 }
 

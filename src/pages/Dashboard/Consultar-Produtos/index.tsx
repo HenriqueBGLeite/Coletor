@@ -251,8 +251,6 @@ const ConsultarProdutos: React.FC = () => {
         total,
       });
 
-      console.log(produto);
-
       const response = await api.put('PesquisaProduto/editaDadosProd', produto);
 
       const salvou = response.data;

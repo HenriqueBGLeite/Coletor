@@ -4,10 +4,8 @@ import { FiLock, FiTruck, FiLayers, FiInbox } from 'react-icons/fi';
 import { useHistory } from 'react-router-dom';
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
-import * as Yup from 'yup';
 
 import { createMessage } from '../../../../../components/Toast';
-import getValidationErrors from '../../../../../utils/getValidationErros';
 import quebraOs from '../../../../../utils/quebraOs';
 
 import api from '../../../../../services/api';
@@ -31,6 +29,20 @@ interface DataForm {
   codbarra: string;
 }
 
+interface DataProduto {
+  codprod: number;
+  conferido: string;
+  ean: string;
+  dun: string;
+  qtunitcx: number;
+  numvol: number;
+  reconferido: string;
+}
+
+interface Pendencia {
+  pendencia: number;
+}
+
 const ConferenciaOs: React.FC = () => {
   const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
   const history = useHistory();
@@ -52,30 +64,20 @@ const ConferenciaOs: React.FC = () => {
       );
 
       const cabOs = response.data[0];
-
       if (cabOs) {
         if (boxOrig === cabOs.numbox) {
           if (cabOs.codfuncconf && cabOs.dtconf) {
             createMessage({
               type: 'alert',
-              message: `O.S: ${cabOs.numos} já finalizada. Conferente: ${cabOs.codfuncconf}`,
+              message: `O.S: ${cabOs.numos} Volume: ${cabOs.numvol} já finalizada. Conferente: ${cabOs.codfuncconf} - ${user.nome}`,
             });
             setLoading(false);
           } else if (cabOs.tipoos === 20 || cabOs.tipoos === 17) {
-            if (cabOs.pendencia > 0) {
-              setMostrarProduto(true);
-              setDataForm(cabOs);
-              setLoading(false);
-              setNumOs(undefined);
-              document.getElementById('codbarra')?.focus();
-            } else {
-              createMessage({
-                type: 'alert',
-                message: `O.S: ${cabOs.numos} já finalizada. Conferente: ${cabOs.codfuncconf}`,
-              });
-              setDataForm({} as DataForm);
-              setLoading(false);
-            }
+            setMostrarProduto(true);
+            setDataForm(cabOs);
+            setLoading(false);
+            setNumOs(undefined);
+            document.getElementById('codbarra')?.focus();
           } else {
             const dataUpdateOs13 = {
               numos: cabOs.numos,
@@ -93,7 +95,7 @@ const ConferenciaOs: React.FC = () => {
             if (sucessoConferencia) {
               createMessage({
                 type: 'success',
-                message: `Conferência da O.S: ${numOs} realizada.`,
+                message: `Conferência da O.S: ${numOs} Volume: ${numVol} realizada.`,
               });
             } else {
               createMessage({
@@ -132,38 +134,19 @@ const ConferenciaOs: React.FC = () => {
 
       setLoading(false);
     }
-  }, [numos, boxOrig, user.code]);
+  }, [numos, boxOrig, user]);
 
   const chamaValidaOs = useCallback(
     async (event) => {
       if (event.key === 'Enter') {
-        try {
-          formRef.current?.setErrors({});
-
-          const schema = Yup.object().shape({
-            numos: Yup.string().required('Informe o número da O.S.'),
-          });
-
-          await schema.nullable().validate(numos, {
-            abortEarly: false,
-          });
-
+        setLoading(true);
+        if (numos) {
           validaOs();
-        } catch (err) {
-          if (err instanceof Yup.ValidationError) {
-            const errors = getValidationErrors(err);
-
-            formRef.current?.setErrors(errors);
-            setLoading(false);
-            return;
-          }
-
+        } else {
           createMessage({
             type: 'error',
-            message: err,
+            message: 'Informe o número da O.S.',
           });
-
-          formRef.current?.setFieldValue('numos', null);
           setLoading(false);
         }
       }
@@ -172,23 +155,85 @@ const ConferenciaOs: React.FC = () => {
   );
 
   const validaProduto = useCallback(async () => {
-    setLoading(true);
     try {
-      const responseProduto = await api.get(
+      const responseProduto = await api.get<DataProduto[]>(
         `ConferenciaSaida/ProdutoOsVolume/${dun}/${dataForm.numos}/${dataForm.numvol}/${user.filial}`,
       );
 
-      if (responseProduto) {
-        createMessage({
-          type: 'success',
-          message: 'Encontrou produto, será salvo.',
-        });
-        setLoading(false);
+      const dataProduto = responseProduto.data[0];
+
+      if (dataProduto) {
+        if (dataProduto.conferido === 'S') {
+          createMessage({
+            type: 'alert',
+            message: `Produto: ${dataProduto.codprod} e volume: ${dataProduto.numvol} já conferido.`,
+          });
+          setLoading(false);
+        } else {
+          const dataUpdateOs20 = {
+            numos: dataForm.numos,
+            numvol: dataForm.numvol,
+            codFuncConf: user.code,
+            codprod: dataProduto.codprod,
+            numbox: boxOrig,
+            qtconf: dataProduto.qtunitcx,
+          };
+
+          const updateOs20 = await api.put(
+            'ConferenciaSaida/ConfereVolumeCaixaFechada',
+            dataUpdateOs20,
+          );
+
+          const sucessoConferencia = updateOs20.data;
+
+          if (sucessoConferencia) {
+            const pendenciaOs = await api.get<Pendencia[]>(
+              `ConferenciaSaida/buscaQtOsPendente/${dataForm.numos}/${dataForm.numbox}`,
+            );
+
+            const retornoPendenciaOs = pendenciaOs.data[0].pendencia;
+
+            if (retornoPendenciaOs > 0) {
+              createMessage({
+                type: 'success',
+                message: `Conferência da O.S: ${dataForm.numos} Volume: ${dataForm.numvol} realizada.`,
+              });
+            } else {
+              const finalizaOs = await api.put(
+                `ConferenciaSaida/FinalizaConferenciaOs/${dataForm.numos}`,
+              );
+
+              const finalizouOs = finalizaOs.data;
+
+              if (finalizouOs) {
+                createMessage({
+                  type: 'success',
+                  message: `Conferência da O.S: ${dataForm.numos} finalizada!`,
+                });
+              } else {
+                createMessage({
+                  type: 'error',
+                  message: `Erro ao finalizar a O.S: ${dataForm.numos}. Por favor tente mais tarde.`,
+                });
+              }
+            }
+          } else {
+            createMessage({
+              type: 'error',
+              message: `Erro ao conferir a O.S: ${dataForm.numos}. Por favor tente mais tarde.`,
+            });
+          }
+          setDataForm({} as DataForm);
+          setMostrarProduto(false);
+          setLoading(false);
+        }
       } else {
         createMessage({
           type: 'error',
-          message: 'Nenhum produto encontrado.',
+          message: `Cód.Barra ${dun} não pertence a O.S: ${dataForm.numos} volume: ${dataForm.numvol}. Confira pelo código de barra master!`,
         });
+        setDataForm({} as DataForm);
+        setMostrarProduto(false);
         setLoading(false);
       }
     } catch (err) {
@@ -198,44 +243,35 @@ const ConferenciaOs: React.FC = () => {
       });
       setLoading(false);
     }
-  }, [dataForm, dun, user]);
+  }, [dataForm, dun, user, boxOrig]);
 
   const chamaValidaProduto = useCallback(
     async (event) => {
       if (event.key === 'Enter') {
-        try {
-          formRef.current?.setErrors({});
-
-          const schema = Yup.object().shape({
-            codbarra: Yup.string().required('Favor bipar um produto.'),
-          });
-
-          await schema.nullable().validate(dun, {
-            abortEarly: false,
-          });
-
+        setLoading(true);
+        if (dun) {
           validaProduto();
-        } catch (err) {
-          if (err instanceof Yup.ValidationError) {
-            const errors = getValidationErrors(err);
-
-            formRef.current?.setErrors(errors);
-            setLoading(false);
-            return;
-          }
-
+        } else {
           createMessage({
             type: 'error',
-            message: err,
+            message: 'Informe um produto.',
           });
-
-          formRef.current?.setFieldValue('codbarra', null);
           setLoading(false);
         }
       }
     },
     [validaProduto, dun],
   );
+
+  const telaDivergencia = useCallback(() => {
+    const dataOs = { numos: dataForm.numos, numbox: dataForm.numbox };
+    history.push(`/conferencia-saida/divergencia`, dataOs);
+  }, [history, dataForm]);
+
+  const telaOsPendente = useCallback(() => {
+    const dataOs = { numcar: dataForm.numcar, numbox: dataForm.numbox };
+    history.push(`/conferencia-saida/os-pendente`, dataOs);
+  }, [history, dataForm]);
 
   return (
     <>
@@ -289,7 +325,6 @@ const ConferenciaOs: React.FC = () => {
                     name="codbarra"
                     type="number"
                     description="PRODUTO"
-                    defaultValue={dataForm.codbarra}
                     onChange={(e) => setDun(e.target.value)}
                     onKeyPress={chamaValidaProduto}
                   />
@@ -297,15 +332,25 @@ const ConferenciaOs: React.FC = () => {
                   <> </>
                 )}
               </Form>
-
-              <Button>
-                <button type="button" disabled>
-                  Divergência
-                </button>
-                <button type="button" disabled>
-                  O.S. Pendente
-                </button>
-              </Button>
+              {dataForm.numos ? (
+                <Button>
+                  <button type="button" onClick={telaDivergencia}>
+                    Divergência
+                  </button>
+                  <button type="button" onClick={telaOsPendente}>
+                    O.S. Pendente
+                  </button>
+                </Button>
+              ) : (
+                <Button>
+                  <button type="button" disabled>
+                    Divergência
+                  </button>
+                  <button type="button" disabled>
+                    O.S. Pendente
+                  </button>
+                </Button>
+              )}
             </Content>
           ) : (
             <ReactLoading

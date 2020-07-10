@@ -5,6 +5,8 @@ import Route from '../../../../routes/Route';
 
 import Dashboard from '../Wms';
 import ConferenciaOs from '../Wms/Conferencia-Os';
+import Divergencia from '../Wms/Conferencia-Os/Divergencia';
+import OsPendente from '../Wms/Conferencia-Os/Os-Pendente';
 
 const ConferenciaSaidaRoutes: React.FC = () => {
   return (
@@ -13,6 +15,16 @@ const ConferenciaSaidaRoutes: React.FC = () => {
       <Route
         path="/conferencia-saida/conferencia-os"
         component={ConferenciaOs}
+        isPrivate
+      />
+      <Route
+        path="/conferencia-saida/divergencia"
+        component={Divergencia}
+        isPrivate
+      />
+      <Route
+        path="/conferencia-saida/os-pendente"
+        component={OsPendente}
         isPrivate
       />
     </Switch>

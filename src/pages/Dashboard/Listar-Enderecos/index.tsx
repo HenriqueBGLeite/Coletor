@@ -207,6 +207,7 @@ const ListarEnderecos: React.FC = () => {
         );
 
         const enderecoOrdenado = response.data;
+
         if (enderecoOrdenado) {
           history.push(
             'listar-enderecos/endereco-inventario',

@@ -78,6 +78,7 @@ const Dashboard: React.FC = () => {
               <button
                 type="button"
                 onClick={() => history.push('conferencia-saida')}
+                disabled
               >
                 CONFERÊNCIA SAÍDA
                 <FiShoppingCart />
