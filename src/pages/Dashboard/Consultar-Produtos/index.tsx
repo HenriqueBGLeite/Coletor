@@ -148,7 +148,7 @@ const ConsultarProdutos: React.FC = () => {
 
         const responseProd = response.data;
 
-        if (responseProd !== null) {
+        if (responseProd.length > 0) {
           const prod = responseProd[0];
 
           setProduto(prod);
@@ -159,7 +159,8 @@ const ConsultarProdutos: React.FC = () => {
         } else {
           createMessage({
             type: 'error',
-            message: 'Não foi possivel listar o produto.',
+            message:
+              'Não foi possivel listar o produto. Verifique se o código está correto.',
           });
           setProduto({} as Produto);
           setLastro(0);

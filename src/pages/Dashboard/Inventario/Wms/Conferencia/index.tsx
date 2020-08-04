@@ -353,10 +353,12 @@ const ConferenciaWms: React.FC = () => {
               setLoanding(false);
             }
           } catch (err) {
-            createMessage({
-              type: 'error',
-              message: err,
-            });
+            if (err.message === 'Network Error') {
+              createMessage({
+                type: 'error',
+                message: 'Erro de internet ao salvar a conferência.',
+              });
+            }
             setLoanding(false);
           }
         }
