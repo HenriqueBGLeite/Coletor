@@ -8,6 +8,7 @@ import { Column } from 'primereact/column';
 import { createMessage } from '../../../../../../components/Toast';
 import api from '../../../../../../services/api';
 import NavBar from '../../../../../../components/NavBar';
+import Dialog from '../../../../../../components/Dialog';
 
 import { Content, Button, Loanding } from './styles';
 
@@ -33,6 +34,8 @@ const Divergencia: React.FC = () => {
   const dataOs = history.location.state as DataOs;
   const [divergencia, setDivergencia] = useState<DataDivergencia[]>([]);
   const [loading, setLoading] = useState(false);
+  const [mostrarDialogProd, setMostrarDialogProd] = useState(false);
+  const [mostrarDialogOs, setMostrarDialogOs] = useState(false);
   const [produtoSelecionado, setProdutoSelecionado] = useState<DataDivergencia>(
     {} as DataDivergencia,
   );
@@ -51,54 +54,79 @@ const Divergencia: React.FC = () => {
     loadDiverg();
   }, [dataOs.numos]);
 
-  const reconferirProduto = useCallback(async () => {
-    if (produtoSelecionado.codprod) {
-      setLoading(true);
-      const response = await api.put(
-        `ConferenciaSaida/ReabreConferenciaProduto/${produtoSelecionado.numos}/${produtoSelecionado.codprod}`,
-      );
+  const reconferirProduto = useCallback(
+    async (retorno: boolean) => {
+      if (produtoSelecionado?.codprod) {
+        if (retorno) {
+          setLoading(true);
+          const response = await api.put(
+            `ConferenciaSaida/ReabreConferenciaProduto/${produtoSelecionado.numos}/${produtoSelecionado.codprod}`,
+          );
 
-      if (response.data) {
-        createMessage({
-          type: 'success',
-          message: `Conferência da O.S: ${produtoSelecionado.numos} produto: ${produtoSelecionado.codprod} reaberta com sucesso!`,
-        });
-        history.push('/conferencia-saida/conferencia-os', dataOs.numbox);
+          if (response.data) {
+            createMessage({
+              type: 'success',
+              message: `Conferência da O.S: ${produtoSelecionado.numos} produto: ${produtoSelecionado.codprod} reaberta com sucesso!`,
+            });
+            history.push('/conferencia-saida/conferencia-os', dataOs.numbox);
+          } else {
+            createMessage({
+              type: 'error',
+              message: `Erro ao tentar reabrir conferência da O.S: ${produtoSelecionado.numos} produto: ${produtoSelecionado.codprod}.`,
+            });
+            setLoading(false);
+            setMostrarDialogProd(false);
+          }
+        } else {
+          createMessage({
+            type: 'info',
+            message: 'Operação cancelada pelo usuário.',
+          });
+          setMostrarDialogProd(false);
+        }
       } else {
         createMessage({
           type: 'error',
-          message: `Erro ao tentar reabrir conferência da O.S: ${produtoSelecionado.numos} produto: ${produtoSelecionado.codprod}.`,
+          message: 'Operação cancelada. Nenhum produto selecionado.',
+        });
+        setMostrarDialogProd(false);
+      }
+    },
+    [produtoSelecionado, history, dataOs],
+  );
+
+  const reconferirOs = useCallback(
+    async (retorno: boolean) => {
+      setLoading(true);
+      if (retorno) {
+        const response = await api.put(
+          `ConferenciaSaida/ReabreConferenciaOs/${dataOs.numos}`,
+        );
+
+        if (response.data) {
+          createMessage({
+            type: 'success',
+            message: `Conferência da O.S: ${dataOs.numos} reaberta com sucesso!`,
+          });
+          history.push('/conferencia-saida/conferencia-os', dataOs.numbox);
+        } else {
+          createMessage({
+            type: 'error',
+            message: `Erro ao tentar reabrir conferência da O.S: ${dataOs.numos}.`,
+          });
+          setLoading(false);
+        }
+      } else {
+        createMessage({
+          type: 'info',
+          message: 'Operação cancelada pelo usuário.',
         });
         setLoading(false);
+        setMostrarDialogOs(false);
       }
-    } else {
-      createMessage({
-        type: 'error',
-        message: 'Nenhum produto selecionado.',
-      });
-    }
-  }, [produtoSelecionado, history, dataOs]);
-
-  const reconferirOs = useCallback(async () => {
-    setLoading(true);
-    const response = await api.put(
-      `ConferenciaSaida/ReabreConferenciaOs/${dataOs.numos}`,
-    );
-
-    if (response.data) {
-      createMessage({
-        type: 'success',
-        message: `Conferência da O.S: ${dataOs.numos} reaberta com sucesso!`,
-      });
-      history.push('/conferencia-saida/conferencia-os', dataOs.numbox);
-    } else {
-      createMessage({
-        type: 'error',
-        message: `Erro ao tentar reabrir conferência da O.S: ${dataOs.numos}.`,
-      });
-      setLoading(false);
-    }
-  }, [history, dataOs]);
+    },
+    [history, dataOs],
+  );
 
   return (
     <>
@@ -143,14 +171,44 @@ const Divergencia: React.FC = () => {
                 style={{ width: '200px' }}
               />
             </DataTable>
-            <Button>
-              <button type="button" onClick={reconferirProduto}>
-                Reconferir Prod.
-              </button>
-              <button type="button" onClick={reconferirOs}>
-                Reconferir O.S.
-              </button>
-            </Button>
+            {mostrarDialogProd ? (
+              <>
+                {!produtoSelecionado?.codprod ? (
+                  <Dialog
+                    title="Reconferir Produto"
+                    message="Deseja realmente reabrir a contagem do produto: 0"
+                    executar={reconferirProduto}
+                  />
+                ) : (
+                  <Dialog
+                    title="Reconferir Produto"
+                    message={`Deseja realmente reabrir a contagem do produto: ${produtoSelecionado?.codprod}`}
+                    executar={reconferirProduto}
+                  />
+                )}
+              </>
+            ) : (
+              <Button>
+                <button
+                  type="button"
+                  onClick={() => setMostrarDialogProd(true)}
+                >
+                  Reconferir Prod.
+                </button>
+                <button type="button" onClick={() => setMostrarDialogOs(true)}>
+                  Reconferir O.S.
+                </button>
+              </Button>
+            )}
+            {mostrarDialogOs ? (
+              <Dialog
+                title="Reconferir O.S."
+                message={`Deseja realmente reabrir a conferência da O.S: ${dataOs.numos}`}
+                executar={reconferirOs}
+              />
+            ) : (
+              <> </>
+            )}
           </Content>
         ) : (
           <ReactLoading

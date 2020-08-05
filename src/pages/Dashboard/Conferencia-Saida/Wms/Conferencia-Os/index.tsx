@@ -27,6 +27,7 @@ interface DataForm {
   pendencia: number;
   numvol: number;
   codbarra: string;
+  qtospendente: number;
 }
 
 interface DataProduto {
@@ -53,6 +54,16 @@ const ConferenciaOs: React.FC = () => {
   const [dataForm, setDataForm] = useState<DataForm>({} as DataForm);
   const [loading, setLoading] = useState(false);
   const [mostrarProduto, setMostrarProduto] = useState(false);
+  const [qtdDivergenciaOs, setQtDivergenciaOs] = useState(0);
+  const [qtOsPend, setQtOsPend] = useState(0);
+
+  const limparTela = useCallback(() => {
+    setQtOsPend(0);
+    setQtDivergenciaOs(0);
+    setDataForm({} as DataForm);
+    formRef.current?.setFieldValue('numos', null);
+    setMostrarProduto(false);
+  }, []);
 
   const validaOs = useCallback(async () => {
     setLoading(true);
@@ -64,15 +75,29 @@ const ConferenciaOs: React.FC = () => {
       );
 
       const cabOs = response.data[0];
+
       if (cabOs) {
+        if (numos && numos?.length < 14 && cabOs.tipoos !== 17) {
+          createMessage({
+            type: 'alert',
+            message: 'Por favor, conferir a O.S. pela etiqueta.',
+          });
+          limparTela();
+          setLoading(false);
+          return;
+        }
+
         if (boxOrig === cabOs.numbox) {
           if (cabOs.codfuncconf && cabOs.dtconf) {
             createMessage({
               type: 'alert',
               message: `O.S: ${cabOs.numos} Volume: ${cabOs.numvol} já finalizada. Conferente: ${cabOs.codfuncconf} - ${user.nome}`,
             });
+            limparTela();
             setLoading(false);
           } else if (cabOs.tipoos === 20 || cabOs.tipoos === 17) {
+            setQtOsPend(cabOs.qtospendente);
+            setQtDivergenciaOs(cabOs.pendencia);
             setMostrarProduto(true);
             setDataForm(cabOs);
             setLoading(false);
@@ -103,7 +128,7 @@ const ConferenciaOs: React.FC = () => {
                 message: `Erro ao finalizar a O.S: ${numOs}. Por favor tente mais tarde.`,
               });
             }
-            setDataForm({} as DataForm);
+            limparTela();
             setLoading(false);
           }
         } else {
@@ -111,9 +136,7 @@ const ConferenciaOs: React.FC = () => {
             type: 'error',
             message: `O.S: ${numOs} pertence ao box: ${cabOs.numbox}.`,
           });
-          setMostrarProduto(false);
-          setDataForm({} as DataForm);
-          formRef.current?.setFieldValue('numos', null);
+          limparTela();
           setLoading(false);
         }
       } else {
@@ -121,9 +144,7 @@ const ConferenciaOs: React.FC = () => {
           type: 'error',
           message: `Nenhuma O.S. foi encontrada com esse número: ${numOs}.`,
         });
-        setMostrarProduto(false);
-        setDataForm({} as DataForm);
-        formRef.current?.setFieldValue('numos', null);
+        limparTela();
         setLoading(false);
       }
     } catch (err) {
@@ -134,7 +155,7 @@ const ConferenciaOs: React.FC = () => {
 
       setLoading(false);
     }
-  }, [numos, boxOrig, user]);
+  }, [numos, boxOrig, user, limparTela]);
 
   const chamaValidaOs = useCallback(
     async (event) => {
@@ -156,11 +177,21 @@ const ConferenciaOs: React.FC = () => {
 
   const validaProduto = useCallback(async () => {
     try {
-      const responseProduto = await api.get<DataProduto[]>(
-        `ConferenciaSaida/ProdutoOsVolume/${dun}/${dataForm.numos}/${dataForm.numvol}/${user.filial}`,
-      );
+      let dataProduto = {} as DataProduto;
 
-      const dataProduto = responseProduto.data[0];
+      if (dataForm.tipoos === 20) {
+        const responseProduto = await api.get<DataProduto[]>(
+          `ConferenciaSaida/ProdutoOsVolume/${dun}/${dataForm.numos}/${dataForm.numvol}/${user.filial}`,
+        );
+
+        dataProduto = responseProduto.data[0] as DataProduto;
+      } else {
+        const responseProduto = await api.get<DataProduto[]>(
+          `ConferenciaSaida/ProdutoOs/${dun}/${dataForm.numos}/${user.filial}`,
+        );
+
+        dataProduto = responseProduto.data[0] as DataProduto;
+      }
 
       if (dataProduto) {
         if (dataProduto.conferido === 'S') {
@@ -170,7 +201,7 @@ const ConferenciaOs: React.FC = () => {
           });
           setLoading(false);
         } else {
-          const dataUpdateOs20 = {
+          const dataUpdateOs = {
             numos: dataForm.numos,
             numvol: dataForm.numvol,
             codFuncConf: user.code,
@@ -179,25 +210,26 @@ const ConferenciaOs: React.FC = () => {
             qtconf: dataProduto.qtunitcx,
           };
 
-          const updateOs20 = await api.put(
+          const updateOs = await api.put(
             'ConferenciaSaida/ConfereVolumeCaixaFechada',
-            dataUpdateOs20,
+            dataUpdateOs,
           );
 
-          const sucessoConferencia = updateOs20.data;
+          const sucessoConferencia = updateOs.data;
 
           if (sucessoConferencia) {
             const pendenciaOs = await api.get<Pendencia[]>(
-              `ConferenciaSaida/buscaQtOsPendente/${dataForm.numos}/${dataForm.numbox}`,
+              `ConferenciaSaida/buscaQtVolumePendente/${dataForm.numos}/${dataForm.numbox}`,
             );
 
             const retornoPendenciaOs = pendenciaOs.data[0].pendencia;
 
-            if (retornoPendenciaOs > 0) {
+            if (retornoPendenciaOs > 0 && dataForm.tipoos !== 17) {
               createMessage({
                 type: 'success',
                 message: `Conferência da O.S: ${dataForm.numos} Volume: ${dataForm.numvol} realizada.`,
               });
+              limparTela();
             } else {
               const finalizaOs = await api.put(
                 `ConferenciaSaida/FinalizaConferenciaOs/${dataForm.numos}`,
@@ -210,11 +242,14 @@ const ConferenciaOs: React.FC = () => {
                   type: 'success',
                   message: `Conferência da O.S: ${dataForm.numos} finalizada!`,
                 });
+                setQtOsPend(0);
+                setQtDivergenciaOs(0);
               } else {
                 createMessage({
                   type: 'error',
                   message: `Erro ao finalizar a O.S: ${dataForm.numos}. Por favor tente mais tarde.`,
                 });
+                limparTela();
               }
             }
           } else {
@@ -223,8 +258,7 @@ const ConferenciaOs: React.FC = () => {
               message: `Erro ao conferir a O.S: ${dataForm.numos}. Por favor tente mais tarde.`,
             });
           }
-          setDataForm({} as DataForm);
-          setMostrarProduto(false);
+          limparTela();
           setLoading(false);
         }
       } else {
@@ -232,8 +266,7 @@ const ConferenciaOs: React.FC = () => {
           type: 'error',
           message: `Cód.Barra ${dun} não pertence a O.S: ${dataForm.numos} volume: ${dataForm.numvol}. Confira pelo código de barra master!`,
         });
-        setDataForm({} as DataForm);
-        setMostrarProduto(false);
+        limparTela();
         setLoading(false);
       }
     } catch (err) {
@@ -243,7 +276,7 @@ const ConferenciaOs: React.FC = () => {
       });
       setLoading(false);
     }
-  }, [dataForm, dun, user, boxOrig]);
+  }, [dataForm, dun, user, boxOrig, limparTela]);
 
   const chamaValidaProduto = useCallback(
     async (event) => {
@@ -269,9 +302,9 @@ const ConferenciaOs: React.FC = () => {
   }, [history, dataForm]);
 
   const telaOsPendente = useCallback(() => {
-    const dataOs = { numcar: dataForm.numcar, numbox: dataForm.numbox };
+    const dataOs = { numcar: dataForm.numcar, numbox: boxOrig };
     history.push(`/conferencia-saida/os-pendente`, dataOs);
-  }, [history, dataForm]);
+  }, [history, dataForm, boxOrig]);
 
   return (
     <>
@@ -332,25 +365,23 @@ const ConferenciaOs: React.FC = () => {
                   <> </>
                 )}
               </Form>
-              {dataForm.numos ? (
-                <Button>
+              <Button>
+                {dataForm.numos ? (
                   <button type="button" onClick={telaDivergencia}>
-                    Divergência
+                    <p>Divergência</p>
+                    <p>({qtdDivergenciaOs})</p>
                   </button>
-                  <button type="button" onClick={telaOsPendente}>
-                    O.S. Pendente
-                  </button>
-                </Button>
-              ) : (
-                <Button>
+                ) : (
                   <button type="button" disabled>
-                    Divergência
+                    <p>Divergência</p>
+                    <p>({qtdDivergenciaOs})</p>
                   </button>
-                  <button type="button" disabled>
-                    O.S. Pendente
-                  </button>
-                </Button>
-              )}
+                )}
+                <button type="button" onClick={telaOsPendente}>
+                  <p>O.S. Pendente</p>
+                  <p>({qtOsPend})</p>
+                </button>
+              </Button>
             </Content>
           ) : (
             <ReactLoading

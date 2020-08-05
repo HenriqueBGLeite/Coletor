@@ -1,5 +1,15 @@
 import styled from 'styled-components';
 
+export const Container = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+
+  form {
+    padding: 8px;
+  }
+`;
+
 export const Loanding = styled.div`
   width: 100%;
 
