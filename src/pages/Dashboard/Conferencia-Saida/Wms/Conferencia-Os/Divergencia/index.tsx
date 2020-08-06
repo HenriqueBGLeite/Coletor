@@ -19,6 +19,7 @@ interface DataOs {
 
 interface DataDivergencia {
   numos: number;
+  numvol: number;
   codprod: number;
   descricao: string;
   rua: number;
@@ -150,6 +151,7 @@ const Divergencia: React.FC = () => {
               style={{ width: '100%' }}
             >
               <Column field="numos" header="O.S" style={{ width: '90px' }} />
+              <Column field="numvol" header="Vol" style={{ width: '45px' }} />
               <Column field="codprod" header="Prod" style={{ width: '60px' }} />
               <Column
                 field="descricao"

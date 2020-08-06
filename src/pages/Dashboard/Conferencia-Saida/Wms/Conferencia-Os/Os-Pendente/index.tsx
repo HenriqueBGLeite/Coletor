@@ -25,6 +25,7 @@ interface DataOs {
 
 interface DataPendencia {
   numos: number;
+  numvol: number;
   codprod: number;
   descricao: string;
   rua: number;
@@ -124,6 +125,7 @@ const OsPendente: React.FC = () => {
                 style={{ width: '100%' }}
               >
                 <Column field="numos" header="O.S" style={{ width: '90px' }} />
+                <Column field="numvol" header="Vol" style={{ width: '45px' }} />
                 <Column
                   field="codprod"
                   header="Prod"
@@ -188,6 +190,11 @@ const OsPendente: React.FC = () => {
                     field="numos"
                     header="O.S"
                     style={{ width: '90px' }}
+                  />
+                  <Column
+                    field="numvol"
+                    header="Vol"
+                    style={{ width: '45px' }}
                   />
                   <Column
                     field="codprod"

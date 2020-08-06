@@ -59,6 +59,13 @@ export const AnimationContainer = styled.div`
       font-size: 25px;
     }
   }
+
+  p {
+    background-color: #c5c5c8;
+    color: black;
+    font-size: 10px;
+    text-align: right;
+  }
 `;
 
 export const Loanding = styled.div`

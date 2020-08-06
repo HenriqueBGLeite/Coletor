@@ -13,7 +13,7 @@ import api from '../../../../../services/api';
 import Input from '../../../../../components/Input';
 import NavBar from '../../../../../components/NavBar';
 
-import { Container, Content, Button, Loanding } from './styles';
+import { Container, Content, ContentOs17, Button, Loanding } from './styles';
 
 interface DataForm {
   numos: number;
@@ -44,6 +44,12 @@ interface Pendencia {
   pendencia: number;
 }
 
+interface DataFormOs17 {
+  codprod: number;
+  qtunitcx: number;
+  qt: number;
+}
+
 const ConferenciaOs: React.FC = () => {
   const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
   const history = useHistory();
@@ -52,17 +58,27 @@ const ConferenciaOs: React.FC = () => {
   const [numos, setNumOs] = useState<string | null>();
   const [dun, setDun] = useState<string | null>();
   const [dataForm, setDataForm] = useState<DataForm>({} as DataForm);
+  const [dataFormOs17, setDataFormOs17] = useState<DataFormOs17>(
+    {} as DataFormOs17,
+  );
+  const [lastro, setLastro] = useState(0);
+  const [camada, setCamada] = useState(0);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [mostrarDadosOs17, setMostrarDadosOs17] = useState(false);
   const [mostrarProduto, setMostrarProduto] = useState(false);
   const [qtdDivergenciaOs, setQtDivergenciaOs] = useState(0);
   const [qtOsPend, setQtOsPend] = useState(0);
 
   const limparTela = useCallback(() => {
+    setDataForm({} as DataForm);
     setQtOsPend(0);
     setQtDivergenciaOs(0);
-    setDataForm({} as DataForm);
-    formRef.current?.setFieldValue('numos', null);
+    setTotal(0);
     setMostrarProduto(false);
+    setMostrarDadosOs17(false);
+    formRef.current?.setFieldValue('numos', null);
+    formRef.current?.setFieldValue('codbarra', null);
   }, []);
 
   const validaOs = useCallback(async () => {
@@ -200,7 +216,7 @@ const ConferenciaOs: React.FC = () => {
             message: `Produto: ${dataProduto.codprod} e volume: ${dataProduto.numvol} já conferido.`,
           });
           setLoading(false);
-        } else {
+        } else if (dataForm.tipoos === 20) {
           const dataUpdateOs = {
             numos: dataForm.numos,
             numvol: dataForm.numvol,
@@ -224,7 +240,7 @@ const ConferenciaOs: React.FC = () => {
 
             const retornoPendenciaOs = pendenciaOs.data[0].pendencia;
 
-            if (retornoPendenciaOs > 0 && dataForm.tipoos !== 17) {
+            if (retornoPendenciaOs > 0) {
               createMessage({
                 type: 'success',
                 message: `Conferência da O.S: ${dataForm.numos} Volume: ${dataForm.numvol} realizada.`,
@@ -242,8 +258,7 @@ const ConferenciaOs: React.FC = () => {
                   type: 'success',
                   message: `Conferência da O.S: ${dataForm.numos} finalizada!`,
                 });
-                setQtOsPend(0);
-                setQtDivergenciaOs(0);
+                limparTela();
               } else {
                 createMessage({
                   type: 'error',
@@ -260,6 +275,16 @@ const ConferenciaOs: React.FC = () => {
           }
           limparTela();
           setLoading(false);
+        } else {
+          setDataFormOs17({
+            ...dataFormOs17,
+            codprod: dataProduto.codprod,
+            qtunitcx: dataProduto.qtunitcx,
+          });
+          setMostrarDadosOs17(true);
+          setLoading(false);
+          setNumOs(undefined);
+          document.getElementById('lastro')?.focus();
         }
       } else {
         createMessage({
@@ -276,7 +301,69 @@ const ConferenciaOs: React.FC = () => {
       });
       setLoading(false);
     }
-  }, [dataForm, dun, user, boxOrig, limparTela]);
+  }, [dataForm, dun, user, boxOrig, limparTela, dataFormOs17]);
+
+  const validaProdutoOs17 = useCallback(async () => {
+    setLoading(true);
+    const dataUpdateOs = {
+      numos: dataForm.numos,
+      numvol: dataForm.numvol,
+      codFuncConf: user.code,
+      codprod: dataFormOs17.codprod,
+      numbox: boxOrig,
+      qtconf: dataFormOs17.qt,
+    };
+
+    const updateOs = await api.put(
+      'ConferenciaSaida/ConfereVolumeCaixaFechada',
+      dataUpdateOs,
+    );
+
+    const sucessoConferencia = updateOs.data;
+
+    if (sucessoConferencia) {
+      const pendenciaOs = await api.get<Pendencia[]>(
+        `ConferenciaSaida/buscaQtVolumePendente/${dataForm.numos}/${dataForm.numbox}`,
+      );
+
+      const retornoPendenciaOs = pendenciaOs.data[0].pendencia;
+
+      if (retornoPendenciaOs > 0) {
+        createMessage({
+          type: 'success',
+          message: `Conferência da O.S: ${dataForm.numos} Volume: ${dataForm.numvol} realizada.`,
+        });
+        limparTela();
+      } else {
+        const finalizaOs = await api.put(
+          `ConferenciaSaida/FinalizaConferenciaOs/${dataForm.numos}`,
+        );
+
+        const finalizouOs = finalizaOs.data;
+
+        if (finalizouOs) {
+          createMessage({
+            type: 'success',
+            message: `Conferência da O.S: ${dataForm.numos} finalizada!`,
+          });
+          limparTela();
+        } else {
+          createMessage({
+            type: 'error',
+            message: `Erro ao finalizar a O.S: ${dataForm.numos}. Por favor tente mais tarde.`,
+          });
+          limparTela();
+        }
+      }
+    } else {
+      createMessage({
+        type: 'error',
+        message: `Erro ao conferir a O.S: ${dataForm.numos}. Por favor tente mais tarde.`,
+      });
+    }
+    limparTela();
+    setLoading(false);
+  }, [boxOrig, dataForm, limparTela, user.code, dataFormOs17]);
 
   const chamaValidaProduto = useCallback(
     async (event) => {
@@ -305,6 +392,26 @@ const ConferenciaOs: React.FC = () => {
     const dataOs = { numcar: dataForm.numcar, numbox: boxOrig };
     history.push(`/conferencia-saida/os-pendente`, dataOs);
   }, [history, dataForm, boxOrig]);
+
+  const alimentaQtConfOs17 = useCallback(() => {
+    setDataFormOs17({ ...dataFormOs17, qt: total });
+  }, [dataFormOs17, total]);
+
+  const focusCampo = useCallback((event) => {
+    if (event.target.id === 'lastro' && event.key === 'Enter') {
+      document.getElementById('camada')?.focus();
+    }
+    if (event.target.id === 'camada' && event.key === 'Enter') {
+      document.getElementById('total')?.focus();
+    }
+    if (event.target.id === 'total' && event.key === 'Enter') {
+      document.getElementById('gravar')?.focus();
+    }
+  }, []);
+
+  const handleCalcTotal = useCallback(() => {
+    setTotal(lastro * camada);
+  }, [lastro, camada]);
 
   return (
     <>
@@ -352,15 +459,64 @@ const ConferenciaOs: React.FC = () => {
                   disabled
                 />
                 {mostrarProduto ? (
-                  <Input
-                    icon={FiLock}
-                    id="codbarra"
-                    name="codbarra"
-                    type="number"
-                    description="PRODUTO"
-                    onChange={(e) => setDun(e.target.value)}
-                    onKeyPress={chamaValidaProduto}
-                  />
+                  <>
+                    <Input
+                      icon={FiLock}
+                      id="codbarra"
+                      name="codbarra"
+                      type="number"
+                      description="PRODUTO"
+                      defaultValue={dataFormOs17.codprod}
+                      onChange={(e) => setDun(e.target.value)}
+                      onKeyPress={chamaValidaProduto}
+                    />
+                    {mostrarDadosOs17 ? (
+                      <ContentOs17>
+                        <Input
+                          percWidth={30}
+                          id="lastro"
+                          name="lastro"
+                          type="number"
+                          description="Lastro"
+                          onChange={(e) => setLastro(Number(e.target.value))}
+                          onKeyPress={(e) => focusCampo(e)}
+                          onKeyUp={handleCalcTotal}
+                        />
+                        <p>*</p>
+                        <Input
+                          percWidth={30}
+                          id="camada"
+                          name="camada"
+                          type="number"
+                          description="Camada"
+                          onChange={(e) => setCamada(Number(e.target.value))}
+                          onKeyPress={(e) => focusCampo(e)}
+                          onKeyUp={handleCalcTotal}
+                        />
+                        <p>=</p>
+                        <Input
+                          percWidth={29}
+                          id="total"
+                          name="total"
+                          type="number"
+                          description="Total"
+                          value={total}
+                          onChange={(e) => setTotal(Number(e.target.value))}
+                          onKeyPress={(e) => focusCampo(e)}
+                          onKeyUp={alimentaQtConfOs17}
+                        />
+                        <button
+                          id="gravar"
+                          type="button"
+                          onClick={validaProdutoOs17}
+                        >
+                          GRAVAR
+                        </button>
+                      </ContentOs17>
+                    ) : (
+                      <> </>
+                    )}
+                  </>
                 ) : (
                   <> </>
                 )}
