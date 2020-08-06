@@ -72,6 +72,7 @@ const ConferenciaOs: React.FC = () => {
 
   const limparTela = useCallback(() => {
     setDataForm({} as DataForm);
+    setDataFormOs17({} as DataFormOs17);
     setQtOsPend(0);
     setQtDivergenciaOs(0);
     setTotal(0);

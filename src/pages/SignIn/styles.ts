@@ -61,7 +61,7 @@ export const AnimationContainer = styled.div`
   }
 
   p {
-    background-color: #c5c5c8;
+    background-color: #ededf2;
     color: black;
     font-size: 10px;
     text-align: right;
