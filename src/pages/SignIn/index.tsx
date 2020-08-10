@@ -62,11 +62,12 @@ const SignIn: React.FC = () => {
 
         createMessage({
           type: 'error',
-          message: err,
+          message: `Erro ao realizar Login. ${err.message}.`,
         });
 
-        setLoading(false);
         formRef.current?.setFieldValue('password', null);
+        document.getElementById('password')?.focus();
+        setLoading(false);
       }
     },
     [signIn],
@@ -76,11 +77,11 @@ const SignIn: React.FC = () => {
     <Container>
       <Content>
         <AnimationContainer>
-          <p>Versão: 20.08.06.01</p>
+          <p>{}</p>
+          <p>Versão: 20.08.07.01</p>
           <img src={logoImg} alt="Projeto Coletor" />
 
           <Form ref={formRef} onSubmit={handleSubmit}>
-            <h1>Entre com seus dados</h1>
             <Input
               focus
               name="code"
@@ -89,6 +90,7 @@ const SignIn: React.FC = () => {
               description="Código de usuário"
             />
             <Input
+              id="password"
               name="password"
               icon={FiLock}
               type="password"

@@ -33,24 +33,27 @@ const AuthProvider: React.FC = ({ children }) => {
   });
 
   const signIn = useCallback(async ({ code, password, base }) => {
-    const response = await api.post('Login/getUsuario/', {
-      code,
-      password,
-      base,
-    });
+    try {
+      const response = await api.post('Login/getUsuario/', {
+        code,
+        password,
+        base,
+      });
+      const { erro, warning, mensagemErroWarning } = response.data;
 
-    const { erro, warning, mensagemErroWarning } = response.data;
+      if (erro === 'N' && warning === 'N') {
+        const usuario = response.data;
+        const { token } = usuario;
 
-    if (erro === 'N' && warning === 'N') {
-      const usuario = response.data;
-      const { token } = usuario;
+        localStorage.setItem('@EpocaColetor:token', token);
+        localStorage.setItem('@EpocaColetor:user', JSON.stringify(usuario));
 
-      localStorage.setItem('@EpocaColetor:token', token);
-      localStorage.setItem('@EpocaColetor:user', JSON.stringify(usuario));
-
-      setData({ token, usuario });
-    } else {
-      throw mensagemErroWarning;
+        setData({ token, usuario });
+      } else {
+        throw new Error(mensagemErroWarning);
+      }
+    } catch (error) {
+      throw new Error(error.message);
     }
   }, []);
 

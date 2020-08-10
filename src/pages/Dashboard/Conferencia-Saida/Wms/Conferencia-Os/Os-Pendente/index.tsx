@@ -19,8 +19,8 @@ import Input from '../../../../../../components/Input';
 import { Container, Loanding } from './styles';
 
 interface DataOs {
+  boxOrig: number;
   numcar: number;
-  numbox: number;
 }
 
 interface DataPendencia {
@@ -42,7 +42,6 @@ const OsPendente: React.FC = () => {
   const [pendencia, setPendencia] = useState<DataPendencia[]>([]);
   const [loading, setLoading] = useState(false);
   const [numCarregamento, setNumCarregamento] = useState(0);
-  const [numBox, setBox] = useState(0);
   const formRef = useRef<FormHandles>(null);
 
   useEffect(() => {
@@ -59,7 +58,6 @@ const OsPendente: React.FC = () => {
     if (dataOs.numcar) {
       loadDiverg();
     } else {
-      setBox(dataOs.numbox);
       setLoading(false);
     }
   }, [dataOs]);
@@ -111,7 +109,8 @@ const OsPendente: React.FC = () => {
         <>
           <NavBar
             caminho="/conferencia-saida/conferencia-os"
-            params={dataOs.numbox}
+            numCarregamento={dataOs.numcar}
+            params={dataOs}
           />
           <Loanding>
             {!loading ? (
@@ -163,7 +162,7 @@ const OsPendente: React.FC = () => {
         </>
       ) : (
         <>
-          <NavBar caminho="/conferencia-saida/conferencia-os" params={numBox} />
+          <NavBar caminho="/conferencia-saida/conferencia-os" params={dataOs} />
 
           <Container>
             <Form ref={formRef} onSubmit={pendenciaCarga}>

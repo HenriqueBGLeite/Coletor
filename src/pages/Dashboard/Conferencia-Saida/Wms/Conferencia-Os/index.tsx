@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import ReactLoading from 'react-loading';
 import { FiLock, FiTruck, FiLayers, FiInbox } from 'react-icons/fi';
 import { useHistory } from 'react-router-dom';
@@ -14,6 +14,11 @@ import Input from '../../../../../components/Input';
 import NavBar from '../../../../../components/NavBar';
 
 import { Container, Content, ContentOs17, Button, Loanding } from './styles';
+
+interface Props {
+  boxOrig: number;
+  numcar: number;
+}
 
 interface DataForm {
   numos: number;
@@ -53,10 +58,11 @@ interface DataFormOs17 {
 const ConferenciaOs: React.FC = () => {
   const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
   const history = useHistory();
-  const boxOrig = history.location.state;
+  const dataConf = history.location.state as Props;
   const formRef = useRef<FormHandles>(null);
   const [numos, setNumOs] = useState<string | null>();
   const [dun, setDun] = useState<string | null>();
+  const [numcar, setNumCar] = useState(0);
   const [dataForm, setDataForm] = useState<DataForm>({} as DataForm);
   const [dataFormOs17, setDataFormOs17] = useState<DataFormOs17>(
     {} as DataFormOs17,
@@ -69,6 +75,12 @@ const ConferenciaOs: React.FC = () => {
   const [mostrarProduto, setMostrarProduto] = useState(false);
   const [qtdDivergenciaOs, setQtDivergenciaOs] = useState(0);
   const [qtOsPend, setQtOsPend] = useState(0);
+
+  useEffect(() => {
+    if (dataConf.numcar) {
+      setNumCar(dataConf.numcar);
+    }
+  }, [dataConf]);
 
   const limparTela = useCallback(() => {
     setDataForm({} as DataForm);
@@ -104,7 +116,7 @@ const ConferenciaOs: React.FC = () => {
           return;
         }
 
-        if (boxOrig === cabOs.numbox) {
+        if (dataConf.boxOrig === cabOs.numbox) {
           if (cabOs.codfuncconf && cabOs.dtconf) {
             createMessage({
               type: 'alert',
@@ -116,6 +128,7 @@ const ConferenciaOs: React.FC = () => {
             setQtOsPend(cabOs.qtospendente);
             setQtDivergenciaOs(cabOs.pendencia);
             setMostrarProduto(true);
+            setNumCar(cabOs.numcar);
             setDataForm(cabOs);
             setLoading(false);
             setNumOs(undefined);
@@ -134,12 +147,7 @@ const ConferenciaOs: React.FC = () => {
 
             const sucessoConferencia = updateOs13.data;
 
-            if (sucessoConferencia) {
-              createMessage({
-                type: 'success',
-                message: `Conferência da O.S: ${numOs} Volume: ${numVol} realizada.`,
-              });
-            } else {
+            if (!sucessoConferencia) {
               createMessage({
                 type: 'error',
                 message: `Erro ao finalizar a O.S: ${numOs}. Por favor tente mais tarde.`,
@@ -172,7 +180,7 @@ const ConferenciaOs: React.FC = () => {
 
       setLoading(false);
     }
-  }, [numos, boxOrig, user, limparTela]);
+  }, [numos, dataConf.boxOrig, user, limparTela]);
 
   const chamaValidaOs = useCallback(
     async (event) => {
@@ -223,7 +231,7 @@ const ConferenciaOs: React.FC = () => {
             numvol: dataForm.numvol,
             codFuncConf: user.code,
             codprod: dataProduto.codprod,
-            numbox: boxOrig,
+            numbox: dataConf.boxOrig,
             qtconf: dataProduto.qtunitcx,
           };
 
@@ -242,10 +250,6 @@ const ConferenciaOs: React.FC = () => {
             const retornoPendenciaOs = pendenciaOs.data[0].pendencia;
 
             if (retornoPendenciaOs > 0) {
-              createMessage({
-                type: 'success',
-                message: `Conferência da O.S: ${dataForm.numos} Volume: ${dataForm.numvol} realizada.`,
-              });
               limparTela();
             } else {
               const finalizaOs = await api.put(
@@ -255,10 +259,6 @@ const ConferenciaOs: React.FC = () => {
               const finalizouOs = finalizaOs.data;
 
               if (finalizouOs) {
-                createMessage({
-                  type: 'success',
-                  message: `Conferência da O.S: ${dataForm.numos} finalizada!`,
-                });
                 limparTela();
               } else {
                 createMessage({
@@ -292,8 +292,9 @@ const ConferenciaOs: React.FC = () => {
           type: 'error',
           message: `Cód.Barra ${dun} não pertence a O.S: ${dataForm.numos} volume: ${dataForm.numvol}. Confira pelo código de barra master!`,
         });
-        limparTela();
         setLoading(false);
+        setNumOs(undefined);
+        document.getElementById('codbarra')?.focus();
       }
     } catch (err) {
       createMessage({
@@ -302,7 +303,7 @@ const ConferenciaOs: React.FC = () => {
       });
       setLoading(false);
     }
-  }, [dataForm, dun, user, boxOrig, limparTela, dataFormOs17]);
+  }, [dataForm, dun, user, dataConf.boxOrig, limparTela, dataFormOs17]);
 
   const validaProdutoOs17 = useCallback(async () => {
     setLoading(true);
@@ -311,7 +312,7 @@ const ConferenciaOs: React.FC = () => {
       numvol: dataForm.numvol,
       codFuncConf: user.code,
       codprod: dataFormOs17.codprod,
-      numbox: boxOrig,
+      numbox: dataConf.boxOrig,
       qtconf: dataFormOs17.qt,
     };
 
@@ -330,10 +331,6 @@ const ConferenciaOs: React.FC = () => {
       const retornoPendenciaOs = pendenciaOs.data[0].pendencia;
 
       if (retornoPendenciaOs > 0) {
-        createMessage({
-          type: 'success',
-          message: `Conferência da O.S: ${dataForm.numos} Volume: ${dataForm.numvol} realizada.`,
-        });
         limparTela();
       } else {
         const finalizaOs = await api.put(
@@ -343,10 +340,6 @@ const ConferenciaOs: React.FC = () => {
         const finalizouOs = finalizaOs.data;
 
         if (finalizouOs) {
-          createMessage({
-            type: 'success',
-            message: `Conferência da O.S: ${dataForm.numos} finalizada!`,
-          });
           limparTela();
         } else {
           createMessage({
@@ -364,7 +357,7 @@ const ConferenciaOs: React.FC = () => {
     }
     limparTela();
     setLoading(false);
-  }, [boxOrig, dataForm, limparTela, user.code, dataFormOs17]);
+  }, [dataConf.boxOrig, dataForm, limparTela, user.code, dataFormOs17]);
 
   const chamaValidaProduto = useCallback(
     async (event) => {
@@ -385,17 +378,20 @@ const ConferenciaOs: React.FC = () => {
   );
 
   const telaDivergencia = useCallback(() => {
-    const dataOs = { numos: dataForm.numos, numbox: dataForm.numbox };
+    const dataOs = { numos: dataForm.numos, boxOrig: dataForm.numbox, numcar };
     history.push(`/conferencia-saida/divergencia`, dataOs);
-  }, [history, dataForm]);
+  }, [history, dataForm, numcar]);
 
   const telaOsPendente = useCallback(() => {
-    const dataOs = { numcar: dataForm.numcar, numbox: boxOrig };
+    const dataOs = {
+      numcar,
+      boxOrig: dataConf.boxOrig,
+    } as Props;
     history.push(`/conferencia-saida/os-pendente`, dataOs);
-  }, [history, dataForm, boxOrig]);
+  }, [history, dataConf.boxOrig, numcar]);
 
   const alimentaQtConfOs17 = useCallback(() => {
-    setDataFormOs17({ ...dataFormOs17, qt: total });
+    setDataFormOs17({ ...dataFormOs17, qt: total * dataFormOs17.qtunitcx });
   }, [dataFormOs17, total]);
 
   const focusCampo = useCallback((event) => {
@@ -416,7 +412,7 @@ const ConferenciaOs: React.FC = () => {
 
   return (
     <>
-      <NavBar caminho="/conferencia-saida" />
+      <NavBar caminho="/conferencia-saida" numCarregamento={numcar} />
       <Container>
         <Loanding>
           {!loading ? (
@@ -480,6 +476,7 @@ const ConferenciaOs: React.FC = () => {
                           type="number"
                           description="Lastro"
                           onChange={(e) => setLastro(Number(e.target.value))}
+                          onBlur={(e) => setLastro(Number(e.target.value))}
                           onKeyPress={(e) => focusCampo(e)}
                           onKeyUp={handleCalcTotal}
                         />
@@ -491,6 +488,7 @@ const ConferenciaOs: React.FC = () => {
                           type="number"
                           description="Camada"
                           onChange={(e) => setCamada(Number(e.target.value))}
+                          onBlur={(e) => setCamada(Number(e.target.value))}
                           onKeyPress={(e) => focusCampo(e)}
                           onKeyUp={handleCalcTotal}
                         />
@@ -503,6 +501,7 @@ const ConferenciaOs: React.FC = () => {
                           description="Total"
                           value={total}
                           onChange={(e) => setTotal(Number(e.target.value))}
+                          onBlur={(e) => setTotal(Number(e.target.value))}
                           onKeyPress={(e) => focusCampo(e)}
                           onKeyUp={alimentaQtConfOs17}
                         />

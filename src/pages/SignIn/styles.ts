@@ -39,7 +39,7 @@ export const AnimationContainer = styled.div`
 
   img {
     width: 100%;
-    max-height: 200px;
+    max-height: 180px;
   }
 
   form {
@@ -48,16 +48,9 @@ export const AnimationContainer = styled.div`
 
     background: transparent;
     border-radius: 10px;
-    padding: 16px;
+    padding: 0 16px;
 
     justify-content: space-between;
-
-    h1 {
-      width: 100%;
-      color: #005129;
-      margin-bottom: 16px;
-      font-size: 25px;
-    }
   }
 
   p {
@@ -84,7 +77,7 @@ export const Loanding = styled.div`
     padding: 0 16px;
     width: 100%;
     font-weight: bold;
-    margin-top: 16px;
+    margin-top: 8px;
     transition: background-color 0.2s;
 
     &:hover {

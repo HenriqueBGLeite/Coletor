@@ -13,8 +13,14 @@ import Dialog from '../../../../../../components/Dialog';
 import { Content, Button, Loanding } from './styles';
 
 interface DataOs {
+  numcar: number;
   numos: number;
   numbox: number;
+}
+
+interface DataOsRetorno {
+  boxOrig: number;
+  numcar: number;
 }
 
 interface DataDivergencia {
@@ -33,6 +39,7 @@ interface DataDivergencia {
 const Divergencia: React.FC = () => {
   const history = useHistory();
   const dataOs = history.location.state as DataOs;
+  const dataOsRetorno = history.location.state as DataOsRetorno;
   const [divergencia, setDivergencia] = useState<DataDivergencia[]>([]);
   const [loading, setLoading] = useState(false);
   const [mostrarDialogProd, setMostrarDialogProd] = useState(false);
@@ -65,11 +72,7 @@ const Divergencia: React.FC = () => {
           );
 
           if (response.data) {
-            createMessage({
-              type: 'success',
-              message: `Conferência da O.S: ${produtoSelecionado.numos} produto: ${produtoSelecionado.codprod} reaberta com sucesso!`,
-            });
-            history.push('/conferencia-saida/conferencia-os', dataOs.numbox);
+            history.push('/conferencia-saida/conferencia-os', dataOsRetorno);
           } else {
             createMessage({
               type: 'error',
@@ -93,7 +96,7 @@ const Divergencia: React.FC = () => {
         setMostrarDialogProd(false);
       }
     },
-    [produtoSelecionado, history, dataOs],
+    [produtoSelecionado, history, dataOsRetorno],
   );
 
   const reconferirOs = useCallback(
@@ -105,11 +108,7 @@ const Divergencia: React.FC = () => {
         );
 
         if (response.data) {
-          createMessage({
-            type: 'success',
-            message: `Conferência da O.S: ${dataOs.numos} reaberta com sucesso!`,
-          });
-          history.push('/conferencia-saida/conferencia-os', dataOs.numbox);
+          history.push('/conferencia-saida/conferencia-os', dataOsRetorno);
         } else {
           createMessage({
             type: 'error',
@@ -126,14 +125,15 @@ const Divergencia: React.FC = () => {
         setMostrarDialogOs(false);
       }
     },
-    [history, dataOs],
+    [history, dataOs, dataOsRetorno],
   );
 
   return (
     <>
       <NavBar
         caminho="/conferencia-saida/conferencia-os"
-        params={dataOs.numbox}
+        numCarregamento={dataOs.numcar}
+        params={dataOsRetorno}
       />
       <Loanding>
         {!loading ? (
