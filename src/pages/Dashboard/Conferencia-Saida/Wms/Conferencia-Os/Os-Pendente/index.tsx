@@ -21,6 +21,7 @@ import { Container, Loanding } from './styles';
 interface DataOs {
   boxOrig: number;
   numcar: number;
+  qtPend: number;
 }
 
 interface DataPendencia {
@@ -90,6 +91,7 @@ const OsPendente: React.FC = () => {
           type: 'alert',
           message: `Nenhuma pendencia encontrada para o carregamento: ${data.numcar}`,
         });
+        setPendencia([]);
         formRef.current?.clearField('numcar');
         setLoading(false);
       }

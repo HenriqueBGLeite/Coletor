@@ -112,8 +112,9 @@ const Divergencia: React.FC = () => {
         } else {
           createMessage({
             type: 'error',
-            message: `Erro ao tentar reabrir conferência da O.S: ${dataOs.numos}.`,
+            message: `Erro ao tentar reabrir conferência da O.S: ${dataOs.numos}. Verifique se a O.S. já está concluída.`,
           });
+          setMostrarDialogOs(false);
           setLoading(false);
         }
       } else {

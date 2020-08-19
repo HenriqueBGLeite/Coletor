@@ -31,7 +31,23 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const history = useHistory();
 
-  const validaTelaSeguinte = useCallback(async () => {
+  const validaTelaSeguinteConferencia = useCallback(async () => {
+    const { usaWms } = user;
+    setLoading(true);
+
+    if (usaWms === 'S') {
+      history.push('conferencia-saida');
+    } else {
+      setLoading(false);
+      createMessage({
+        type: 'info',
+        message:
+          'Ops... Não foi possível acessar o recurso. Tela em desenvolvimento.',
+      });
+    }
+  }, [user, history]);
+
+  const validaTelaSeguinteInventario = useCallback(async () => {
     const { usaWms } = user;
     setLoading(true);
 
@@ -64,6 +80,22 @@ const Dashboard: React.FC = () => {
     }
   }, [user, history]);
 
+  const validaTelaSeguinteListagem = useCallback(async () => {
+    const { usaWms } = user;
+    setLoading(true);
+
+    if (usaWms === 'S') {
+      history.push('listar-enderecos');
+    } else {
+      setLoading(false);
+      createMessage({
+        type: 'info',
+        message:
+          'Ops... Não foi possível acessar o recurso. Tela em desenvolvimento.',
+      });
+    }
+  }, [user, history]);
+
   return (
     <>
       <NavBar />
@@ -75,14 +107,11 @@ const Dashboard: React.FC = () => {
                 CONFERÊNCIA ENTRADA
                 <FiTruck />
               </button>
-              <button
-                type="button"
-                onClick={() => history.push('conferencia-saida')}
-              >
+              <button type="button" onClick={validaTelaSeguinteConferencia}>
                 CONFERÊNCIA SAÍDA
                 <FiShoppingCart />
               </button>
-              <button type="button" onClick={validaTelaSeguinte}>
+              <button type="button" onClick={validaTelaSeguinteInventario}>
                 INVENTÁRIO
                 <FiBox />
               </button>
@@ -93,10 +122,7 @@ const Dashboard: React.FC = () => {
                 DADOS PRODUTO
                 <FiEdit />
               </button>
-              <button
-                type="button"
-                onClick={() => history.push('listar-enderecos')}
-              >
+              <button type="button" onClick={validaTelaSeguinteListagem}>
                 LISTAR ENDEREÇOS
                 <FiList />
               </button>

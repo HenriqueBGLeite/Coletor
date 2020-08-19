@@ -39,7 +39,14 @@ export const AnimationContainer = styled.div`
 
   img {
     width: 100%;
-    max-height: 180px;
+    max-height: 700px;
+  }
+
+  @media (max-width: 400px) {
+    img {
+      width: 100%;
+      max-height: 180px;
+    }
   }
 
   form {

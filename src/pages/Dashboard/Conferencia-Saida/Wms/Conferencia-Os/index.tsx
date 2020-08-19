@@ -18,10 +18,11 @@ import { Container, Content, ContentOs17, Button, Loanding } from './styles';
 interface Props {
   boxOrig: number;
   numcar: number;
+  qtPend: number;
 }
 
 interface DataForm {
-  numos: number;
+  numos: number | undefined;
   numpalete: number;
   numped: number;
   numcar: number;
@@ -43,10 +44,6 @@ interface DataProduto {
   qtunitcx: number;
   numvol: number;
   reconferido: string;
-}
-
-interface Pendencia {
-  pendencia: number;
 }
 
 interface DataFormOs17 {
@@ -79,6 +76,7 @@ const ConferenciaOs: React.FC = () => {
   useEffect(() => {
     if (dataConf.numcar) {
       setNumCar(dataConf.numcar);
+      setQtOsPend(dataConf.qtPend);
     }
   }, [dataConf]);
 
@@ -120,9 +118,18 @@ const ConferenciaOs: React.FC = () => {
           if (cabOs.codfuncconf && cabOs.dtconf) {
             createMessage({
               type: 'alert',
-              message: `O.S: ${cabOs.numos} Volume: ${cabOs.numvol} já finalizada. Conferente: ${cabOs.codfuncconf} - ${user.nome}`,
+              message: `O.S: ${cabOs.numos} Volume: ${cabOs.numvol} já finalizada. Conferente: ${cabOs.codfuncconf}`,
             });
-            limparTela();
+
+            setNumOs(String(cabOs.numos));
+
+            cabOs.numos = undefined;
+
+            setNumCar(cabOs.numcar);
+            setDataForm(cabOs);
+            setQtOsPend(cabOs.qtospendente);
+            setQtDivergenciaOs(cabOs.pendencia);
+            formRef.current?.setFieldValue('numos', null);
             setLoading(false);
           } else if (cabOs.tipoos === 20 || cabOs.tipoos === 17) {
             setQtOsPend(cabOs.qtospendente);
@@ -217,7 +224,6 @@ const ConferenciaOs: React.FC = () => {
 
         dataProduto = responseProduto.data[0] as DataProduto;
       }
-
       if (dataProduto) {
         if (dataProduto.conferido === 'S') {
           createMessage({
@@ -243,31 +249,8 @@ const ConferenciaOs: React.FC = () => {
           const sucessoConferencia = updateOs.data;
 
           if (sucessoConferencia) {
-            const pendenciaOs = await api.get<Pendencia[]>(
-              `ConferenciaSaida/buscaQtVolumePendente/${dataForm.numos}/${dataForm.numbox}`,
-            );
-
-            const retornoPendenciaOs = pendenciaOs.data[0].pendencia;
-
-            if (retornoPendenciaOs > 0) {
-              limparTela();
-            } else {
-              const finalizaOs = await api.put(
-                `ConferenciaSaida/FinalizaConferenciaOs/${dataForm.numos}`,
-              );
-
-              const finalizouOs = finalizaOs.data;
-
-              if (finalizouOs) {
-                limparTela();
-              } else {
-                createMessage({
-                  type: 'error',
-                  message: `Erro ao finalizar a O.S: ${dataForm.numos}. Por favor tente mais tarde.`,
-                });
-                limparTela();
-              }
-            }
+            limparTela();
+            setLoading(false);
           } else {
             createMessage({
               type: 'error',
@@ -324,31 +307,8 @@ const ConferenciaOs: React.FC = () => {
     const sucessoConferencia = updateOs.data;
 
     if (sucessoConferencia) {
-      const pendenciaOs = await api.get<Pendencia[]>(
-        `ConferenciaSaida/buscaQtVolumePendente/${dataForm.numos}/${dataForm.numbox}`,
-      );
-
-      const retornoPendenciaOs = pendenciaOs.data[0].pendencia;
-
-      if (retornoPendenciaOs > 0) {
-        limparTela();
-      } else {
-        const finalizaOs = await api.put(
-          `ConferenciaSaida/FinalizaConferenciaOs/${dataForm.numos}`,
-        );
-
-        const finalizouOs = finalizaOs.data;
-
-        if (finalizouOs) {
-          limparTela();
-        } else {
-          createMessage({
-            type: 'error',
-            message: `Erro ao finalizar a O.S: ${dataForm.numos}. Por favor tente mais tarde.`,
-          });
-          limparTela();
-        }
-      }
+      limparTela();
+      setLoading(false);
     } else {
       createMessage({
         type: 'error',
@@ -378,17 +338,36 @@ const ConferenciaOs: React.FC = () => {
   );
 
   const telaDivergencia = useCallback(() => {
-    const dataOs = { numos: dataForm.numos, boxOrig: dataForm.numbox, numcar };
-    history.push(`/conferencia-saida/divergencia`, dataOs);
-  }, [history, dataForm, numcar]);
+    if (dataForm.numos) {
+      const dataOs = {
+        numos: dataForm.numos,
+        boxOrig: dataForm.numbox,
+        numcar,
+      };
+      history.push(`/conferencia-saida/divergencia`, dataOs);
+    } else {
+      const dataOs = { numos, boxOrig: dataForm.numbox, numcar };
+      history.push(`/conferencia-saida/divergencia`, dataOs);
+    }
+  }, [history, dataForm, numcar, numos]);
 
   const telaOsPendente = useCallback(() => {
-    const dataOs = {
-      numcar,
-      boxOrig: dataConf.boxOrig,
-    } as Props;
-    history.push(`/conferencia-saida/os-pendente`, dataOs);
-  }, [history, dataConf.boxOrig, numcar]);
+    if (dataForm.qtospendente) {
+      const dataOs = {
+        numcar,
+        boxOrig: dataConf.boxOrig,
+        qtPend: dataForm.qtospendente,
+      } as Props;
+      history.push(`/conferencia-saida/os-pendente`, dataOs);
+    } else {
+      const dataOs = {
+        numcar,
+        boxOrig: dataConf.boxOrig,
+        qtPend: qtOsPend,
+      } as Props;
+      history.push(`/conferencia-saida/os-pendente`, dataOs);
+    }
+  }, [history, dataConf.boxOrig, numcar, dataForm.qtospendente, qtOsPend]);
 
   const alimentaQtConfOs17 = useCallback(() => {
     setDataFormOs17({ ...dataFormOs17, qt: total * dataFormOs17.qtunitcx });
@@ -522,7 +501,7 @@ const ConferenciaOs: React.FC = () => {
                 )}
               </Form>
               <Button>
-                {dataForm.numos ? (
+                {dataForm.numos || numos ? (
                   <button type="button" onClick={telaDivergencia}>
                     <p>Divergência</p>
                     <p>({qtdDivergenciaOs})</p>
