@@ -288,7 +288,12 @@ const ConsultarProdutos: React.FC = () => {
             {!loading ? (
               <Form ref={formRefProd} onSubmit={handleGetProduct}>
                 <Header>
-                  <Select name="filial" percWidth={30} icon={FiHome}>
+                  <Select
+                    name="filial"
+                    percWidth={30}
+                    icon={FiHome}
+                    marginRight={7}
+                  >
                     <option value={selectedFilial}>{selectedFilial}</option>
                     {filiais
                       .filter((fil) => fil.codfilial !== selectedFilial)

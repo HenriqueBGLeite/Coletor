@@ -14,12 +14,14 @@ import { Container, Error } from './style';
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   name: string;
   percWidth?: number;
+  marginRight?: number;
   icon?: React.ComponentType<IconBaseProps>;
 }
 
 const Select: React.FC<SelectProps> = ({
   name,
   percWidth,
+  marginRight,
   icon: Icon,
   ...rest
 }) => {
@@ -52,6 +54,7 @@ const Select: React.FC<SelectProps> = ({
       isFilled={isFilled}
       isFocused={isFocused}
       width={percWidth || 100}
+      marginRight={marginRight || 16}
     >
       {Icon && <Icon size={20} />}
       <select
