@@ -1,7 +1,14 @@
 import React, { useState, useCallback } from 'react';
 import { useHistory } from 'react-router-dom';
 import ReactLoading from 'react-loading';
-import { FiTruck, FiShoppingCart, FiList, FiEdit, FiBox } from 'react-icons/fi';
+import {
+  FiTruck,
+  FiList,
+  FiEdit,
+  FiPackage,
+  FiBox,
+  FiCheckSquare,
+} from 'react-icons/fi';
 
 import { createMessage } from '../../components/Toast';
 import api from '../../services/api';
@@ -37,6 +44,23 @@ const Dashboard: React.FC = () => {
 
     if (usaWms === 'S') {
       history.push('conferencia-saida');
+    } else {
+      setLoading(false);
+      createMessage({
+        type: 'info',
+        message:
+          'Ops... Não foi possível acessar o recurso. Tela em desenvolvimento.',
+      });
+    }
+  }, [user, history]);
+
+  const validaTelaSeguinteReconferencia = useCallback(async () => {
+    const { usaWms } = user;
+    setLoading(true);
+
+    if (usaWms === 'S') {
+      history.push('#');
+      setLoading(false);
     } else {
       setLoading(false);
       createMessage({
@@ -109,11 +133,19 @@ const Dashboard: React.FC = () => {
               </button>
               <button type="button" onClick={validaTelaSeguinteConferencia}>
                 CONFERÊNCIA SAÍDA
-                <FiShoppingCart />
+                <FiBox />
+              </button>
+              <button
+                type="button"
+                onClick={validaTelaSeguinteReconferencia}
+                disabled
+              >
+                RECONFERÊNCIA CARGA
+                <FiCheckSquare />
               </button>
               <button type="button" onClick={validaTelaSeguinteInventario}>
                 INVENTÁRIO
-                <FiBox />
+                <FiPackage />
               </button>
               <button
                 type="button"
