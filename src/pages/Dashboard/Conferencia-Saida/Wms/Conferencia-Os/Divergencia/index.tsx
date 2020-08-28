@@ -16,11 +16,13 @@ interface DataOs {
   numcar: number;
   numos: number;
   numbox: number;
+  qtPend: number;
 }
 
 interface DataOsRetorno {
   boxOrig: number;
   numcar: number;
+  qtPend: number;
 }
 
 interface DataDivergencia {
