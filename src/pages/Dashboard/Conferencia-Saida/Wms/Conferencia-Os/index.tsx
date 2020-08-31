@@ -4,9 +4,6 @@ import { FiLock, FiTruck, FiLayers, FiInbox } from 'react-icons/fi';
 import { useHistory } from 'react-router-dom';
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
-
-// import moment from 'moment';
-
 import { createMessage } from '../../../../../components/Toast';
 import quebraOs from '../../../../../utils/quebraOs';
 
@@ -75,10 +72,6 @@ const ConferenciaOs: React.FC = () => {
   const [qtdDivergenciaOs, setQtDivergenciaOs] = useState(0);
   const [qtOsPend, setQtOsPend] = useState(0);
 
-  // const [tempoInico, setTempoInicio] = useState<Date>();
-  // const [tempoFim, setTempoFim] = useState<Date>();
-  // const [duracao, setDuracao] = useState<Math>();
-
   useEffect(() => {
     if (dataConf.numcar) {
       setNumCar(dataConf.numcar);
@@ -103,14 +96,9 @@ const ConferenciaOs: React.FC = () => {
     try {
       const { numos: numOs, numvol: numVol } = quebraOs(numos as string);
 
-      // const validacoesApi = moment(new Date());
-
       const response = await api.get<DataForm[]>(
         `ConferenciaSaida/CabecalhoOs/${numOs}/${numVol}`,
       );
-      // const finalProcessoApi = moment(new Date());
-
-      // const validacoesFront = moment(new Date());
 
       const cabOs = response.data[0];
 
@@ -151,21 +139,6 @@ const ConferenciaOs: React.FC = () => {
             setLoading(false);
             setNumOs(undefined);
             document.getElementById('codbarra')?.focus();
-
-            // const finalProcesso = moment(new Date());
-
-            // const duracaoApi = moment.duration(
-            //   finalProcessoApi.diff(validacoesApi),
-            // );
-            // const duracaoFront = moment.duration(
-            //   finalProcesso.diff(validacoesFront),
-            // );
-
-            // console.log(`Incio Api: ${validacoesApi.seconds()}/s`);
-            // console.log(`Incio Front: ${validacoesFront.seconds()}/s`);
-            // console.log(`Fim Api/Front: ${finalProcesso.seconds()}/s`);
-            // console.log(`Duração Api: ${duracaoApi.asSeconds()}/s`);
-            // console.log(`Duração Front: ${duracaoFront.asSeconds()}/s`);
           } else {
             const dataUpdateOs13 = {
               numos: cabOs.numos,
