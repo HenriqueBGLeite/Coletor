@@ -14,6 +14,7 @@ import { Container, Error } from './style';
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   name: string;
   percWidth?: number;
+  marginRight?: number;
   description?: string;
   focus?: boolean;
   icon?: React.ComponentType<IconBaseProps>;
@@ -22,6 +23,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 const Input: React.FC<InputProps> = ({
   name,
   percWidth,
+  marginRight,
   focus,
   description,
   icon: Icon,
@@ -60,6 +62,7 @@ const Input: React.FC<InputProps> = ({
       isFilled={isFilled}
       isFocused={isFocused}
       width={percWidth || 100}
+      marginRight={marginRight || 16}
     >
       {Icon && <Icon size={20} />}
       <div className="label-float">

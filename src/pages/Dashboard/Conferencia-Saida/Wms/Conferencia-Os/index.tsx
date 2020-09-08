@@ -433,6 +433,7 @@ const ConferenciaOs: React.FC = () => {
                 <Input
                   percWidth={25}
                   icon={FiInbox}
+                  marginRight={3}
                   name="numvol"
                   type="number"
                   description="Vol"

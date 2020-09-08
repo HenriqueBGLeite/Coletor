@@ -51,22 +51,22 @@ const ListarEnderecos: React.FC = () => {
 
   useEffect(() => {
     setLoading(true);
-    try {
-      api
-        .get<ProdutoPicking[]>(
-          `PesquisaProduto/getListaReposicaoAberta/${user.code}`,
-        )
-        .then((response) => {
-          setListaProdutos(response.data);
-          setLoading(false);
+
+    api
+      .get<ProdutoPicking[]>(
+        `PesquisaProduto/getListaReposicaoAberta/${user.code}`,
+      )
+      .then((response) => {
+        setListaProdutos(response.data);
+        setLoading(false);
+      })
+      .catch(() => {
+        createMessage({
+          type: 'error',
+          message: 'Não foi possivel estabelece conexão com o banco de dados.',
         });
-    } catch (err) {
-      createMessage({
-        type: 'error',
-        message: 'Não foi possivel estabelece conexão com o banco de dados.',
+        history.push('/');
       });
-      history.push('/');
-    }
   }, [user.code, history]);
 
   const buscarPicking = useCallback(

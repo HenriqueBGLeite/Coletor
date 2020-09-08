@@ -92,6 +92,10 @@ const Dashboard: React.FC = () => {
           history.push('inventario/endereco-inventario', enderecoOs);
         }
       } catch (err) {
+        createMessage({
+          type: 'error',
+          message: err.message,
+        });
         setLoading(false);
       }
     } else {

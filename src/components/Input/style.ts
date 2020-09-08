@@ -7,6 +7,7 @@ interface ContainerProps {
   isFilled: boolean;
   isErrored: boolean;
   width: number;
+  marginRight: number;
 }
 
 export const Container = styled.div<ContainerProps>`
@@ -63,6 +64,12 @@ export const Container = styled.div<ContainerProps>`
 
   svg {
     margin-right: 16px;
+
+    ${(props) =>
+      props.marginRight &&
+      css`
+        margin-right: ${props.marginRight}px;
+      `}
   }
 
   .label-float{

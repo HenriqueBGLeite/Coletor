@@ -248,7 +248,7 @@ const ConferenciaWms: React.FC = () => {
 
         createMessage({
           type: 'error',
-          message: 'Erro ao realizar o login. Verifique suas credenciais.',
+          message: 'Erro na busca do produto.',
         });
 
         formRefProd.current?.setFieldValue('produto', null);
