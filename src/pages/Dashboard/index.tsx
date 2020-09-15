@@ -8,6 +8,7 @@ import {
   FiPackage,
   FiBox,
   FiCheckSquare,
+  FiLayers,
 } from 'react-icons/fi';
 
 import { createMessage } from '../../components/Toast';
@@ -59,8 +60,7 @@ const Dashboard: React.FC = () => {
     setLoading(true);
 
     if (usaWms === 'S') {
-      history.push('#');
-      setLoading(false);
+      history.push('/reconferencia');
     } else {
       setLoading(false);
       createMessage({
@@ -139,17 +139,17 @@ const Dashboard: React.FC = () => {
                 CONFERÊNCIA SAÍDA
                 <FiBox />
               </button>
-              <button
-                type="button"
-                onClick={validaTelaSeguinteReconferencia}
-                disabled
-              >
+              <button type="button" onClick={validaTelaSeguinteReconferencia}>
                 RECONFERÊNCIA CARGA
                 <FiCheckSquare />
               </button>
               <button type="button" onClick={validaTelaSeguinteInventario}>
                 INVENTÁRIO
                 <FiPackage />
+              </button>
+              <button type="button" onClick={() => history.push('armazenagem')}>
+                ARMAZENAGEM
+                <FiLayers />
               </button>
               <button
                 type="button"

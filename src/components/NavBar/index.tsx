@@ -9,6 +9,7 @@ import { Container } from './style';
 interface NavBarProps {
   numInvent?: number;
   numCarregamento?: number;
+  numBox?: number;
   caminho?: string;
   params?: object | number;
   simpleNav?: boolean;
@@ -18,7 +19,14 @@ const NavBar: React.FC<NavBarProps> = (props) => {
   const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
   const history = useHistory();
   const { signOut } = useAuth();
-  const { numInvent, numCarregamento, caminho, params, simpleNav } = props;
+  const {
+    numInvent,
+    numCarregamento,
+    numBox,
+    caminho,
+    params,
+    simpleNav,
+  } = props;
   const validaButtonSair = history.location.pathname;
 
   return (
@@ -39,6 +47,7 @@ const NavBar: React.FC<NavBarProps> = (props) => {
             </p>
             {numInvent ? <p>INVENTÁRIO {numInvent}</p> : ''}
             {numCarregamento ? <p>CARGA: {numCarregamento}</p> : ''}
+            {numBox ? <p>BOX: {numBox}</p> : ''}
           </div>
           {validaButtonSair === '/dashboard' ? (
             <button type="button" onClick={signOut}>
@@ -68,6 +77,7 @@ const NavBar: React.FC<NavBarProps> = (props) => {
             </p>
             {numInvent ? <p>INVENTÁRIO {numInvent}</p> : ''}
             {numCarregamento ? <p>CARGA: {numCarregamento}</p> : ''}
+            {numBox ? <p>BOX: {numBox}</p> : ''}
           </div>
           {validaButtonSair === '/dashboard' ? (
             <button type="button" onClick={signOut}>
