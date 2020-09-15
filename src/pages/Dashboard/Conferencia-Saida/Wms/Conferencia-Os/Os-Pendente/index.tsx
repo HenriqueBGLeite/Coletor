@@ -144,7 +144,7 @@ const OsPendente: React.FC = () => {
                 <Column
                   field="tipoos"
                   header="Tipo O.S"
-                  style={{ width: '120px' }}
+                  style={{ width: '160px' }}
                 />
                 <Column
                   field="separador"
