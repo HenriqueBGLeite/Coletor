@@ -11,6 +11,7 @@ import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
 import ReactLoading from 'react-loading';
 import * as Yup from 'yup';
+import { InputMask } from 'primereact/inputmask';
 import api from '../../../../../services/api';
 import getValidationErrors from '../../../../../utils/getValidationErros';
 
@@ -108,6 +109,8 @@ const ConferenciaWms: React.FC = () => {
   const [cx, setCx] = useState(0);
   const [un, setUn] = useState(0);
   const [total, setTotal] = useState(0);
+
+  const [date, setDate] = useState('');
 
   const [loading, setLoanding] = useState(false);
   const [buscaProduto, setBuscaProduto] = useState(false);
@@ -263,6 +266,9 @@ const ConferenciaWms: React.FC = () => {
       document.getElementById('camada')?.focus();
     }
     if (event.target.id === 'camada' && event.key === 'Enter') {
+      document.getElementById('dtvalidade')?.focus();
+    }
+    if (event.target.id === 'dtvalidade' && event.key === 'Enter') {
       document.getElementById('qtcx')?.focus();
     }
     if (event.target.id === 'qtcx' && event.key === 'Enter') {
@@ -476,13 +482,19 @@ const ConferenciaWms: React.FC = () => {
                     onKeyPress={(e) => focusCampo(e)}
                     onKeyUp={handleCalcTotal}
                   />
-                  <Input
-                    icon={FiCalendar}
-                    name="dtvalidade"
-                    type="text"
-                    description="Data validade"
-                    disabled
-                  />
+                  <div className="inputmask">
+                    <FiCalendar />
+                    <InputMask
+                      id="dtvalidade"
+                      name="dtvalidade"
+                      mask="99/99/9999"
+                      value={date}
+                      slotChar="DD/MM/AAAA"
+                      onChange={(e) => setDate(e.value)}
+                      placeholder="Data de validade"
+                      disabled
+                    />
+                  </div>
                   <Content>
                     <Input
                       percWidth={30}

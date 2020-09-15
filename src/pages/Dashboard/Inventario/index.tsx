@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { FiMapPin } from 'react-icons/fi';
 import { useHistory } from 'react-router-dom';
+import ReactLoading from 'react-loading';
 
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
@@ -13,7 +14,7 @@ import getValidationErrors from '../../../utils/getValidationErros';
 import NavBar from '../../../components/NavBar';
 import Input from '../../../components/Input';
 
-import { Container, Content } from './styles';
+import { Container, Content, Loanding } from './styles';
 
 interface OsInventario {
   codendereco: number;
@@ -41,6 +42,7 @@ const Inventario: React.FC = () => {
   const [endereco, setEndereco] = useState('');
   const history = useHistory();
   const location = history.location.pathname;
+  const [loading, setLoading] = useState(false);
 
   const handleEndereco = useCallback(
     async (data) => {
@@ -55,6 +57,7 @@ const Inventario: React.FC = () => {
           abortEarly: false,
         });
 
+        setLoading(true);
         const response = await api.get<OsInventario[]>(
           `Inventario/getProxOs/${user.code}/${endereco}`,
         );
@@ -70,6 +73,7 @@ const Inventario: React.FC = () => {
           });
 
           formRef.current?.setFieldValue('endereco', null);
+          setLoading(false);
         }
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
@@ -86,6 +90,7 @@ const Inventario: React.FC = () => {
         });
 
         formRef.current?.setFieldValue('endereco', null);
+        setLoading(false);
       }
     },
     [endereco, user.code, history, location],
@@ -95,19 +100,30 @@ const Inventario: React.FC = () => {
     <>
       <NavBar caminho="/" />
       <Container>
-        <Content>
-          <h1>Onde estou?</h1>
-          <Form ref={formRef} onSubmit={handleEndereco}>
-            <Input
-              focus
-              icon={FiMapPin}
-              name="endereco"
-              type="number"
-              description="Cód.Endereço"
-              onChange={(e) => setEndereco(e.target.value)}
+        <Loanding>
+          {!loading ? (
+            <Content>
+              <h1>Onde estou?</h1>
+              <Form ref={formRef} onSubmit={handleEndereco}>
+                <Input
+                  focus
+                  icon={FiMapPin}
+                  name="endereco"
+                  type="number"
+                  description="Cód.Endereço"
+                  onChange={(e) => setEndereco(e.target.value)}
+                />
+              </Form>
+            </Content>
+          ) : (
+            <ReactLoading
+              className="loading"
+              type="spokes"
+              width="100px"
+              color="#c22e2c"
             />
-          </Form>
-        </Content>
+          )}
+        </Loanding>
       </Container>
     </>
   );

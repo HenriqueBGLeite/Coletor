@@ -89,4 +89,36 @@ export const Content = styled.div`
       background: ${shade(0.2, '#c84241')};
     }
   }
+
+  .inputmask {
+    border-radius: 10px;
+    padding: 5px 10px;
+    width: 100%;
+
+    border: 2px solid #878787;
+    color: #666360;
+
+    display: flex;
+    align-items: center;
+
+    .p-inputtext {
+      flex: 1;
+      width: 100%;
+      background: transparent;
+      border: 0;
+      color: #333;
+
+      &:enabled:focus {
+        box-shadow: 0 0 0 0;
+      }
+
+      &::placeholder {
+        color: #878787;
+      }
+    }
+
+    svg {
+      margin-right: 16px;
+    }
+  }
 `;
