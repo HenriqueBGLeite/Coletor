@@ -13,7 +13,6 @@ export const Toast = styled(ToastContainer)`
     background: rgb(254, 255, 20);
   }
   .Toastify__toast--error {
-    background: rgb(51, 187, 102);
-    /* rgb(255, 102, 102) */
+    background: rgb(255, 102, 102);
   }
 `;

@@ -14,7 +14,12 @@ import getValidationErrors from '../../../utils/getValidationErros';
 import NavBar from '../../../components/NavBar';
 import Input from '../../../components/Input';
 
-import { Container, Content, Loanding } from './styles';
+import { Container, Content, Loading } from './styles';
+
+interface DTOReconferencia {
+  numCar: number;
+  pedencia: number;
+}
 
 const Reconferencia: React.FC = () => {
   const formRef = useRef<FormHandles>(null);
@@ -50,7 +55,8 @@ const Reconferencia: React.FC = () => {
           const pendCarga = responsePend.data;
 
           if (pendCarga > 0) {
-            history.push('dashboard');
+            const dataCarga = { numcar, pendencia: pendCarga };
+            history.push('/reconferencia/reconferencia-os', dataCarga);
           } else {
             createMessage({
               type: 'alert',
@@ -91,7 +97,7 @@ const Reconferencia: React.FC = () => {
     <>
       <NavBar caminho="dashboard" />
       <Container>
-        <Loanding>
+        <Loading>
           {!loading ? (
             <Content>
               <h1>Nº Carregamento</h1>
@@ -114,7 +120,7 @@ const Reconferencia: React.FC = () => {
               color="#c22e2c"
             />
           )}
-        </Loanding>
+        </Loading>
       </Container>
     </>
   );

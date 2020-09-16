@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { shade } from 'polished';
 
 export const Container = styled.div`
   height: 100%;
@@ -8,7 +9,6 @@ export const Container = styled.div`
   justify-content: center;
 
   width: 100%;
-  max-width: 400px;
   margin: auto;
 `;
 
@@ -19,19 +19,12 @@ export const Content = styled.div`
   flex-direction: column;
 
   width: 100%;
-  max-width: 700px;
-  margin: 20px auto;
-
-  h1 {
-    font-family: 'Roboto Slab', sans-serif;
-    font-weight: 700;
-    font-style: italic;
-    font-size: 30px;
-    color: #363636;
-  }
+  margin: auto;
 
   form {
     width: 100%;
+    display: flex;
+    flex-wrap: wrap;
     text-align: center;
 
     background: transparent;
@@ -42,41 +35,41 @@ export const Content = styled.div`
   }
 `;
 
+export const Button = styled.div`
+  display: flex;
+  width: 100%;
+  padding: 0 16px;
+
+  button {
+    background: #c22e2c;
+    color: #fff;
+    height: 56px;
+    border-radius: 10px;
+    border: 0;
+    width: 100%;
+    font-weight: bold;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background: ${shade(0.2, '#c84241')};
+    }
+
+    &:disabled {
+      background: #c84250;
+    }
+  }
+
+  button + button {
+    margin-left: 5px;
+  }
+`;
+
 export const Loading = styled.div`
   width: 100%;
 
   display: flex;
   align-items: center;
   justify-content: center;
-
-  button {
-    background: #fff;
-    border-radius: 10px;
-    border: 0;
-    width: 100%;
-    padding: 20px;
-    font-size: 18px;
-    display: block;
-    text-decoration: none;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s;
-
-    & + button {
-      margin-top: 16px;
-    }
-
-    &:hover {
-      transform: translateX(10px);
-    }
-
-    svg {
-      margin-left: auto;
-      color: #000000;
-    }
-  }
 
   .loading {
     border-radius: 10px;
