@@ -1,15 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useHistory } from 'react-router-dom';
 import ReactLoading from 'react-loading';
-import {
-  FiTruck,
-  FiList,
-  FiEdit,
-  FiPackage,
-  FiBox,
-  FiCheckSquare,
-  FiLayers,
-} from 'react-icons/fi';
+import { FiTruck, FiPackage, FiBox, FiLayers } from 'react-icons/fi';
 
 import { createMessage } from '../../components/Toast';
 import api from '../../services/api';
@@ -38,38 +30,6 @@ const Dashboard: React.FC = () => {
   const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
   const [loading, setLoading] = useState(false);
   const history = useHistory();
-
-  const validaTelaSeguinteConferencia = useCallback(async () => {
-    const { usaWms } = user;
-    setLoading(true);
-
-    if (usaWms === 'S') {
-      history.push('conferencia-saida');
-    } else {
-      setLoading(false);
-      createMessage({
-        type: 'info',
-        message:
-          'Ops... Não foi possível acessar o recurso. Tela em desenvolvimento.',
-      });
-    }
-  }, [user, history]);
-
-  const validaTelaSeguinteReconferencia = useCallback(async () => {
-    const { usaWms } = user;
-    setLoading(true);
-
-    if (usaWms === 'S') {
-      history.push('/reconferencia');
-    } else {
-      setLoading(false);
-      createMessage({
-        type: 'info',
-        message:
-          'Ops... Não foi possível acessar o recurso. Tela em desenvolvimento.',
-      });
-    }
-  }, [user, history]);
 
   const validaTelaSeguinteInventario = useCallback(async () => {
     const { usaWms } = user;
@@ -108,22 +68,6 @@ const Dashboard: React.FC = () => {
     }
   }, [user, history]);
 
-  const validaTelaSeguinteListagem = useCallback(async () => {
-    const { usaWms } = user;
-    setLoading(true);
-
-    if (usaWms === 'S') {
-      history.push('listar-enderecos');
-    } else {
-      setLoading(false);
-      createMessage({
-        type: 'info',
-        message:
-          'Ops... Não foi possível acessar o recurso. Tela em desenvolvimento.',
-      });
-    }
-  }, [user, history]);
-
   return (
     <>
       <NavBar />
@@ -132,35 +76,20 @@ const Dashboard: React.FC = () => {
           {!loading ? (
             <Content>
               <button type="button" onClick={() => history.push('#')} disabled>
-                CONFERÊNCIA ENTRADA
+                ENTRADA
                 <FiTruck />
               </button>
-              <button type="button" onClick={validaTelaSeguinteConferencia}>
-                CONFERÊNCIA SAÍDA
+              <button type="button" onClick={() => history.push('saida')}>
+                SAÍDA
                 <FiBox />
-              </button>
-              <button type="button" onClick={validaTelaSeguinteReconferencia}>
-                RECONFERÊNCIA CARGA
-                <FiCheckSquare />
-              </button>
-              <button type="button" onClick={validaTelaSeguinteInventario}>
-                INVENTÁRIO
-                <FiPackage />
               </button>
               <button type="button" onClick={() => history.push('armazenagem')}>
                 ARMAZENAGEM
                 <FiLayers />
               </button>
-              <button
-                type="button"
-                onClick={() => history.push('consultar-produtos')}
-              >
-                DADOS PRODUTO
-                <FiEdit />
-              </button>
-              <button type="button" onClick={validaTelaSeguinteListagem}>
-                LISTAR ENDEREÇOS
-                <FiList />
+              <button type="button" onClick={validaTelaSeguinteInventario}>
+                INVENTÁRIO
+                <FiPackage />
               </button>
             </Content>
           ) : (

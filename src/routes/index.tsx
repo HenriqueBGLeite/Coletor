@@ -5,12 +5,13 @@ import Route from './Route';
 
 import SignIn from '../pages/SignIn';
 import Dashboard from '../pages/Dashboard';
-import ProdutoRoutes from '../pages/Dashboard/Consultar-Produtos/routes';
+import ProdutoRoutes from '../pages/Dashboard/Armazenagem/Consultar-Produtos/routes';
 import ArmazenagemRoutes from '../pages/Dashboard/Armazenagem/routes';
+import SaidaRoutes from '../pages/Dashboard/Saida/routes';
 import InventarioRoutes from '../pages/Dashboard/Inventario/routes';
-import ListarEnderecosRoutes from '../pages/Dashboard/Listar-Enderecos/routes';
-import ConferenciaSaidaRoutes from '../pages/Dashboard/Conferencia-Saida/routes';
-import ReconferenciaRoutes from '../pages/Dashboard/Reconferencia-Carga/routes';
+import ListarEnderecosRoutes from '../pages/Dashboard/Armazenagem/Listar-Enderecos/routes';
+import ConferenciaSaidaRoutes from '../pages/Dashboard/Saida/Conferencia-Saida/routes';
+import AuditoriaPaletizacaoRoutes from '../pages/Dashboard/Saida/Auditoria-Paletizacao/routes';
 
 const Routes: React.FC = () => (
   <Switch>
@@ -23,11 +24,18 @@ const Routes: React.FC = () => (
       component={ConferenciaSaidaRoutes}
       isPrivate
     />
-    <Route path="/reconferencia" component={ReconferenciaRoutes} isPrivate />
+
+    <Route
+      path="/auditoria-paletizacao"
+      component={AuditoriaPaletizacaoRoutes}
+      isPrivate
+    />
 
     <Route path="/consultar-produtos" component={ProdutoRoutes} isPrivate />
 
     <Route path="/armazenagem" component={ArmazenagemRoutes} isPrivate />
+
+    <Route path="/saida" component={SaidaRoutes} isPrivate />
 
     <Route path="/inventario" component={InventarioRoutes} isPrivate />
 

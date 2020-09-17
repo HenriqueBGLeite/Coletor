@@ -1,7 +1,13 @@
 import React, { useState, useCallback } from 'react';
 import { useHistory } from 'react-router-dom';
 import ReactLoading from 'react-loading';
-import { FiRefreshCcw, FiShoppingCart, FiRepeat } from 'react-icons/fi';
+import {
+  FiRefreshCcw,
+  FiShoppingCart,
+  FiRepeat,
+  FiEdit,
+  FiList,
+} from 'react-icons/fi';
 import api from '../../../services/api';
 
 import NavBar from '../../../components/NavBar';
@@ -48,6 +54,22 @@ const Armazenagem: React.FC = () => {
     }
   }, [history, user.code]);
 
+  const validaTelaSeguinteListagem = useCallback(async () => {
+    const { usaWms } = user;
+    setLoading(true);
+
+    if (usaWms === 'S') {
+      history.push('listar-enderecos');
+    } else {
+      setLoading(false);
+      createMessage({
+        type: 'info',
+        message:
+          'Ops... Não foi possível acessar o recurso. Tela em desenvolvimento.',
+      });
+    }
+  }, [user, history]);
+
   return (
     <>
       <NavBar caminho="dashboard" />
@@ -88,6 +110,17 @@ const Armazenagem: React.FC = () => {
                   <FiShoppingCart />
                 </button>
               )}
+              <button
+                type="button"
+                onClick={() => history.push('consultar-produtos')}
+              >
+                DADOS PRODUTO
+                <FiEdit />
+              </button>
+              <button type="button" onClick={validaTelaSeguinteListagem}>
+                LISTAR ENDEREÇOS
+                <FiList />
+              </button>
             </Content>
           ) : (
             <ReactLoading
