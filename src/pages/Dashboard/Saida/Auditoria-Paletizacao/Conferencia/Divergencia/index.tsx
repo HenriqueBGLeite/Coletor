@@ -18,7 +18,7 @@ interface DataOs {
   proxTela: string;
 }
 
-interface DataPendencia {
+interface DataDivergencia {
   letra: string;
   numpalete: number;
   numos: number;
@@ -36,14 +36,14 @@ interface DataPendencia {
 const DivergenciaReconferencia: React.FC = () => {
   const history = useHistory();
   const dataOs = history.location.state as DataOs;
-  const [pendencia, setPendencia] = useState<DataPendencia[]>([]);
+  const [pendencia, setPendencia] = useState<DataDivergencia[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setLoading(true);
     async function loadDiverg(): Promise<void> {
       try {
-        const response = await api.get<DataPendencia[]>(
+        const response = await api.get<DataDivergencia[]>(
           `AuditoriaPaletiza/DivergenciaCarregamento/${dataOs.numos}/${dataOs.proxTela}`,
         );
 

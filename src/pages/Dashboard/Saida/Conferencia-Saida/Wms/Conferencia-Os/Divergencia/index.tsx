@@ -26,6 +26,8 @@ interface DataOsRetorno {
 }
 
 interface DataDivergencia {
+  letra: string;
+  numpalete: number;
   numos: number;
   numvol: number;
   codprod: number;
@@ -153,6 +155,12 @@ const Divergencia: React.FC = () => {
               scrollHeight="500px"
               style={{ width: '100%' }}
             >
+              <Column field="letra" header="Cli" style={{ width: '55px' }} />
+              <Column
+                field="numpalete"
+                header="Pal"
+                style={{ width: '45px' }}
+              />
               <Column field="numos" header="O.S" style={{ width: '90px' }} />
               <Column field="numvol" header="Vol" style={{ width: '45px' }} />
               <Column field="codprod" header="Prod" style={{ width: '60px' }} />
