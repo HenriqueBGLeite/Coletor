@@ -19,6 +19,12 @@ interface DTOCarga {
   numcar: number;
   pendencia: number;
   proxTela: string;
+  numos?: number;
+}
+
+interface DTODivergPend {
+  pendencia: number;
+  divergencia: number;
 }
 
 interface DTOCliente {
@@ -26,17 +32,30 @@ interface DTOCliente {
   palete: number;
 }
 
+interface DTOCabecalhoOs {
+  numCar: number;
+  numPalete: number;
+  numOs: number;
+  numVol: number;
+  codFilial: number;
+  codFunc: number;
+  tipoConferencia: string;
+}
+
 interface DataForm {
   numcar: number;
   numbox: number;
   numpalete: number;
   numos: number | undefined;
+  dun: number | undefined;
   numvol: number;
   tipoos: number;
   pertencecarga: string;
   reconferido: string;
   paletizado: string;
   osaberta: number;
+  divergencia: number;
+  qtospendente: number;
 }
 
 const Conferencia: React.FC = () => {
@@ -48,18 +67,55 @@ const Conferencia: React.FC = () => {
   const [proxCli, setProxCli] = useState<DTOCliente>({} as DTOCliente);
   const [numos, setNumOs] = useState<string | null>();
   const [dun, setDun] = useState<number | undefined>();
+  const [divergencia, setDivergencia] = useState(0);
+  const [pendencia, setPendencia] = useState<number | undefined>();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setLoading(true);
 
+    if (dadosCarga.proxTela === 'P') {
+      setPendencia(dadosCarga.pendencia);
+
+      api
+        .get<DTOCliente[]>(
+          `AuditoriaPaletiza/ProximoCliente/${dadosCarga.numcar}/${user.code}`,
+        )
+        .then((response) => {
+          setProxCli(response.data[0]);
+          setLoading(false);
+        })
+        .catch((err) => {
+          createMessage({
+            type: 'error',
+            message: `Erro: ${err.message}`,
+          });
+
+          setLoading(false);
+        });
+    } else {
+      setPendencia(dadosCarga.pendencia);
+      setLoading(false);
+    }
+  }, [dadosCarga, user.code]);
+
+  const limpaTela = useCallback(() => {
+    setDataForm({} as DataForm);
+    setDun(undefined);
+    setNumOs(undefined);
+    setDivergencia(0);
+    formRef.current?.setFieldValue('numos', null);
+    formRef.current?.setFieldValue('volume', null);
+    formRef.current?.setFieldValue('codbarra', null);
+  }, []);
+
+  const atualizaCliPalete = useCallback(async () => {
     api
       .get<DTOCliente[]>(
-        `AuditoriaPaletiza/ProximoCliente/${dadosCarga.numcar}/${dadosCarga.proxTela}`,
+        `AuditoriaPaletiza/ProximoCliente/${dadosCarga.numcar}/${user.code}`,
       )
       .then((response) => {
         setProxCli(response.data[0]);
-        setLoading(false);
       })
       .catch((err) => {
         createMessage({
@@ -69,79 +125,154 @@ const Conferencia: React.FC = () => {
 
         setLoading(false);
       });
-  }, [dadosCarga]);
-
-  const limpaTela = useCallback(() => {
-    formRef.current?.setFieldValue('numos', null);
-    formRef.current?.setFieldValue('volume', null);
-  }, []);
+  }, [dadosCarga, user]);
 
   const validaOs = useCallback(async () => {
+    setLoading(true);
+
     try {
       const { numos: numOs, numvol: numVol } = quebraOs(numos as string);
 
-      const response = await api.get<DataForm[]>(
-        `AuditoriaPaletiza/CabecalhoOs/${dadosCarga.numcar}/${numOs}/${numVol}/${user.filial}`,
-      );
+      const dataCab = {
+        numCar: dadosCarga.numcar,
+        numPalete: proxCli.palete,
+        numOs,
+        numVol,
+        codFilial: user.filial,
+        codFunc: user.code,
+        tipoConferencia: dadosCarga.proxTela,
+      } as DTOCabecalhoOs;
 
-      const cabOs = response.data[0];
+      if (dadosCarga.proxTela === 'P') {
+        const response = await api.put<string>(
+          'AuditoriaPaletiza/PaletizaVolume',
+          dataCab,
+        );
 
-      if (cabOs) {
-        if (cabOs.pertencecarga === 'S') {
-          if (cabOs.osaberta === 0) {
-            if (cabOs.reconferido === 'N' && cabOs.paletizado === 'N') {
-              if (dadosCarga.proxTela === 'P') {
-                if (cabOs.numpalete === proxCli.palete) {
-                  setDataForm(cabOs);
-                  await api
-                    .put(
-                      `AuditoriaPaletiza/PaletizaVolume/${cabOs.numos}/${cabOs.numvol}/${cabOs.numpalete}/${user.code}`,
-                    )
-                    .then(() => {
+        const paletizou = response.data;
+
+        if (paletizou === 'S') {
+          const atualizaDivergPend = await api.get<DTODivergPend[]>(
+            `AuditoriaPaletiza/AtualizaDivergPend/${dadosCarga.numcar}/${numOs}/${dadosCarga.proxTela}`,
+          );
+
+          const resultado = atualizaDivergPend.data[0];
+
+          if (resultado.pendencia > 0) {
+            await atualizaCliPalete();
+            setPendencia(resultado.pendencia);
+            limpaTela();
+            setLoading(false);
+          } else {
+            history.push('auditoria-paletizacao');
+          }
+        } else if (paletizou === 'O.S. já foi paletizada.') {
+          const atualizaDivergPend = await api.get<DTODivergPend[]>(
+            `AuditoriaPaletiza/AtualizaDivergPend/${dadosCarga.numcar}/${numOs}/${dadosCarga.proxTela}`,
+          );
+
+          const resultado = atualizaDivergPend.data[0];
+
+          if (resultado.pendencia > 0) {
+            setNumOs(String(numOs) as string | undefined);
+            setDivergencia(resultado.divergencia);
+            setPendencia(resultado.pendencia);
+
+            createMessage({
+              type: 'alert',
+              message: `Retorno: ${paletizou}`,
+            });
+
+            formRef.current?.setFieldValue('numos', null);
+            setLoading(false);
+          } else {
+            history.push('auditoria-paletizacao');
+          }
+        } else {
+          createMessage({
+            type: 'alert',
+            message: `Retorno: ${paletizou}`,
+          });
+
+          limpaTela();
+          setLoading(false);
+        }
+      } else {
+        const response = await api.put<DataForm[]>(
+          'AuditoriaPaletiza/CabecalhoOs',
+          dataCab,
+        );
+
+        const cabOs = response.data[0];
+
+        if (cabOs) {
+          if (cabOs.pertencecarga === 'S') {
+            if (cabOs.osaberta === 0) {
+              if (dadosCarga.proxTela === 'A' && cabOs.reconferido === 'N') {
+                if (cabOs.tipoos === 13) {
+                  const responseAudita = await api.put(
+                    `AuditoriaPaletiza/AuditaVolumeOs/${cabOs.numos}/${cabOs.numvol}/${user.code}`,
+                  );
+                  const gravou = responseAudita.data;
+
+                  if (gravou) {
+                    const atualizaDivergPend = await api.get<DTODivergPend[]>(
+                      `AuditoriaPaletiza/AtualizaDivergPend/${dadosCarga.numcar}/${cabOs.numos}/${dadosCarga.proxTela}`,
+                    );
+
+                    const resultado = atualizaDivergPend.data[0];
+
+                    if (resultado.pendencia > 0) {
+                      setPendencia(resultado.pendencia);
                       limpaTela();
                       setLoading(false);
-                    })
-                    .catch((err) => {
-                      createMessage({
-                        type: 'error',
-                        message: `Erro: ${err.message}`,
-                      });
-                      limpaTela();
-                      setLoading(false);
+                    } else {
+                      history.push('auditoria-paletizacao');
+                    }
+                  } else {
+                    createMessage({
+                      type: 'error',
+                      message:
+                        'Ocorreu um ao erro ao tentar gravar o registro, por favor tente mais tarde.',
                     });
+                  }
                 } else {
-                  createMessage({
-                    type: 'alert',
-                    message: `O.S: ${numOs}/${numVol} não pertence ao palete: ${proxCli.palete}.`,
-                  });
-                  limpaTela();
+                  setDataForm(cabOs);
+                  setDivergencia(cabOs.divergencia);
+                  setPendencia(cabOs.qtospendente);
                   setLoading(false);
+                  setNumOs(undefined);
+                  document.getElementById('codbarra')?.focus();
                 }
               } else {
-                setDataForm(cabOs);
-                setLoading(false);
-                setNumOs(undefined);
-                document.getElementById('codbarra')?.focus();
-              }
-            } else {
-              if (cabOs.reconferido === 'S') {
                 createMessage({
                   type: 'alert',
                   message: `O.S: ${numOs}/${numVol} do palete: ${cabOs.numpalete} já foi reconferido.`,
                 });
-              } else {
-                createMessage({
-                  type: 'alert',
-                  message: `O.S: ${numOs}/${numVol} do palete: ${cabOs.numpalete} já foi paletizada.`,
-                });
+
+                setDataForm(cabOs);
+                setDivergencia(cabOs.divergencia);
+                setPendencia(cabOs.qtospendente);
+                setNumOs(String(cabOs.numos));
+
+                cabOs.numos = undefined;
+
+                formRef.current?.setFieldValue('numos', null);
+                setLoading(false);
               }
+            } else {
+              createMessage({
+                type: 'alert',
+                message: 'Apenas O.S. finalizadas podem ser reconferidas.',
+              });
+
               limpaTela();
               setLoading(false);
             }
           } else {
             createMessage({
               type: 'alert',
-              message: 'Apenas O.S. finalizadas podem ser reconferidas',
+              message: `O.S: ${numOs}/${numVol} não pertence ao carregamento: ${dadosCarga.numcar}.`,
             });
 
             limpaTela();
@@ -149,36 +280,29 @@ const Conferencia: React.FC = () => {
           }
         } else {
           createMessage({
-            type: 'alert',
-            message: `O.S: ${numOs}/${numVol} não pertence ao carregamento: ${dadosCarga.numcar}`,
+            type: 'error',
+            message: `Nenhum registro foi localizado para O.S: ${numOs}.`,
           });
 
           limpaTela();
           setLoading(false);
         }
-      } else {
-        createMessage({
-          type: 'error',
-          message: `Nenhum registro foi localizado para O.S: ${numOs}.`,
-        });
-
-        limpaTela();
-        setLoading(false);
       }
     } catch (err) {
       createMessage({
         type: 'error',
-        message: `Erro: ${err.message}`,
+        message: `Erro: ${err.message}.`,
       });
 
       limpaTela();
       setLoading(false);
     }
-  }, [numos, user, dadosCarga, limpaTela, proxCli]);
+  }, [numos, dadosCarga, user, proxCli, limpaTela, history, atualizaCliPalete]);
 
   const chamaValidaOs = useCallback(
     async (event) => {
       if (event.key === 'Enter') {
+        event.preventDefault();
         setLoading(true);
         if (numos) {
           validaOs();
@@ -195,8 +319,55 @@ const Conferencia: React.FC = () => {
   );
 
   const validaProduto = useCallback(async () => {
-    console.log('teste');
-  }, []);
+    if (dun === dataForm.dun) {
+      try {
+        const response = await api.put(
+          `AuditoriaPaletiza/AuditaVolumeOs/${dataForm.numos}/${dataForm.numvol}/${user.code}`,
+        );
+        const gravou = response.data;
+
+        if (gravou) {
+          const atualizaDivergPend = await api.get<DTODivergPend[]>(
+            `AuditoriaPaletiza/AtualizaDivergPend/${dadosCarga.numcar}/${dataForm.numos}/${dadosCarga.proxTela}`,
+          );
+
+          const resultado = atualizaDivergPend.data[0];
+
+          if (resultado.pendencia > 0) {
+            setPendencia(resultado.pendencia);
+            limpaTela();
+            setLoading(false);
+          } else {
+            history.push('auditoria-paletizacao');
+          }
+        } else {
+          createMessage({
+            type: 'error',
+            message:
+              'Ocorreu um ao erro ao tentar gravar o registro, por favor tente mais tarde.',
+          });
+        }
+      } catch (err) {
+        createMessage({
+          type: 'error',
+          message: `Erro: ${err.response.data}`,
+        });
+
+        limpaTela();
+        setLoading(false);
+      }
+    } else {
+      createMessage({
+        type: 'error',
+        message: `Cód.Barra ${dun} não pertence a O.S: ${dataForm.numos} volume: ${dataForm.numvol}. Confira pelo código de barra master!`,
+      });
+
+      setLoading(false);
+      setNumOs(undefined);
+      formRef.current?.setFieldValue('codbarra', null);
+      document.getElementById('codbarra')?.focus();
+    }
+  }, [dataForm, user, limpaTela, dun, dadosCarga, history]);
 
   const chamaValidaProduto = useCallback(
     async (event) => {
@@ -217,90 +388,105 @@ const Conferencia: React.FC = () => {
   );
 
   const telaDivergencia = useCallback(() => {
-    console.log('divergencia');
-  }, []);
+    const data = {
+      numcar: dadosCarga.numcar,
+      pendencia,
+      numos,
+      proxTela: dadosCarga.proxTela,
+    };
+    history.push('/auditoria-paletizacao/divergencia', data);
+  }, [numos, pendencia, history, dadosCarga]);
 
   const telaPendencia = useCallback(() => {
-    history.push('/auditoria-paletizacao/pendencia', dadosCarga);
-  }, [history, dadosCarga]);
+    const data = {
+      numcar: dadosCarga.numcar,
+      pendencia,
+      proxTela: dadosCarga.proxTela,
+    };
+    history.push('/auditoria-paletizacao/pendencia', data);
+  }, [history, dadosCarga, pendencia]);
 
   return (
     <>
-      <NavBar
-        caminho="/auditoria-paletizacao"
-        numCarregamento={dadosCarga.numcar}
-      />
+      <NavBar caminho="/saida" numCarregamento={dadosCarga.numcar} />
       <Container>
-        <Content>
-          <h1>
-            CLIENTE: {proxCli.letra} - PALETE: {proxCli.palete}
-          </h1>
-          <Form ref={formRef} onSubmit={validaOs}>
-            <Input
-              focus
-              icon={FiLock}
-              name="numos"
-              type="number"
-              description="NÚMERO DA O.S."
-              defaultValue={dataForm.numos}
-              onChange={(e) => setNumOs(e.target.value)}
-              onKeyPress={chamaValidaOs}
-            />
-            {dadosCarga.proxTela === 'P' ? (
-              <> </>
-            ) : (
-              <>
-                {dun ? (
-                  <Input
-                    icon={FiShoppingBag}
-                    name="codbarra"
-                    type="number"
-                    description="PRODUTO"
-                    defaultValue={dun}
-                    onChange={(e) => setDun(Number(e.target.value))}
-                    onKeyPress={chamaValidaProduto}
-                  />
+        <Loading>
+          {!loading ? (
+            <Content>
+              {dadosCarga.proxTela === 'P' ? (
+                <h1>
+                  CLIENTE: {proxCli.letra} - PALETE: {proxCli.palete}
+                </h1>
+              ) : (
+                <> </>
+              )}
+
+              <Form ref={formRef} onSubmit={validaOs}>
+                <Input
+                  focus
+                  id="numos"
+                  icon={FiLock}
+                  name="numos"
+                  type="number"
+                  description="NÚMERO DA O.S."
+                  defaultValue={dataForm.numos}
+                  onChange={(e) => setNumOs(e.target.value)}
+                  onKeyPress={chamaValidaOs}
+                />
+                {dadosCarga.proxTela === 'A' ? (
+                  <>
+                    {dataForm.numos ? (
+                      <Input
+                        id="codbarra"
+                        icon={FiShoppingBag}
+                        name="codbarra"
+                        type="number"
+                        description="PRODUTO"
+                        defaultValue={dun}
+                        onChange={(e) => setDun(Number(e.target.value))}
+                        onKeyPress={chamaValidaProduto}
+                      />
+                    ) : (
+                      <Input
+                        icon={FiShoppingBag}
+                        name="codbarra"
+                        type="number"
+                        description="PRODUTO"
+                        disabled
+                      />
+                    )}
+                  </>
                 ) : (
-                  <Input
-                    icon={FiShoppingBag}
-                    name="codbarra"
-                    type="number"
-                    description="PRODUTO"
-                    disabled
-                  />
+                  <> </>
                 )}
-              </>
-            )}
-          </Form>
-          <Loading>
-            {!loading ? (
+              </Form>
               <Button>
-                {dataForm.numos || numos ? (
+                {dataForm.numos || numos || divergencia > 0 ? (
                   <button type="button" onClick={telaDivergencia}>
-                    <p>Divergência</p>
-                    <p>(0)</p>
+                    <p>Divergência O.S.</p>
+                    <p>({divergencia})</p>
                   </button>
                 ) : (
                   <button type="button" disabled>
-                    <p>Divergência</p>
+                    <p>Divergência O.S.</p>
                     <p>(0)</p>
                   </button>
                 )}
                 <button type="button" onClick={telaPendencia}>
-                  <p>Cli. Pend. Palete</p>
-                  <p>({dadosCarga.pendencia})</p>
+                  <p>Pendência Carga</p>
+                  <p>({pendencia})</p>
                 </button>
               </Button>
-            ) : (
-              <ReactLoading
-                className="loading"
-                type="spokes"
-                width="100px"
-                color="#c22e2c"
-              />
-            )}
-          </Loading>
-        </Content>
+            </Content>
+          ) : (
+            <ReactLoading
+              className="loading"
+              type="spokes"
+              width="100px"
+              color="#c22e2c"
+            />
+          )}
+        </Loading>
       </Container>
     </>
   );

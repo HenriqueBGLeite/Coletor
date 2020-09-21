@@ -507,7 +507,7 @@ const ConferenciaOs: React.FC = () => {
                 )}
               </Form>
               <Button>
-                {dataForm.numos || numos ? (
+                {(dataForm.numos || numos) && qtdDivergenciaOs > 0 ? (
                   <button type="button" onClick={telaDivergencia}>
                     <p>Divergência</p>
                     <p>({qtdDivergenciaOs})</p>

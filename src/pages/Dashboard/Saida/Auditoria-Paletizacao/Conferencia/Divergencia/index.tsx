@@ -7,15 +7,20 @@ import { Column } from 'primereact/column';
 
 import api from '../../../../../../services/api';
 import NavBar from '../../../../../../components/NavBar';
+import { createMessage } from '../../../../../../components/Toast';
 
 import { Loanding } from './styles';
 
 interface DataOs {
   numcar: number;
+  numos: number;
   pendencia: number;
+  proxTela: string;
 }
 
 interface DataPendencia {
+  letra: string;
+  numpalete: number;
   numos: number;
   numvol: number;
   codprod: number;
@@ -37,19 +42,23 @@ const DivergenciaReconferencia: React.FC = () => {
   useEffect(() => {
     setLoading(true);
     async function loadDiverg(): Promise<void> {
-      const response = await api.get<DataPendencia[]>(
-        `ConferenciaSaida/PendenciaOsCarregamento/${dataOs.numcar}`,
-      );
+      try {
+        const response = await api.get<DataPendencia[]>(
+          `AuditoriaPaletiza/DivergenciaCarregamento/${dataOs.numos}/${dataOs.proxTela}`,
+        );
 
-      setPendencia(response.data);
-      setLoading(false);
+        setPendencia(response.data);
+        setLoading(false);
+      } catch (err) {
+        createMessage({
+          type: 'error',
+          message: `Erro: ${err.message}`,
+        });
+        setLoading(false);
+      }
     }
 
-    if (dataOs.numcar) {
-      loadDiverg();
-    } else {
-      setLoading(false);
-    }
+    loadDiverg();
   }, [dataOs]);
 
   return (
@@ -70,6 +79,8 @@ const DivergenciaReconferencia: React.FC = () => {
             scrollHeight="500px"
             style={{ width: '100%' }}
           >
+            <Column field="letra" header="Cli" style={{ width: '55px' }} />
+            <Column field="numpalete" header="Pal" style={{ width: '45px' }} />
             <Column field="numos" header="O.S" style={{ width: '90px' }} />
             <Column field="numvol" header="Vol" style={{ width: '45px' }} />
             <Column field="codprod" header="Prod" style={{ width: '60px' }} />

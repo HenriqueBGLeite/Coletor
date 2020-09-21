@@ -13,6 +13,7 @@ import { Loanding } from './styles';
 interface DTOCarga {
   numcar: number;
   pendencia: number;
+  proxTela: string;
 }
 
 interface DataPendencia {
@@ -41,7 +42,7 @@ const OsPendenteReconferencia: React.FC = () => {
 
     async function loadDiverg(): Promise<void> {
       const response = await api.get<DataPendencia[]>(
-        `AuditoriaPaletiza/PendenciaCarregamento/${dataCarga.numcar}`,
+        `AuditoriaPaletiza/PendenciaCarregamento/${dataCarga.numcar}/${dataCarga.proxTela}`,
       );
 
       setPendencia(response.data);
