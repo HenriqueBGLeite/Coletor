@@ -461,7 +461,7 @@ const Conferencia: React.FC = () => {
                 )}
               </Form>
               <Button>
-                {dataForm.numos || numos || divergencia > 0 ? (
+                {(dataForm.numos || numos) && divergencia > 0 ? (
                   <button type="button" onClick={telaDivergencia}>
                     <p>Divergência O.S.</p>
                     <p>({divergencia})</p>

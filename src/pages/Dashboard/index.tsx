@@ -3,10 +3,13 @@ import { useHistory } from 'react-router-dom';
 import ReactLoading from 'react-loading';
 import { FiTruck, FiPackage, FiBox, FiLayers } from 'react-icons/fi';
 
+// import NavBar from '@componentes/NavBar';
+
 import { createMessage } from '../../components/Toast';
 import api from '../../services/api';
 
 import NavBar from '../../components/NavBar';
+
 import { Container, Content, Loanding } from './style';
 
 interface EnderecoInventario {
