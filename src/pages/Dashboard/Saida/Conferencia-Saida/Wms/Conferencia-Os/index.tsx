@@ -264,6 +264,7 @@ const ConferenciaOs: React.FC = () => {
             codprod: dataProduto.codprod,
             qtunitcx: dataProduto.qtunitcx,
           });
+
           setMostrarDadosOs17(true);
           setLoading(false);
           setNumOs(undefined);

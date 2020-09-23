@@ -13,7 +13,7 @@ import { createMessage } from '../../../../../components/Toast';
 import NavBar from '../../../../../components/NavBar';
 import Input from '../../../../../components/Input';
 
-import { Container, Content, Loading, Button } from './styles';
+import { Container, Content, Loading, Button, ContentOs17 } from './styles';
 
 interface DTOCarga {
   numcar: number;
@@ -58,6 +58,12 @@ interface DataForm {
   qtospendente: number;
 }
 
+interface DataFormOs17 {
+  codprod: number;
+  qtunitcx: number;
+  qt: number;
+}
+
 const Conferencia: React.FC = () => {
   const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
   const history = useHistory();
@@ -69,6 +75,13 @@ const Conferencia: React.FC = () => {
   const [dun, setDun] = useState<number | undefined>();
   const [divergencia, setDivergencia] = useState(0);
   const [pendencia, setPendencia] = useState<number | undefined>();
+  const [mostrarDadosOs17, setMostrarDadosOs17] = useState(false);
+  const [dataFormOs17, setDataFormOs17] = useState<DataFormOs17>(
+    {} as DataFormOs17,
+  );
+  const [lastro, setLastro] = useState(0);
+  const [camada, setCamada] = useState(0);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -101,12 +114,15 @@ const Conferencia: React.FC = () => {
 
   const limpaTela = useCallback(() => {
     setDataForm({} as DataForm);
+    setDataFormOs17({} as DataFormOs17);
+    setMostrarDadosOs17(false);
     setDun(undefined);
     setNumOs(undefined);
+    setTotal(0);
     setDivergencia(0);
     formRef.current?.setFieldValue('numos', null);
-    formRef.current?.setFieldValue('volume', null);
     formRef.current?.setFieldValue('codbarra', null);
+    formRef.current?.setFieldValue('volume', null);
   }, []);
 
   const atualizaCliPalete = useCallback(async () => {
@@ -237,6 +253,9 @@ const Conferencia: React.FC = () => {
                     });
                   }
                 } else {
+                  if (cabOs.tipoos === 17) {
+                    setMostrarDadosOs17(true);
+                  }
                   setDataForm(cabOs);
                   setDivergencia(cabOs.divergencia);
                   setPendencia(cabOs.qtospendente);
@@ -320,41 +339,47 @@ const Conferencia: React.FC = () => {
 
   const validaProduto = useCallback(async () => {
     if (dun === dataForm.dun) {
-      try {
-        const response = await api.put(
-          `AuditoriaPaletiza/AuditaVolumeOs/${dataForm.numos}/${dataForm.numvol}/${user.code}`,
-        );
-        const gravou = response.data;
-
-        if (gravou) {
-          const atualizaDivergPend = await api.get<DTODivergPend[]>(
-            `AuditoriaPaletiza/AtualizaDivergPend/${dadosCarga.numcar}/${dataForm.numos}/${dadosCarga.proxTela}`,
+      if (dataForm.tipoos === 20) {
+        try {
+          const response = await api.put(
+            `AuditoriaPaletiza/AuditaVolumeOs/${dataForm.numos}/${dataForm.numvol}/${user.code}`,
           );
+          const gravou = response.data;
 
-          const resultado = atualizaDivergPend.data[0];
+          if (gravou) {
+            const atualizaDivergPend = await api.get<DTODivergPend[]>(
+              `AuditoriaPaletiza/AtualizaDivergPend/${dadosCarga.numcar}/${dataForm.numos}/${dadosCarga.proxTela}`,
+            );
 
-          if (resultado.pendencia > 0) {
-            setPendencia(resultado.pendencia);
-            limpaTela();
-            setLoading(false);
+            const resultado = atualizaDivergPend.data[0];
+
+            if (resultado.pendencia > 0) {
+              setPendencia(resultado.pendencia);
+              limpaTela();
+              setLoading(false);
+            } else {
+              history.push('auditoria-paletizacao');
+            }
           } else {
-            history.push('auditoria-paletizacao');
+            createMessage({
+              type: 'error',
+              message:
+                'Ocorreu um ao erro ao tentar gravar o registro, por favor tente mais tarde.',
+            });
           }
-        } else {
+        } catch (err) {
           createMessage({
             type: 'error',
-            message:
-              'Ocorreu um ao erro ao tentar gravar o registro, por favor tente mais tarde.',
+            message: `Erro: ${err.response.data}`,
           });
-        }
-      } catch (err) {
-        createMessage({
-          type: 'error',
-          message: `Erro: ${err.response.data}`,
-        });
 
-        limpaTela();
+          limpaTela();
+          setLoading(false);
+        }
+      } else {
         setLoading(false);
+        setNumOs(undefined);
+        document.getElementById('lastro')?.focus();
       }
     } else {
       createMessage({
@@ -368,6 +393,46 @@ const Conferencia: React.FC = () => {
       document.getElementById('codbarra')?.focus();
     }
   }, [dataForm, user, limpaTela, dun, dadosCarga, history]);
+
+  const validaProdutoOs17 = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await api.put(
+        `AuditoriaPaletiza/AuditaVolumeOs/${dataForm.numos}/${dataForm.numvol}/${user.code}`,
+      );
+      const gravou = response.data;
+
+      if (gravou) {
+        const atualizaDivergPend = await api.get<DTODivergPend[]>(
+          `AuditoriaPaletiza/AtualizaDivergPend/${dadosCarga.numcar}/${dataForm.numos}/${dadosCarga.proxTela}`,
+        );
+
+        const resultado = atualizaDivergPend.data[0];
+
+        if (resultado.pendencia > 0) {
+          setPendencia(resultado.pendencia);
+          limpaTela();
+          setLoading(false);
+        } else {
+          history.push('auditoria-paletizacao');
+        }
+      } else {
+        createMessage({
+          type: 'error',
+          message:
+            'Ocorreu um ao erro ao tentar gravar o registro, por favor tente mais tarde.',
+        });
+      }
+    } catch (err) {
+      createMessage({
+        type: 'error',
+        message: `Erro: ${err.response.data}`,
+      });
+
+      limpaTela();
+      setLoading(false);
+    }
+  }, [dataForm, user, limpaTela, dadosCarga, history]);
 
   const chamaValidaProduto = useCallback(
     async (event) => {
@@ -406,6 +471,26 @@ const Conferencia: React.FC = () => {
     history.push('/auditoria-paletizacao/pendencia', data);
   }, [history, dadosCarga, pendencia]);
 
+  const alimentaQtConfOs17 = useCallback(() => {
+    setDataFormOs17({ ...dataFormOs17, qt: total * dataFormOs17.qtunitcx });
+  }, [dataFormOs17, total]);
+
+  const focusCampo = useCallback((event) => {
+    if (event.target.id === 'lastro' && event.key === 'Enter') {
+      document.getElementById('camada')?.focus();
+    }
+    if (event.target.id === 'camada' && event.key === 'Enter') {
+      document.getElementById('total')?.focus();
+    }
+    if (event.target.id === 'total' && event.key === 'Enter') {
+      document.getElementById('gravar')?.focus();
+    }
+  }, []);
+
+  const handleCalcTotal = useCallback(() => {
+    setTotal(lastro * camada);
+  }, [lastro, camada]);
+
   return (
     <>
       <NavBar caminho="/saida" numCarregamento={dadosCarga.numcar} />
@@ -436,16 +521,67 @@ const Conferencia: React.FC = () => {
                 {dadosCarga.proxTela === 'A' ? (
                   <>
                     {dataForm.numos ? (
-                      <Input
-                        id="codbarra"
-                        icon={FiShoppingBag}
-                        name="codbarra"
-                        type="number"
-                        description="PRODUTO"
-                        defaultValue={dun}
-                        onChange={(e) => setDun(Number(e.target.value))}
-                        onKeyPress={chamaValidaProduto}
-                      />
+                      <>
+                        <Input
+                          id="codbarra"
+                          icon={FiShoppingBag}
+                          name="codbarra"
+                          type="number"
+                          description="PRODUTO"
+                          defaultValue={dun}
+                          onChange={(e) => setDun(Number(e.target.value))}
+                          onKeyPress={chamaValidaProduto}
+                        />
+                        {mostrarDadosOs17 ? (
+                          <ContentOs17>
+                            <Input
+                              percWidth={30}
+                              id="lastro"
+                              name="lastro"
+                              type="number"
+                              description="Lastro"
+                              onChange={(e) => setLastro(Number(e.target.value))} //eslint-disable-line
+                              onBlur={(e) => setLastro(Number(e.target.value))}
+                              onKeyPress={(e) => focusCampo(e)}
+                              onKeyUp={handleCalcTotal}
+                            />
+                            <p>*</p>
+                            <Input
+                              percWidth={30}
+                              id="camada"
+                              name="camada"
+                              type="number"
+                              description="Camada"
+                              onChange={(e) => setCamada(Number(e.target.value))} //eslint-disable-line
+                              onBlur={(e) => setCamada(Number(e.target.value))}
+                              onKeyPress={(e) => focusCampo(e)}
+                              onKeyUp={handleCalcTotal}
+                            />
+                            <p>=</p>
+                            <Input
+                              percWidth={30}
+                              id="total"
+                              name="total"
+                              type="number"
+                              description="Total"
+                              value={total}
+                              onChange={(e) => setTotal(Number(e.target.value))}
+                              onBlur={(e) => setTotal(Number(e.target.value))}
+                              onKeyPress={(e) => focusCampo(e)}
+                              onKeyUp={alimentaQtConfOs17}
+                            />
+                            <button
+                              id="gravar"
+                              type="button"
+                              onClick={validaProdutoOs17}
+                            >
+                              GRAVAR
+                            </button>
+                          </ContentOs17>
+                        ) : (
+                          <> </>
+                        )}
+                      </>
                     ) : (
                       <Input
                         icon={FiShoppingBag}
