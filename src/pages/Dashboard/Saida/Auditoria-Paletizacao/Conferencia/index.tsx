@@ -398,7 +398,6 @@ const Conferencia: React.FC = () => {
   }, [dataForm, user, limpaTela, dun, dadosCarga, history]);
 
   const validaProdutoOs17 = useCallback(async () => {
-    setLoading(true);
     if (dataForm.qtconferida === total) {
       try {
         const response = await api.put(
@@ -444,6 +443,7 @@ const Conferencia: React.FC = () => {
 
       limpaTela();
       setLoading(false);
+      document.getElementById('numos')?.focus();
     }
   }, [dataForm, user, limpaTela, dadosCarga, history, total]);
 
