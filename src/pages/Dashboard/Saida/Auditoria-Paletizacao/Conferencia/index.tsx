@@ -56,6 +56,7 @@ interface DataForm {
   osaberta: number;
   divergencia: number;
   qtospendente: number;
+  qtconferida: number;
 }
 
 interface DataFormOs17 {
@@ -220,6 +221,8 @@ const Conferencia: React.FC = () => {
         );
 
         const cabOs = response.data[0];
+
+        console.log(cabOs);
 
         if (cabOs) {
           if (cabOs.pertencecarga === 'S') {
@@ -396,43 +399,53 @@ const Conferencia: React.FC = () => {
 
   const validaProdutoOs17 = useCallback(async () => {
     setLoading(true);
-    try {
-      const response = await api.put(
-        `AuditoriaPaletiza/AuditaVolumeOs/${dataForm.numos}/${dataForm.numvol}/${user.code}`,
-      );
-      const gravou = response.data;
-
-      if (gravou) {
-        const atualizaDivergPend = await api.get<DTODivergPend[]>(
-          `AuditoriaPaletiza/AtualizaDivergPend/${dadosCarga.numcar}/${dataForm.numos}/${dadosCarga.proxTela}`,
+    if (dataForm.qtconferida === total) {
+      try {
+        const response = await api.put(
+          `AuditoriaPaletiza/AuditaVolumeOs/${dataForm.numos}/${dataForm.numvol}/${user.code}`,
         );
+        const gravou = response.data;
 
-        const resultado = atualizaDivergPend.data[0];
+        if (gravou) {
+          const atualizaDivergPend = await api.get<DTODivergPend[]>(
+            `AuditoriaPaletiza/AtualizaDivergPend/${dadosCarga.numcar}/${dataForm.numos}/${dadosCarga.proxTela}`,
+          );
 
-        if (resultado.pendencia > 0) {
-          setPendencia(resultado.pendencia);
-          limpaTela();
-          setLoading(false);
+          const resultado = atualizaDivergPend.data[0];
+
+          if (resultado.pendencia > 0) {
+            setPendencia(resultado.pendencia);
+            limpaTela();
+            setLoading(false);
+          } else {
+            history.push('auditoria-paletizacao');
+          }
         } else {
-          history.push('auditoria-paletizacao');
+          createMessage({
+            type: 'error',
+            message:
+              'Ocorreu um ao erro ao tentar gravar o registro, por favor tente mais tarde.',
+          });
         }
-      } else {
+      } catch (err) {
         createMessage({
           type: 'error',
-          message:
-            'Ocorreu um ao erro ao tentar gravar o registro, por favor tente mais tarde.',
+          message: `Erro: ${err.response.data}`,
         });
+
+        limpaTela();
+        setLoading(false);
       }
-    } catch (err) {
+    } else {
       createMessage({
         type: 'error',
-        message: `Erro: ${err.response.data}`,
+        message: `Não foi possível realizar a conferência. Quantidade difere da 1ª conferência.`,
       });
 
       limpaTela();
       setLoading(false);
     }
-  }, [dataForm, user, limpaTela, dadosCarga, history]);
+  }, [dataForm, user, limpaTela, dadosCarga, history, total]);
 
   const chamaValidaProduto = useCallback(
     async (event) => {
