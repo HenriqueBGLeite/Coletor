@@ -9,6 +9,7 @@ import { Container } from './style';
 interface NavBarProps {
   numInvent?: number;
   numCarregamento?: number;
+  numBonus?: number;
   numBox?: number;
   caminho?: string;
   params?: object | number;
@@ -22,6 +23,7 @@ const NavBar: React.FC<NavBarProps> = (props) => {
   const {
     numInvent,
     numCarregamento,
+    numBonus,
     numBox,
     caminho,
     params,
@@ -47,6 +49,7 @@ const NavBar: React.FC<NavBarProps> = (props) => {
             </p>
             {numInvent ? <p>INVENTÁRIO {numInvent}</p> : ''}
             {numCarregamento ? <p>CARGA: {numCarregamento}</p> : ''}
+            {numBonus ? <p>BÔNUS: {numBonus}</p> : ''}
             {numBox ? <p>BOX: {numBox}</p> : ''}
           </div>
           {validaButtonSair === '/dashboard' ? (
@@ -77,6 +80,7 @@ const NavBar: React.FC<NavBarProps> = (props) => {
             </p>
             {numInvent ? <p>INVENTÁRIO {numInvent}</p> : ''}
             {numCarregamento ? <p>CARGA: {numCarregamento}</p> : ''}
+            {numBonus ? <p>BÔNUS: {numBonus}</p> : ''}
             {numBox ? <p>BOX: {numBox}</p> : ''}
           </div>
           {validaButtonSair === '/dashboard' ? (

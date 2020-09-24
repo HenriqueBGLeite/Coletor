@@ -181,7 +181,12 @@ const Conferencia: React.FC = () => {
             limpaTela();
             setLoading(false);
           } else {
-            history.push('auditoria-paletizacao');
+            createMessage({
+              type: 'success',
+              message: `Carga: ${dadosCarga.numcar} totalmente paletizada.`,
+            });
+
+            history.push('/saida');
           }
         } else if (paletizou === 'O.S. já foi paletizada.') {
           const atualizaDivergPend = await api.get<DTODivergPend[]>(
@@ -203,7 +208,12 @@ const Conferencia: React.FC = () => {
             formRef.current?.setFieldValue('numos', null);
             setLoading(false);
           } else {
-            history.push('auditoria-paletizacao');
+            createMessage({
+              type: 'success',
+              message: `Carga: ${dadosCarga.numcar} totalmente paletizada.`,
+            });
+
+            history.push('/saida');
           }
         } else {
           createMessage({
@@ -221,8 +231,6 @@ const Conferencia: React.FC = () => {
         );
 
         const cabOs = response.data[0];
-
-        console.log(cabOs);
 
         if (cabOs) {
           if (cabOs.pertencecarga === 'S') {
@@ -246,7 +254,12 @@ const Conferencia: React.FC = () => {
                       limpaTela();
                       setLoading(false);
                     } else {
-                      history.push('auditoria-paletizacao');
+                      createMessage({
+                        type: 'success',
+                        message: `Carga: ${dadosCarga.numcar} totalmente reconferida.`,
+                      });
+
+                      history.push('/saida');
                     }
                   } else {
                     createMessage({
@@ -361,7 +374,12 @@ const Conferencia: React.FC = () => {
               limpaTela();
               setLoading(false);
             } else {
-              history.push('auditoria-paletizacao');
+              createMessage({
+                type: 'success',
+                message: `Carga: ${dadosCarga.numcar} totalmente reconferida.`,
+              });
+
+              history.push('/saida');
             }
           } else {
             createMessage({
@@ -417,7 +435,12 @@ const Conferencia: React.FC = () => {
             limpaTela();
             setLoading(false);
           } else {
-            history.push('auditoria-paletizacao');
+            createMessage({
+              type: 'success',
+              message: `Carga: ${dadosCarga.numcar} totalmente recoferida.`,
+            });
+
+            history.push('/saida');
           }
         } else {
           createMessage({

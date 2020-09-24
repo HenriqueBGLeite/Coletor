@@ -47,7 +47,7 @@ export const Button = styled.div`
   }
 `;
 
-export const Loanding = styled.div`
+export const Loading = styled.div`
   width: 100%;
 
   display: flex;

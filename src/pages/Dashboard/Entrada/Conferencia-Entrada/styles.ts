@@ -1,18 +1,6 @@
 import styled from 'styled-components';
 import { shade } from 'polished';
 
-export const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  form {
-    width: 100%;
-    padding: 6px;
-  }
-`;
-
 export const Content = styled.div`
   display: flex;
   flex-direction: column;

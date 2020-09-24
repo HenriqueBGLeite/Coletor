@@ -8,6 +8,7 @@ import Dashboard from '../pages/Dashboard';
 import ProdutoRoutes from '../pages/Dashboard/Armazenagem/Consultar-Produtos/routes';
 import ArmazenagemRoutes from '../pages/Dashboard/Armazenagem/routes';
 import SaidaRoutes from '../pages/Dashboard/Saida/routes';
+import EntradaRoutes from '../pages/Dashboard/Entrada/routes';
 import InventarioRoutes from '../pages/Dashboard/Inventario/routes';
 import ListarEnderecosRoutes from '../pages/Dashboard/Armazenagem/Listar-Enderecos/routes';
 import ConferenciaSaidaRoutes from '../pages/Dashboard/Saida/Conferencia-Saida/routes';
@@ -36,6 +37,8 @@ const Routes: React.FC = () => (
     <Route path="/armazenagem" component={ArmazenagemRoutes} isPrivate />
 
     <Route path="/saida" component={SaidaRoutes} isPrivate />
+
+    <Route path="/entrada" component={EntradaRoutes} isPrivate />
 
     <Route path="/inventario" component={InventarioRoutes} isPrivate />
 

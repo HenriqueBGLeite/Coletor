@@ -78,7 +78,7 @@ const Dashboard: React.FC = () => {
         <Loanding>
           {!loading ? (
             <Content>
-              <button type="button" onClick={() => history.push('#')} disabled>
+              <button type="button" onClick={() => history.push('entrada')}>
                 ENTRADA
                 <FiTruck />
               </button>
