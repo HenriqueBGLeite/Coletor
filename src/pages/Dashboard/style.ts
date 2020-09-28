@@ -17,7 +17,7 @@ export const Content = styled.div`
   margin: 16px auto;
 `;
 
-export const Loanding = styled.div`
+export const Loading = styled.div`
   width: 100%;
 
   display: flex;

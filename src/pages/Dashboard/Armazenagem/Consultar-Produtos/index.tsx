@@ -19,7 +19,7 @@ import NavBar from '../../../../components/NavBar';
 import Input from '../../../../components/Input';
 import Select from '../../../../components/Select';
 
-import { Container, Content, Header, Fieldset, Loanding } from './style';
+import { Container, Content, Header, Fieldset, Loading } from './style';
 
 interface Filial {
   codfilial: number;
@@ -284,7 +284,7 @@ const ConsultarProdutos: React.FC = () => {
       <NavBar caminho="/armazenagem" />
       <Container>
         <Content>
-          <Loanding>
+          <Loading>
             {!loading ? (
               <Form ref={formRefProd} onSubmit={handleGetProduct}>
                 <Header>
@@ -317,8 +317,8 @@ const ConsultarProdutos: React.FC = () => {
             ) : (
               <></>
             )}
-          </Loanding>
-          <Loanding>
+          </Loading>
+          <Loading>
             {!loading ? (
               <Form ref={formRef} onSubmit={handleSubmit}>
                 <Input
@@ -601,7 +601,7 @@ const ConsultarProdutos: React.FC = () => {
                 color="#c22e2c"
               />
             )}
-          </Loanding>
+          </Loading>
         </Content>
       </Container>
     </>

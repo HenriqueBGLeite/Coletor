@@ -91,11 +91,11 @@ const BonusAberto: React.FC = () => {
                 header="Bônus"
                 style={{ width: '75px' }}
               />
-              <Column field="placa" header="Placa" style={{ width: '80px' }} />
+              <Column field="placa" header="Placa" style={{ width: '90px' }} />
               <Column
                 field="fornecedor"
                 header="Fornecedor"
-                style={{ width: '345px' }}
+                style={{ width: '335px' }}
               />
             </DataTable>
             {mostrarDialog ? (

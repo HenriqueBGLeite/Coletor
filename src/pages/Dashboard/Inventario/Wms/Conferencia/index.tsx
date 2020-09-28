@@ -19,6 +19,7 @@ import Dialog from '../../../../../components/Dialog';
 import Input from '../../../../../components/Input';
 import { createMessage } from '../../../../../components/Toast';
 import NavBar from '../../../../../components/NavBar';
+
 import { Container, Content } from './style';
 
 interface Props {

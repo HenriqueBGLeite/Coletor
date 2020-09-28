@@ -17,7 +17,7 @@ import Input from '../../../../components/Input';
 
 import api from '../../../../services/api';
 
-import { Container, Content, Loanding, Button } from './styles';
+import { Container, Content, Loading, Button } from './styles';
 
 interface ProdutoPicking {
   numreposicao: number;
@@ -245,7 +245,7 @@ const ListarEnderecos: React.FC = () => {
             onChange={(e) => setInputProduto(Number(e.target.value))}
           />
         </Form>
-        <Loanding>
+        <Loading>
           {!loading ? (
             <>
               {mostrarDialog && listaProdutos[0].numreposicao !== 0 ? (
@@ -349,7 +349,7 @@ const ListarEnderecos: React.FC = () => {
               color="#c22e2c"
             />
           )}
-        </Loanding>
+        </Loading>
       </Container>
     </>
   );

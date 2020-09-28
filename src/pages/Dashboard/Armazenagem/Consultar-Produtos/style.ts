@@ -95,7 +95,7 @@ export const Fieldset = styled.fieldset`
   }
 `;
 
-export const Loanding = styled.div`
+export const Loading = styled.div`
   width: 100%;
 
   display: flex;

@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useState } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { FiSearch } from 'react-icons/fi';
 import ReactLoading from 'react-loading';
 import { useHistory } from 'react-router-dom';
@@ -20,11 +20,13 @@ import { Container, Content, Button, Loading } from './styles';
 interface FuncData {
   matricula: number;
   nome: string;
+  numbonus: number;
+  funcao: number;
 }
 
 const EquipeBonus: React.FC = () => {
   const history = useHistory();
-  const numbonus = history.location.state;
+  const numbonus = history.location.state as number;
   const formRef = useRef<FormHandles>(null);
   const [loading, setLoading] = useState(false);
   const [mostrarDialog, setMostrarDialog] = useState(false);
@@ -33,6 +35,28 @@ const EquipeBonus: React.FC = () => {
   const [codSelecionado, setCodSelecionado] = useState<FuncData>(
     {} as FuncData,
   );
+
+  useEffect(() => {
+    setLoading(true);
+
+    api
+      .get<FuncData[]>(`Entrada/BuscaEquipeBonus/${numbonus}`)
+      .then((response) => {
+        const equipe = response.data;
+
+        setListaEquipe(equipe);
+
+        setLoading(false);
+      })
+      .catch((err) => {
+        createMessage({
+          type: 'error',
+          message: `Erro: ${err.message}`,
+        });
+
+        setLoading(false);
+      });
+  }, [numbonus]);
 
   const buscaAjudante = useCallback(
     async (data) => {
@@ -104,16 +128,42 @@ const EquipeBonus: React.FC = () => {
   );
 
   const removerAjudante = useCallback(
-    (retorno: boolean) => {
+    async (retorno: boolean) => {
       if (retorno) {
-        const posicaoAjudante = listaEquipe.indexOf(codSelecionado);
+        try {
+          setLoading(true);
+          const response = await api.delete(
+            `Entrada/RemoveEquipeBonus/${codSelecionado.matricula}/${numbonus}`,
+          );
 
-        listaEquipe.splice(posicaoAjudante, 1);
+          const deletou = response.data;
 
-        formRef.current?.reset();
-        setCodSelecionado({} as FuncData);
-        setMostrarDialog(false);
-        document.getElementById('matricula')?.focus();
+          if (deletou) {
+            const posicaoAjudante = listaEquipe.indexOf(codSelecionado);
+
+            listaEquipe.splice(posicaoAjudante, 1);
+
+            formRef.current?.reset();
+            setCodSelecionado({} as FuncData);
+            setMostrarDialog(false);
+            setLoading(false);
+            document.getElementById('matricula')?.focus();
+          } else {
+            createMessage({
+              type: 'error',
+              message: `Não foi possível deletar o ajudante: ${codSelecionado}, do bônus: ${numbonus}.`,
+            });
+
+            setLoading(false);
+          }
+        } catch (err) {
+          createMessage({
+            type: 'error',
+            message: `Erro: ${err.message}`,
+          });
+
+          setLoading(false);
+        }
       } else {
         createMessage({
           type: 'info',
@@ -126,19 +176,55 @@ const EquipeBonus: React.FC = () => {
         document.getElementById('matricula')?.focus();
       }
     },
-    [listaEquipe, codSelecionado],
+    [listaEquipe, codSelecionado, numbonus],
   );
 
-  const conferirBonus = useCallback(() => {
+  const conferirBonus = useCallback(async () => {
     if (listaEquipe.length > 0) {
-      console.log('Gravar equipe bônus.');
+      listaEquipe.map((func) => {
+        func.funcao = 11;
+        func.numbonus = numbonus;
+        return func;
+      });
+
+      try {
+        setLoading(true);
+
+        const response = await api.post(
+          'Entrada/InsereEquipeBonus',
+          listaEquipe,
+        );
+
+        const registrouEquipe = response.data;
+
+        if (registrouEquipe) {
+          history.push('/entrada/conferencia-entrada', numbonus);
+
+          setLoading(false);
+        } else {
+          createMessage({
+            type: 'error',
+            message: `Erro ao tentar inserir equipe. Por favor, tente novamente.`,
+          });
+
+          setLoading(false);
+        }
+      } catch (err) {
+        createMessage({
+          type: 'error',
+          message: `Erro: ${err.message}`,
+        });
+
+        setLoading(false);
+      }
     } else {
-      console.log('Próxima tela, nenhuma equipe informada.');
+      history.push('/entrada/conferencia-entrada', numbonus);
     }
-  }, [listaEquipe]);
+  }, [numbonus, listaEquipe, history]);
+
   return (
     <>
-      <NavBar caminho="/entrada" />
+      <NavBar caminho="/entrada" numBonus={numbonus} />
       <Container>
         <Form ref={formRef} onSubmit={buscaAjudante}>
           <Input

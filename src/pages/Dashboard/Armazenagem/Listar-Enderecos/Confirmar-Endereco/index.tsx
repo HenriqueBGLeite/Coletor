@@ -15,7 +15,7 @@ import Dialog from '../../../../../components/Dialog';
 import NavBar from '../../../../../components/NavBar';
 import Input from '../../../../../components/Input';
 
-import { Container, Content, Loanding, Button } from './style';
+import { Container, Content, Loading, Button } from './style';
 
 interface ListaEndereco {
   numreposicao: number;
@@ -171,7 +171,7 @@ const ConfirmarEndereco: React.FC = () => {
   return (
     <>
       <NavBar caminho="/listar-enderecos" simpleNav />
-      <Loanding>
+      <Loading>
         {!loading ? (
           <Container>
             {mostrarDialog ? (
@@ -229,7 +229,7 @@ const ConfirmarEndereco: React.FC = () => {
             color="#c22e2c"
           />
         )}
-      </Loanding>
+      </Loading>
     </>
   );
 };

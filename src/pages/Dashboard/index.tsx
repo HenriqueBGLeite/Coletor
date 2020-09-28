@@ -10,7 +10,7 @@ import api from '../../services/api';
 
 import NavBar from '../../components/NavBar';
 
-import { Container, Content, Loanding } from './style';
+import { Container, Content, Loading } from './style';
 
 interface EnderecoInventario {
   codendereco: number;
@@ -75,7 +75,7 @@ const Dashboard: React.FC = () => {
     <>
       <NavBar />
       <Container>
-        <Loanding>
+        <Loading>
           {!loading ? (
             <Content>
               <button type="button" onClick={() => history.push('entrada')}>
@@ -103,7 +103,7 @@ const Dashboard: React.FC = () => {
               color="#c22e2c"
             />
           )}
-        </Loanding>
+        </Loading>
       </Container>
     </>
   );
