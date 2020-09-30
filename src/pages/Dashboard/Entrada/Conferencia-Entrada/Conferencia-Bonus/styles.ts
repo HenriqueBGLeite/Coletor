@@ -18,7 +18,7 @@ export const Container = styled.div`
     li {
       button {
         float: left;
-        padding: 10px 10.4px;
+        padding: 10px 10.6px;
         font-size: 15px;
         border: 0;
         font-weight: bold;

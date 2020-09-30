@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { FiSearch } from 'react-icons/fi';
+import { FiSearch, FiCalendar } from 'react-icons/fi';
 import { useHistory } from 'react-router-dom';
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
@@ -13,6 +13,9 @@ import api from '../../../../../services/api';
 
 import { createMessage } from '../../../../../components/Toast';
 import getValidationErrors from '../../../../../utils/getValidationErros';
+import validaSenhaBonus from '../../../../../utils/validaSenhaListagem';
+import formataData from '../../../../../utils/formataData';
+import Dialog from '../../../../../components/Dialog';
 import NavBar from '../../../../../components/NavBar';
 import Input from '../../../../../components/Input';
 
@@ -27,7 +30,6 @@ import {
 
 interface ConfirmadoEnderecado {
   status?: string;
-  numbonus: number;
   codprod: number;
   descricao: string;
   qt: number;
@@ -40,6 +42,12 @@ interface ProdutoConf {
   descricao: string;
   qtunit: number;
   qtunitcx: number;
+  lastro: number;
+  camada: number;
+  diasvalidade: number;
+  shelflife: number;
+  codauxiliar: number;
+  qtnf: number;
 }
 
 interface DTOConferencia {
@@ -49,6 +57,8 @@ interface DTOConferencia {
   qtavaria: number;
   dtvalidade: string;
   codfuncconf: number;
+  codauxiliar: number;
+  qtnf: number;
 }
 
 const ConferenciaBonus: React.FC = () => {
@@ -68,6 +78,7 @@ const ConferenciaBonus: React.FC = () => {
   const [camada, setCamada] = useState(0);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [mostrarDialog, setMostrarDialog] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -79,10 +90,9 @@ const ConferenciaBonus: React.FC = () => {
         const listaConfirmados = response.data;
 
         listaConfirmados.map((conf) => {
-          const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
-          const date = new Date(conf.dtvalidade);
+          const dataFormatada = formataData(conf.dtvalidade);
 
-          conf.dtvalidade = date.toLocaleDateString('pt-br', options);
+          conf.dtvalidade = dataFormatada;
           return conf;
         });
 
@@ -105,10 +115,9 @@ const ConferenciaBonus: React.FC = () => {
         const listaEnderecados = response.data;
 
         listaEnderecados.map((end) => {
-          const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
-          const date = new Date(end.dtvalidade);
+          const dataFormatada = formataData(end.dtvalidade);
 
-          end.dtvalidade = date.toLocaleDateString('pt-br', options);
+          end.dtvalidade = dataFormatada;
           return end;
         });
 
@@ -137,11 +146,11 @@ const ConferenciaBonus: React.FC = () => {
     let fonte = '';
 
     if (rowData.status === 'CONCLUIDO') {
-      cor = '#00ff00';
+      cor = '#C8E6C9';
     } else if (rowData.status === 'PENDENTE') {
-      cor = '#fbff27';
+      cor = '#FEEDAF';
     } else if (rowData.status === 'NÃO INICIADA') {
-      cor = '#f40a00';
+      cor = '#FFCDD2';
       fonte = '#fff';
     }
 
@@ -186,7 +195,7 @@ const ConferenciaBonus: React.FC = () => {
           setProdutoConf(achouProduto);
           setLoading(false);
 
-          document.getElementById('qtavaria')?.focus();
+          document.getElementById('lastro')?.focus();
         } else {
           createMessage({
             type: 'alert',
@@ -220,6 +229,28 @@ const ConferenciaBonus: React.FC = () => {
     setTotal(lastro * camada);
   }, [lastro, camada]);
 
+  const validaValidade = useCallback(
+    (dataValidade: string): boolean => {
+      // Calculo do shelflife do produto em dias
+      const validadeInformada = new Date(dataValidade);
+      const dataRecebimento = new Date();
+      const diasAceitaValidade =
+        produtoConf.diasvalidade * (produtoConf.shelflife / 100);
+
+      const diferenca = Math.abs(
+        dataRecebimento.getTime() - validadeInformada.getTime(),
+      ); // Subtrai uma data pela outra
+      const diasDiferenca = Math.ceil(diferenca / (1000 * 60 * 60 * 24)); // Divide o total pelo total de milisegundos correspondentes a 1 dia. (1000 milisegundos = 1 segundo).
+
+      if (diasDiferenca >= diasAceitaValidade) {
+        return true;
+      }
+
+      return false;
+    },
+    [produtoConf],
+  );
+
   const gravarConferencia = useCallback(
     async (data) => {
       if (window.document.activeElement?.tagName === 'BUTTON') {
@@ -227,9 +258,6 @@ const ConferenciaBonus: React.FC = () => {
           formRefProd.current?.setErrors({});
 
           const schema = Yup.object().shape({
-            qtavaria: Yup.string().required(
-              'Quantidade de avaria obrigatória. ',
-            ),
             lastro: Yup.string().required('Lastro obrigatório. '),
             camada: Yup.string().required('Camada obrigatória. '),
             dtvalidade: Yup.string().required('Data de validade obrigatória. '),
@@ -241,42 +269,63 @@ const ConferenciaBonus: React.FC = () => {
 
           setLoading(true);
 
-          const dadosConf = {
-            numbonus,
-            codprod: produtoConf.codprod,
-            qtconf: total,
-            qtavaria: qtAvaria,
-            codfuncconf: user.code,
-            dtvalidade: dtValidade,
-          } as DTOConferencia;
+          if (lastro === produtoConf.lastro && camada === produtoConf.camada) {
+            const dataVal = `${dtValidade}T00:00:00`;
 
-          const response = await api.post(
-            'Entrada/ConfereProdutoBonus',
-            dadosConf,
-          );
+            const validaDataValidade = validaValidade(dataVal);
 
-          const salvou = response.data;
+            if (validaDataValidade) {
+              const dataFormatada = formataData(dataVal);
 
-          if (salvou) {
-            limparTelaConf();
-            setLoading(false);
-            document.getElementById('produto')?.focus();
+              const dadosConf = {
+                numbonus,
+                codprod: produtoConf.codprod,
+                qtconf: total,
+                qtavaria: qtAvaria,
+                codfuncconf: user.code,
+                dtvalidade: dataFormatada,
+                codauxiliar: produtoConf.codauxiliar,
+                qtnf: produtoConf.qtnf,
+              } as DTOConferencia;
+
+              const response = await api.post(
+                'Entrada/ConfereProdutoBonus',
+                dadosConf,
+              );
+
+              const salvou = response.data;
+
+              if (salvou) {
+                limparTelaConf();
+                setLoading(false);
+                document.getElementById('produto')?.focus();
+              } else {
+                createMessage({
+                  type: 'error',
+                  message:
+                    'Não foi possível salvar o registro. Tente novamente mais tarde.',
+                });
+                setLoading(false);
+              }
+            } else {
+              setLoading(false);
+              setMostrarDialog(true);
+            }
           } else {
             createMessage({
-              type: 'error',
+              type: 'alert',
               message:
-                'Não foi possível salvar o registro. Tente novamente mais tarde.',
+                'Lastro/Camada informado não confere com o cadastro do produto.',
             });
+
             setLoading(false);
+            document.getElementById('lastro')?.focus();
           }
         } catch (err) {
           if (err instanceof Yup.ValidationError) {
             const errors = getValidationErrors(err);
             let mensagemErro = '';
 
-            if (errors.qtavaria) {
-              mensagemErro += errors.qtavaria;
-            }
             if (errors.dtvalidade) {
               mensagemErro += errors.dtvalidade;
             }
@@ -300,6 +349,8 @@ const ConferenciaBonus: React.FC = () => {
             message: `Erro: ${err.message}`,
           });
 
+          formRef.current?.setFieldValue('lastro', produtoConf.lastro);
+          formRef.current?.setFieldValue('camada', produtoConf.camada);
           setLoading(false);
         }
       }
@@ -312,13 +363,13 @@ const ConferenciaBonus: React.FC = () => {
       user.code,
       numbonus,
       qtAvaria,
+      validaValidade,
+      camada,
+      lastro,
     ],
   );
 
   const focusCampo = useCallback((event) => {
-    if (event.target.id === 'qtavaria' && event.key === 'Enter') {
-      document.getElementById('lastro')?.focus();
-    }
     if (event.target.id === 'lastro' && event.key === 'Enter') {
       document.getElementById('camada')?.focus();
     }
@@ -329,6 +380,95 @@ const ConferenciaBonus: React.FC = () => {
       document.getElementById('dtvalidade')?.focus();
     }
   }, []);
+
+  const telaExtratoBonus = useCallback(() => {
+    history.push('/entrada/extrato-bonus', numbonus);
+  }, [numbonus, history]);
+
+  const permiteValidade = useCallback(
+    async (retorno: boolean, x, y, senha: string) => {
+      const validaSenha = validaSenhaBonus(numbonus);
+
+      if (retorno) {
+        if (senha === String(validaSenha)) {
+          setMostrarDialog(false);
+          try {
+            setLoading(true);
+            const dataVal = `${dtValidade}T00:00:00`;
+
+            const dataFormatada = formataData(dataVal);
+
+            const dadosConf = {
+              numbonus,
+              codprod: produtoConf.codprod,
+              qtconf: total,
+              qtavaria: qtAvaria,
+              codfuncconf: user.code,
+              dtvalidade: dataFormatada,
+              codauxiliar: produtoConf.codauxiliar,
+              qtnf: produtoConf.qtnf,
+            } as DTOConferencia;
+
+            const response = await api.post(
+              'Entrada/ConfereProdutoBonus',
+              dadosConf,
+            );
+
+            const salvou = response.data;
+
+            if (salvou) {
+              limparTelaConf();
+              setLoading(false);
+              document.getElementById('produto')?.focus();
+            } else {
+              createMessage({
+                type: 'error',
+                message:
+                  'Não foi possível salvar o registro. Tente novamente mais tarde.',
+              });
+              setLoading(false);
+            }
+          } catch (err) {
+            createMessage({
+              type: 'error',
+              message: `Erro: ${err.message}`,
+            });
+
+            formRef.current?.setFieldValue('lastro', produtoConf.lastro);
+            formRef.current?.setFieldValue('camada', produtoConf.camada);
+            setLoading(false);
+          }
+        } else {
+          createMessage({
+            type: 'error',
+            message: 'Senha inválida, por favor tente novamente.',
+          });
+
+          formRef.current?.setFieldValue('lastro', produtoConf.lastro);
+          formRef.current?.setFieldValue('camada', produtoConf.camada);
+          setMostrarDialog(false);
+        }
+      } else {
+        createMessage({
+          type: 'info',
+          message: 'Operação abortada pelo usuário.',
+        });
+
+        formRef.current?.setFieldValue('lastro', produtoConf.lastro);
+        formRef.current?.setFieldValue('camada', produtoConf.camada);
+        setMostrarDialog(false);
+      }
+    },
+    [
+      numbonus,
+      dtValidade,
+      limparTelaConf,
+      qtAvaria,
+      produtoConf,
+      total,
+      user.code,
+    ],
+  );
 
   return (
     <>
@@ -362,6 +502,16 @@ const ConferenciaBonus: React.FC = () => {
             <section>
               <div className="tab1">
                 <ContainerConf>
+                  {mostrarDialog ? (
+                    <Dialog
+                      title={`Bônus: ${numbonus}. Data abaixo do ShelLife do produto: ${produtoConf.codprod}.`}
+                      message="Para realizar essa operação, entre com a senha de liberação:"
+                      mostraInput
+                      executar={permiteValidade}
+                    />
+                  ) : (
+                    <> </>
+                  )}
                   <Form ref={formRefProd} onSubmit={buscaProdutoBonus}>
                     <Input
                       icon={FiSearch}
@@ -406,6 +556,7 @@ const ConferenciaBonus: React.FC = () => {
                           id="qtavaria"
                           name="qtavaria"
                           type="number"
+                          defaultValue={qtAvaria}
                           onChange={(e) => setQtAvaria(Number(e.target.value))}
                           onKeyPress={(e) => focusCampo(e)}
                           description="Qt.Avaria"
@@ -445,19 +596,17 @@ const ConferenciaBonus: React.FC = () => {
                           />
                         </ContentConf>
                         <Input
+                          icon={FiCalendar}
                           id="dtvalidade"
                           name="dtvalidade"
                           type="date"
                           value={dtValidade}
                           onChange={(e) => setDtValidade(e.target.value)}
-                          placeholder="Data de validade"
+                          description="Data de validade"
                         />
                         <div id="detalhe">
-                          <button
-                            type="button"
-                            onClick={() => console.log('Extrato')}
-                          >
-                            EXTRATO
+                          <button type="button" onClick={telaExtratoBonus}>
+                            ITENS DO BÔNUS
                           </button>
                           <button type="submit">GRAVAR</button>
                         </div>
@@ -480,11 +629,6 @@ const ConferenciaBonus: React.FC = () => {
                     header="Status"
                     style={{ width: '110px' }}
                     body={statusConferencia}
-                  />
-                  <Column
-                    field="numbonus"
-                    header="Bônus"
-                    style={{ width: '70px' }}
                   />
                   <Column
                     field="codprod"
@@ -533,15 +677,10 @@ const ConferenciaBonus: React.FC = () => {
                   value={enderecado}
                   scrollable
                   paginator
-                  rows={7}
+                  rows={8}
                   scrollHeight="420px"
                   style={{ width: '100%' }}
                 >
-                  <Column
-                    field="numbonus"
-                    header="Bônus"
-                    style={{ width: '70px' }}
-                  />
                   <Column
                     field="codprod"
                     header="Prod"

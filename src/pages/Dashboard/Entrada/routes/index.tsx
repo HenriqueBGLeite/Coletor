@@ -8,6 +8,7 @@ import CaixaPlastica from '../Caixa-Plastica';
 import ConferenciaEntradaDev from '../Conferencia-Entrada';
 import EquipeBonus from '../Conferencia-Entrada/Equipe-Bonus';
 import ConferenciaBonus from '../Conferencia-Entrada/Conferencia-Bonus';
+import ExtratoBonus from '../Conferencia-Entrada/Conferencia-Bonus/Extrato-Bonus';
 import ConferenciaUma from '../Conferencia-Uma';
 
 const EntradaRoutes: React.FC = () => {
@@ -34,6 +35,8 @@ const EntradaRoutes: React.FC = () => {
         component={ConferenciaBonus}
         isPrivate
       />
+
+      <Route path="/entrada/extrato-bonus" component={ExtratoBonus} isPrivate />
 
       <Route
         path="/entrada/conferencia-uma"

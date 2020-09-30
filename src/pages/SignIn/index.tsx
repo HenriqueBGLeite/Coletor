@@ -31,62 +31,74 @@ const SignIn: React.FC = () => {
 
   const handleSubmit = useCallback(
     async (data: SignInFormData) => {
-      setLoading(true);
-      try {
-        formRef.current?.setErrors({});
+      if (document.activeElement?.tagName === 'BUTTON') {
+        setLoading(true);
+        try {
+          formRef.current?.setErrors({});
 
-        const schema = Yup.object().shape({
-          code: Yup.string().required('Código obrigatório.'),
-          password: Yup.string().required('Senha obrigatória.'),
-          base: Yup.string().required('Base obrigatória.'),
-        });
+          const schema = Yup.object().shape({
+            code: Yup.string().required('Código obrigatório.'),
+            password: Yup.string().required('Senha obrigatória.'),
+            base: Yup.string().required('Base obrigatória.'),
+          });
 
-        await schema.validate(data, {
-          abortEarly: false,
-        });
+          await schema.validate(data, {
+            abortEarly: false,
+          });
 
-        await signIn({
-          code: data.code,
-          password: data.password,
-          base: data.base,
-        });
-      } catch (err) {
-        if (err instanceof Yup.ValidationError) {
-          const errors = getValidationErrors(err);
+          await signIn({
+            code: data.code,
+            password: data.password,
+            base: data.base,
+          });
+        } catch (err) {
+          if (err instanceof Yup.ValidationError) {
+            const errors = getValidationErrors(err);
 
-          formRef.current?.setErrors(errors);
+            formRef.current?.setErrors(errors);
 
+            setLoading(false);
+            return;
+          }
+
+          createMessage({
+            type: 'error',
+            message: `Erro ao realizar Login. ${err.message}.`,
+          });
+
+          formRef.current?.setFieldValue('password', null);
+          document.getElementById('password')?.focus();
           setLoading(false);
-          return;
         }
-
-        createMessage({
-          type: 'error',
-          message: `Erro ao realizar Login. ${err.message}.`,
-        });
-
-        formRef.current?.setFieldValue('password', null);
-        document.getElementById('password')?.focus();
-        setLoading(false);
       }
     },
     [signIn],
   );
 
+  const focusCampo = useCallback((event) => {
+    if (event.target.id === 'code' && event.key === 'Enter') {
+      document.getElementById('password')?.focus();
+    }
+    if (event.target.id === 'password' && event.key === 'Enter') {
+      document.getElementById('base')?.focus();
+    }
+  }, []);
   return (
     <Container>
       <Content>
         <AnimationContainer>
-          <p>Versão: 24.09.20.02</p>
+          <p>Versão: 30.09.20.01</p>
           <img src={logoImg} alt="Projeto Coletor" />
 
           <Form ref={formRef} onSubmit={handleSubmit}>
             <Input
               focus
+              id="code"
               name="code"
               icon={FiUser}
               type="number"
               description="Código de usuário"
+              onKeyPress={(e) => focusCampo(e)}
             />
             <Input
               id="password"
@@ -94,8 +106,9 @@ const SignIn: React.FC = () => {
               icon={FiLock}
               type="password"
               description="Senha do usuário"
+              onKeyPress={(e) => focusCampo(e)}
             />
-            <Select name="base" icon={FiHome}>
+            <Select id="base" name="base" icon={FiHome}>
               <option value="">Selecione sua base...</option>
               <option value="EPOCA">Época</option>
               <option value="MRURAL">Minas Rural</option>

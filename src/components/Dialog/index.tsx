@@ -18,12 +18,6 @@ interface DialogProps {
   executar: Function;
 }
 
-interface ConfirmarProps {
-  confirmar: boolean;
-  tipoEndereco: string;
-  trocarProduto: boolean;
-  senha: string;
-}
 const Dialog: React.FC<DialogProps> = (props) => {
   const formRef = useRef<FormHandles>(null);
   const [senha, setSenha] = useState('');

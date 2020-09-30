@@ -63,7 +63,7 @@ const Saida: React.FC = () => {
                 <FiLayers />
               </button>
               <button type="button" onClick={() => validaTelaSeguinte('A')}>
-                AUDITÓRIA
+                AUDITORIA
                 <FiCheckSquare />
               </button>
             </Content>
