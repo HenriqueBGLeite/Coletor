@@ -100,10 +100,17 @@ const Dashboard: React.FC = () => {
         <Loading>
           {!loading ? (
             <Content>
-              <button type="button" onClick={() => history.push('entrada')}>
-                ENTRADA
-                <FiTruck />
-              </button>
+              {user.code === 1219 ? (
+                <button type="button" onClick={() => history.push('entrada')}>
+                  ENTRADA
+                  <FiTruck />
+                </button>
+              ) : (
+                <button type="button" disabled>
+                  ENTRADA
+                  <FiTruck />
+                </button>
+              )}
               <button type="button" onClick={() => history.push('saida')}>
                 SAÍDA
                 <FiBox />

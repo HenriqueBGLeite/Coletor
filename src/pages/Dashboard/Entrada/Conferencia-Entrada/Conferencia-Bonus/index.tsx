@@ -44,6 +44,8 @@ interface ProdutoConf {
   qtunitcx: number;
   lastro: number;
   camada: number;
+  norma: number;
+  resto: number;
   diasvalidade: number;
   shelflife: number;
   codauxiliar: number;
@@ -76,12 +78,66 @@ const ConferenciaBonus: React.FC = () => {
   const [qtAvaria, setQtAvaria] = useState(0);
   const [lastro, setLastro] = useState(0);
   const [camada, setCamada] = useState(0);
+  const [cx, setCx] = useState(0);
+  const [un, setUn] = useState(0);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [mostrarDialog, setMostrarDialog] = useState(false);
 
   useEffect(() => {
     setLoading(true);
+    api
+      .get<ConfirmadoEnderecado[]>(
+        `Entrada/BonusConfirmadoEnderecado/${numbonus}/C`,
+      )
+      .then((response) => {
+        const listaConfirmados = response.data;
+
+        listaConfirmados.map((conf) => {
+          const dataFormatada = formataData(conf.dtvalidade);
+
+          conf.dtvalidade = dataFormatada;
+          return conf;
+        });
+
+        setConfirmado(listaConfirmados);
+        setLoading(false);
+        document.getElementById('produto')?.focus();
+      })
+      .catch((err) => {
+        createMessage({
+          type: 'error',
+          message: err,
+        });
+      });
+
+    api
+      .get<ConfirmadoEnderecado[]>(
+        `Entrada/BonusConfirmadoEnderecado/${numbonus}/E`,
+      )
+      .then((response) => {
+        const listaEnderecados = response.data;
+
+        listaEnderecados.map((end) => {
+          const dataFormatada = formataData(end.dtvalidade);
+
+          end.dtvalidade = dataFormatada;
+          return end;
+        });
+
+        setEnderecado(listaEnderecados);
+        setLoading(false);
+        document.getElementById('produto')?.focus();
+      })
+      .catch((err) => {
+        createMessage({
+          type: 'error',
+          message: err,
+        });
+      });
+  }, [numbonus]);
+
+  const atualizaConfEnd = useCallback(async () => {
     api
       .get<ConfirmadoEnderecado[]>(
         `Entrada/BonusConfirmadoEnderecado/${numbonus}/C`,
@@ -192,6 +248,8 @@ const ConferenciaBonus: React.FC = () => {
         const achouProduto = response.data[0];
 
         if (achouProduto) {
+          console.log(achouProduto);
+
           setProdutoConf(achouProduto);
           setLoading(false);
 
@@ -225,9 +283,48 @@ const ConferenciaBonus: React.FC = () => {
     [numbonus],
   );
 
+  const enderecaConfirmados = useCallback(async () => {
+    setLoading(true);
+
+    try {
+      const response = await api.put<string>(
+        `Entrada/EnderecaBonus/${numbonus}/${user.filial}/${user.code}`,
+      );
+
+      const enderecou = response.data;
+
+      if (enderecou === 'Endeçamento realizado com Sucesso!') {
+        createMessage({
+          type: 'success',
+          message: enderecou,
+        });
+
+        await atualizaConfEnd();
+        setLoading(false);
+      } else {
+        createMessage({
+          type: 'alert',
+          message: enderecou,
+        });
+
+        setLoading(false);
+      }
+    } catch (err) {
+      createMessage({
+        type: 'error',
+        message: `Erro: ${err.message}`,
+      });
+
+      setLoading(false);
+    }
+  }, [user, numbonus, atualizaConfEnd]);
+
   const calcTotal = useCallback(() => {
-    setTotal(lastro * camada);
-  }, [lastro, camada]);
+    setTotal(
+      lastro * camada * produtoConf.qtunitcx +
+        (Number(un) + Number(cx) * produtoConf.qtunitcx),
+    );
+  }, [lastro, camada, produtoConf, un, cx]);
 
   const validaValidade = useCallback(
     (dataValidade: string): boolean => {
@@ -242,7 +339,10 @@ const ConferenciaBonus: React.FC = () => {
       ); // Subtrai uma data pela outra
       const diasDiferenca = Math.ceil(diferenca / (1000 * 60 * 60 * 24)); // Divide o total pelo total de milisegundos correspondentes a 1 dia. (1000 milisegundos = 1 segundo).
 
-      if (diasDiferenca >= diasAceitaValidade) {
+      if (
+        diasDiferenca >= diasAceitaValidade &&
+        diasDiferenca <= produtoConf.diasvalidade
+      ) {
         return true;
       }
 
@@ -257,24 +357,41 @@ const ConferenciaBonus: React.FC = () => {
         try {
           formRefProd.current?.setErrors({});
 
-          const schema = Yup.object().shape({
-            lastro: Yup.string().required('Lastro obrigatório. '),
-            camada: Yup.string().required('Camada obrigatória. '),
-            dtvalidade: Yup.string().required('Data de validade obrigatória. '),
-          });
+          let schema;
+
+          if (lastro > 0 || camada > 0) {
+            schema = Yup.object().shape({
+              lastro: Yup.string().required('Lastro obrigatório. '),
+              camada: Yup.string().required('Camada obrigatória. '),
+              dtvalidade: Yup.string().required(
+                'Data de validade obrigatória. ',
+              ),
+            });
+          } else {
+            schema = Yup.object().shape({
+              dtvalidade: Yup.string().required(
+                'Data de validade obrigatória. ',
+              ),
+            });
+          }
 
           await schema.validate(data, {
             abortEarly: false,
           });
 
-          setLoading(true);
-
-          if (lastro === produtoConf.lastro && camada === produtoConf.camada) {
+          if (
+            ((lastro > 0 || camada > 0) &&
+              lastro === produtoConf.lastro &&
+              camada === produtoConf.camada) ||
+            (total !== 0 && total < produtoConf.norma && produtoConf.resto > 0)
+          ) {
             const dataVal = `${dtValidade}T00:00:00`;
 
             const validaDataValidade = validaValidade(dataVal);
 
             if (validaDataValidade) {
+              setLoading(true);
+
               const dataFormatada = formataData(dataVal);
 
               const dadosConf = {
@@ -296,7 +413,12 @@ const ConferenciaBonus: React.FC = () => {
               const salvou = response.data;
 
               if (salvou) {
+                if (total / produtoConf.qtunitcx === produtoConf.norma) {
+                  await enderecaConfirmados();
+                }
+
                 limparTelaConf();
+                await atualizaConfEnd();
                 setLoading(false);
                 document.getElementById('produto')?.focus();
               } else {
@@ -305,20 +427,44 @@ const ConferenciaBonus: React.FC = () => {
                   message:
                     'Não foi possível salvar o registro. Tente novamente mais tarde.',
                 });
+
+                if (lastro > 0 && camada > 0) {
+                  formRef.current?.setFieldValue('lastro', produtoConf.lastro);
+                  formRef.current?.setFieldValue('camada', produtoConf.camada);
+                }
                 setLoading(false);
               }
             } else {
-              setLoading(false);
               setMostrarDialog(true);
             }
+          } else if (total < produtoConf.norma) {
+            if (produtoConf.resto === 0) {
+              createMessage({
+                type: 'alert',
+                message: 'Produto sem resto. Favor conferir pela norma palete.',
+              });
+              setTotal(0);
+              document.getElementById('lastro')?.focus();
+              return;
+            }
+
+            createMessage({
+              type: 'alert',
+              message: 'Quantidade total não bate com o resto do produto.',
+            });
+            setTotal(0);
+            document.getElementById('qtun')?.focus();
           } else {
             createMessage({
               type: 'alert',
               message:
                 'Lastro/Camada informado não confere com o cadastro do produto.',
             });
-
-            setLoading(false);
+            setTotal(0);
+            if (lastro > 0 && camada > 0) {
+              formRef.current?.setFieldValue('lastro', produtoConf.lastro);
+              formRef.current?.setFieldValue('camada', produtoConf.camada);
+            }
             document.getElementById('lastro')?.focus();
           }
         } catch (err) {
@@ -349,8 +495,10 @@ const ConferenciaBonus: React.FC = () => {
             message: `Erro: ${err.message}`,
           });
 
-          formRef.current?.setFieldValue('lastro', produtoConf.lastro);
-          formRef.current?.setFieldValue('camada', produtoConf.camada);
+          if (lastro > 0 && camada > 0) {
+            formRef.current?.setFieldValue('lastro', produtoConf.lastro);
+            formRef.current?.setFieldValue('camada', produtoConf.camada);
+          }
           setLoading(false);
         }
       }
@@ -366,6 +514,8 @@ const ConferenciaBonus: React.FC = () => {
       validaValidade,
       camada,
       lastro,
+      atualizaConfEnd,
+      enderecaConfirmados,
     ],
   );
 
@@ -374,10 +524,19 @@ const ConferenciaBonus: React.FC = () => {
       document.getElementById('camada')?.focus();
     }
     if (event.target.id === 'camada' && event.key === 'Enter') {
+      document.getElementById('qtcx')?.focus();
+    }
+    if (event.target.id === 'qtcx' && event.key === 'Enter') {
+      document.getElementById('qtun')?.focus();
+    }
+    if (event.target.id === 'qtun' && event.key === 'Enter') {
       document.getElementById('total')?.focus();
     }
     if (event.target.id === 'total' && event.key === 'Enter') {
       document.getElementById('dtvalidade')?.focus();
+    }
+    if (event.target.id === 'dtvalidade' && event.key === 'Enter') {
+      document.getElementById('gravar')?.focus();
     }
   }, []);
 
@@ -394,6 +553,7 @@ const ConferenciaBonus: React.FC = () => {
           setMostrarDialog(false);
           try {
             setLoading(true);
+
             const dataVal = `${dtValidade}T00:00:00`;
 
             const dataFormatada = formataData(dataVal);
@@ -417,7 +577,11 @@ const ConferenciaBonus: React.FC = () => {
             const salvou = response.data;
 
             if (salvou) {
+              if (total / produtoConf.qtunitcx === produtoConf.norma) {
+                await enderecaConfirmados();
+              }
               limparTelaConf();
+              await atualizaConfEnd();
               setLoading(false);
               document.getElementById('produto')?.focus();
             } else {
@@ -426,6 +590,11 @@ const ConferenciaBonus: React.FC = () => {
                 message:
                   'Não foi possível salvar o registro. Tente novamente mais tarde.',
               });
+
+              if (lastro > 0 && camada > 0) {
+                formRef.current?.setFieldValue('lastro', produtoConf.lastro);
+                formRef.current?.setFieldValue('camada', produtoConf.camada);
+              }
               setLoading(false);
             }
           } catch (err) {
@@ -434,9 +603,9 @@ const ConferenciaBonus: React.FC = () => {
               message: `Erro: ${err.message}`,
             });
 
-            formRef.current?.setFieldValue('lastro', produtoConf.lastro);
-            formRef.current?.setFieldValue('camada', produtoConf.camada);
+            limparTelaConf();
             setLoading(false);
+            document.getElementById('produto')?.focus();
           }
         } else {
           createMessage({
@@ -444,8 +613,10 @@ const ConferenciaBonus: React.FC = () => {
             message: 'Senha inválida, por favor tente novamente.',
           });
 
-          formRef.current?.setFieldValue('lastro', produtoConf.lastro);
-          formRef.current?.setFieldValue('camada', produtoConf.camada);
+          if (lastro > 0 && camada > 0) {
+            formRef.current?.setFieldValue('lastro', produtoConf.lastro);
+            formRef.current?.setFieldValue('camada', produtoConf.camada);
+          }
           setMostrarDialog(false);
         }
       } else {
@@ -454,8 +625,10 @@ const ConferenciaBonus: React.FC = () => {
           message: 'Operação abortada pelo usuário.',
         });
 
-        formRef.current?.setFieldValue('lastro', produtoConf.lastro);
-        formRef.current?.setFieldValue('camada', produtoConf.camada);
+        if (lastro > 0 && camada > 0) {
+          formRef.current?.setFieldValue('lastro', produtoConf.lastro);
+          formRef.current?.setFieldValue('camada', produtoConf.camada);
+        }
         setMostrarDialog(false);
       }
     },
@@ -466,7 +639,11 @@ const ConferenciaBonus: React.FC = () => {
       qtAvaria,
       produtoConf,
       total,
+      camada,
+      lastro,
       user.code,
+      atualizaConfEnd,
+      enderecaConfirmados,
     ],
   );
 
@@ -563,7 +740,7 @@ const ConferenciaBonus: React.FC = () => {
                         />
                         <ContentConf>
                           <Input
-                            percWidth={30}
+                            percWidth={47.9}
                             id="lastro"
                             name="lastro"
                             type="number"
@@ -574,7 +751,7 @@ const ConferenciaBonus: React.FC = () => {
                           />
                           <p>*</p>
                           <Input
-                            percWidth={30}
+                            percWidth={47.9}
                             id="camada"
                             name="camada"
                             type="number"
@@ -583,17 +760,40 @@ const ConferenciaBonus: React.FC = () => {
                             onKeyPress={(e) => focusCampo(e)}
                             onKeyUp={calcTotal}
                           />
-                          <p>=</p>
-                          <Input
-                            percWidth={30.8}
-                            id="total"
-                            name="total"
-                            type="number"
-                            description="Total"
-                            value={total}
-                            onChange={(e) => setTotal(Number(e.target.value))}
-                            onKeyPress={(e) => focusCampo(e)}
-                          />
+                          <ContentConf>
+                            <Input
+                              percWidth={29}
+                              id="qtcx"
+                              name="qtcx"
+                              type="number"
+                              description="Qt.Cx"
+                              onChange={(e) => setCx(Number(e.target.value))}
+                              onKeyPress={(e) => focusCampo(e)}
+                              onKeyUp={calcTotal}
+                            />
+                            <p>+</p>
+                            <Input
+                              percWidth={30}
+                              id="qtun"
+                              name="qtun"
+                              type="number"
+                              description="Qt.Un"
+                              onChange={(e) => setUn(Number(e.target.value))}
+                              onKeyPress={(e) => focusCampo(e)}
+                              onKeyUp={calcTotal}
+                            />
+                            <p>=</p>
+                            <Input
+                              percWidth={31}
+                              id="total"
+                              name="total"
+                              type="number"
+                              description="Total"
+                              value={total}
+                              onKeyPress={(e) => focusCampo(e)}
+                              readOnly
+                            />
+                          </ContentConf>
                         </ContentConf>
                         <Input
                           icon={FiCalendar}
@@ -602,13 +802,16 @@ const ConferenciaBonus: React.FC = () => {
                           type="date"
                           value={dtValidade}
                           onChange={(e) => setDtValidade(e.target.value)}
+                          onKeyPress={(e) => focusCampo(e)}
                           description="Data de validade"
                         />
                         <div id="detalhe">
                           <button type="button" onClick={telaExtratoBonus}>
                             ITENS DO BÔNUS
                           </button>
-                          <button type="submit">GRAVAR</button>
+                          <button id="gravar" type="submit">
+                            GRAVAR
+                          </button>
                         </div>
                       </ContentConf>
                     </Form>
@@ -658,10 +861,7 @@ const ConferenciaBonus: React.FC = () => {
                 </DataTable>
                 <Button>
                   {confirmado.length > 0 ? (
-                    <button
-                      type="button"
-                      onClick={() => console.log('Endereçar confirmados')}
-                    >
+                    <button type="button" onClick={enderecaConfirmados}>
                       Endereçar
                     </button>
                   ) : (

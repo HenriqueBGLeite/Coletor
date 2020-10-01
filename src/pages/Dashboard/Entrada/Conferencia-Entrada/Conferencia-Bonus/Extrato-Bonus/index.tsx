@@ -56,7 +56,7 @@ const ExtratoBonus: React.FC = () => {
         try {
           setLoading(true);
           const response = await api.put(
-            `Entrada/ReabreConfItemBonus${numbonus}/${produtoSelecionado.codprod}`,
+            `Entrada/ReabreConfItemBonus/${numbonus}/${produtoSelecionado.codprod}`,
           );
 
           const alterou = response.data;
@@ -98,7 +98,7 @@ const ExtratoBonus: React.FC = () => {
       if (retorno) {
         try {
           setLoading(true);
-          const response = await api.put(`Entrada/ReabreConfBonus${numbonus}`);
+          const response = await api.put(`Entrada/ReabreConfBonus/${numbonus}`);
 
           const reabriu = response.data;
 
@@ -181,7 +181,6 @@ const ExtratoBonus: React.FC = () => {
                 header="Validade"
                 style={{ width: '100px' }}
               />
-
               <Column
                 field="funcconf"
                 header="Conferente"
