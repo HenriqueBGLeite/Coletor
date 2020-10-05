@@ -10,6 +10,7 @@ import api from '../../../../services/api';
 
 import validaSenhaListagem from '../../../../utils/validaSenhaListagem';
 import { createMessage } from '../../../../components/Toast';
+import { useAuth } from '../../../../hooks/auth';
 import getValidationErrors from '../../../../utils/getValidationErros';
 import Dialog from '../../../../components/Dialog';
 import NavBar from '../../../../components/NavBar';
@@ -32,7 +33,7 @@ interface PendBox {
 }
 
 const ConfirmarEnderecoTranspalete: React.FC = () => {
-  const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
+  const { usuario } = useAuth();
   const history = useHistory();
   const endOrig = history.location.state as DTOEndereco;
 
@@ -124,7 +125,7 @@ const ConfirmarEnderecoTranspalete: React.FC = () => {
 
         setLoading(true);
         const response = await api.put<boolean>(
-          `Armazenagem/RegistraEndOrig/${umaDigitada}/${enderecoDigitado}/${user.code}`,
+          `Armazenagem/RegistraEndOrig/${umaDigitada}/${enderecoDigitado}/${usuario.code}`,
         );
 
         const mesmaRua = response.data;
@@ -138,7 +139,7 @@ const ConfirmarEnderecoTranspalete: React.FC = () => {
 
           if (pendenciaBox === 0) {
             const responseBox = await api.get<DTOEndereco[]>(
-              `Armazenagem/BuscarProxBox/${user.code}`,
+              `Armazenagem/BuscarProxBox/${usuario.code}`,
             );
 
             if (responseBox.data.length > 0) {
@@ -185,7 +186,7 @@ const ConfirmarEnderecoTranspalete: React.FC = () => {
         setLoading(false);
       }
     },
-    [user.code, umaDigitada, enderecoDigitado, endOrig, endereco, history],
+    [usuario.code, umaDigitada, enderecoDigitado, endOrig, endereco, history],
   );
 
   const cancelarOpTranspalete = useCallback(

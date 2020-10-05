@@ -5,6 +5,7 @@ import { useHistory } from 'react-router-dom';
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
 import { createMessage } from '../../../../../../components/Toast';
+import { useAuth } from '../../../../../../hooks/auth';
 import quebraOs from '../../../../../../utils/quebraOs';
 
 import api from '../../../../../../services/api';
@@ -52,7 +53,7 @@ interface DataFormOs17 {
 }
 
 const ConferenciaOs: React.FC = () => {
-  const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
+  const { usuario } = useAuth();
   const history = useHistory();
   const dataConf = history.location.state as Props;
   const formRef = useRef<FormHandles>(null);
@@ -143,7 +144,7 @@ const ConferenciaOs: React.FC = () => {
             const dataUpdateOs13 = {
               numos: cabOs.numos,
               numvol: cabOs.numvol,
-              codFuncConf: user.code,
+              codFuncConf: usuario.code,
             };
 
             const updateOs13 = await api.put(
@@ -186,7 +187,7 @@ const ConferenciaOs: React.FC = () => {
 
       setLoading(false);
     }
-  }, [numos, dataConf.boxOrig, user, limparTela]);
+  }, [numos, dataConf.boxOrig, usuario, limparTela]);
 
   const chamaValidaOs = useCallback(
     async (event) => {
@@ -212,13 +213,13 @@ const ConferenciaOs: React.FC = () => {
 
       if (dataForm.tipoos === 20) {
         const responseProduto = await api.get<DataProduto[]>(
-          `ConferenciaSaida/ProdutoOsVolume/${dun}/${dataForm.numos}/${dataForm.numvol}/${user.filial}`,
+          `ConferenciaSaida/ProdutoOsVolume/${dun}/${dataForm.numos}/${dataForm.numvol}/${usuario.filial}`,
         );
 
         dataProduto = responseProduto.data[0] as DataProduto;
       } else {
         const responseProduto = await api.get<DataProduto[]>(
-          `ConferenciaSaida/ProdutoOs/${dun}/${dataForm.numos}/${user.filial}`,
+          `ConferenciaSaida/ProdutoOs/${dun}/${dataForm.numos}/${usuario.filial}`,
         );
 
         dataProduto = responseProduto.data[0] as DataProduto;
@@ -234,7 +235,7 @@ const ConferenciaOs: React.FC = () => {
           const dataUpdateOs = {
             numos: dataForm.numos,
             numvol: dataForm.numvol,
-            codFuncConf: user.code,
+            codFuncConf: usuario.code,
             codprod: dataProduto.codprod,
             numbox: dataConf.boxOrig,
             qtconf: dataProduto.qtunitcx,
@@ -286,14 +287,14 @@ const ConferenciaOs: React.FC = () => {
       });
       setLoading(false);
     }
-  }, [dataForm, dun, user, dataConf.boxOrig, limparTela, dataFormOs17]);
+  }, [dataForm, dun, usuario, dataConf.boxOrig, limparTela, dataFormOs17]);
 
   const validaProdutoOs17 = useCallback(async () => {
     setLoading(true);
     const dataUpdateOs = {
       numos: dataForm.numos,
       numvol: dataForm.numvol,
-      codFuncConf: user.code,
+      codFuncConf: usuario.code,
       codprod: dataFormOs17.codprod,
       numbox: dataConf.boxOrig,
       qtconf: dataFormOs17.qt,
@@ -317,7 +318,7 @@ const ConferenciaOs: React.FC = () => {
     }
     limparTela();
     setLoading(false);
-  }, [dataConf.boxOrig, dataForm, limparTela, user.code, dataFormOs17]);
+  }, [dataConf.boxOrig, dataForm, limparTela, usuario.code, dataFormOs17]);
 
   const chamaValidaProduto = useCallback(
     async (event) => {

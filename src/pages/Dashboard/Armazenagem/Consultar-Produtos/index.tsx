@@ -14,6 +14,7 @@ import * as Yup from 'yup';
 import api from '../../../../services/api';
 
 import { createMessage } from '../../../../components/Toast';
+import { useAuth } from '../../../../hooks/auth';
 
 import NavBar from '../../../../components/NavBar';
 import Input from '../../../../components/Input';
@@ -60,7 +61,7 @@ interface DataForm {
 }
 
 const ConsultarProdutos: React.FC = () => {
-  const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
+  const { usuario } = useAuth();
   const formRef = useRef<FormHandles>(null);
   const formRefProd = useRef<FormHandles>(null);
   const [loading, setLoading] = useState(false);
@@ -82,7 +83,7 @@ const ConsultarProdutos: React.FC = () => {
     if (produtoState) {
       try {
         api
-          .get<Filial[]>(`PesquisaProduto/getFiliais/${user.code}`)
+          .get<Filial[]>(`PesquisaProduto/getFiliais/${usuario.code}`)
           .then((response) => {
             const filiaisData = response.data;
             const filteredFiliais = filiaisData.filter(
@@ -107,7 +108,7 @@ const ConsultarProdutos: React.FC = () => {
       }
     } else {
       api
-        .get(`PesquisaProduto/getFiliais/${user.code}`)
+        .get(`PesquisaProduto/getFiliais/${usuario.code}`)
         .then((response) => {
           const filiaisData = response.data;
           if (filiaisData) {
@@ -126,7 +127,7 @@ const ConsultarProdutos: React.FC = () => {
           history.goBack();
         });
     }
-  }, [user.code, history]);
+  }, [usuario.code, history]);
 
   const handleGetProduct = useCallback(
     async (data: DataForm) => {

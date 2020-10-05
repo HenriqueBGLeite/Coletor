@@ -18,6 +18,7 @@ import formataValidade from '../../../../../utils/formataData';
 import Dialog from '../../../../../components/Dialog';
 import Input from '../../../../../components/Input';
 import { createMessage } from '../../../../../components/Toast';
+import { useAuth } from '../../../../../hooks/auth';
 import NavBar from '../../../../../components/NavBar';
 
 import { Container, Content } from './style';
@@ -118,7 +119,7 @@ interface SubmitForm {
 }
 
 const ConferenciaWms: React.FC = () => {
-  const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
+  const { usuario } = useAuth();
   const history = useHistory();
   const endAtual = history.location.state as Props;
   const formRefProd = useRef<FormHandles>(null);
@@ -173,7 +174,7 @@ const ConferenciaWms: React.FC = () => {
   const trocaProdutoAereo = useCallback(async () => {
     setLoanding(true);
     const response = await api.get<ProdutoInventario>(
-      `Inventario/getProdutoInventario/${produto}/${user.filial}`,
+      `Inventario/getProdutoInventario/${produto}/${usuario.filial}`,
     );
 
     const { erro, warning } = response.data;
@@ -194,7 +195,7 @@ const ConferenciaWms: React.FC = () => {
       setLoanding(false);
       document.getElementById('produto')?.focus();
     }
-  }, [endereco, produto, user.filial]);
+  }, [endereco, produto, usuario.filial]);
 
   const chamaBuscaProduto = useCallback(
     (retorno: boolean, tipoEndereco: string, trocarProduto: boolean) => {
@@ -355,7 +356,7 @@ const ConferenciaWms: React.FC = () => {
 
             data.codendereco = codendereco;
             data.status = endereco.status;
-            data.matdig = user.code;
+            data.matdig = usuario.code;
             data.inventos = inventos;
             data.numinvent = numinvent;
             data.codprod = codprod;
@@ -386,7 +387,7 @@ const ConferenciaWms: React.FC = () => {
                     history.push('endereco-inventario', filteredEndereco);
                   } else {
                     const response = await api.get<OsInventario[]>(
-                      `Inventario/getProxOs/${user.code}/${endereco.codendereco}/${endereco.contagem}`,
+                      `Inventario/getProxOs/${usuario.code}/${endereco.codendereco}/${endereco.contagem}`,
                     );
 
                     const encontrouEndereco = response.data;
@@ -436,7 +437,7 @@ const ConferenciaWms: React.FC = () => {
       history,
       produto,
       total,
-      user.code,
+      usuario.code,
       endereco,
       endAtual.enderecoOrig,
       trocouProduto,

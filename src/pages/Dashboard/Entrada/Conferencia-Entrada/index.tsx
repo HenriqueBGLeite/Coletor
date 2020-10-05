@@ -6,6 +6,7 @@ import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 
 import { createMessage } from '../../../../components/Toast';
+import { useAuth } from '../../../../hooks/auth';
 import api from '../../../../services/api';
 import NavBar from '../../../../components/NavBar';
 import Dialog from '../../../../components/Dialog';
@@ -19,7 +20,7 @@ interface DataInfoBonus {
 }
 
 const BonusAberto: React.FC = () => {
-  const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
+  const { usuario } = useAuth();
   const history = useHistory();
   const paramBonus = history.location.state;
   const [bonusAberto, setBonusAberto] = useState<DataInfoBonus[]>([]);
@@ -33,7 +34,7 @@ const BonusAberto: React.FC = () => {
     setLoading(true);
     async function loadDiverg(): Promise<void> {
       const response = await api.get<DataInfoBonus[]>(
-        `Entrada/BuscaCabBonus/${paramBonus}/${user.filial}`,
+        `Entrada/BuscaCabBonus/${paramBonus}/${usuario.filial}`,
       );
 
       if (response.data.length > 0) {
@@ -50,7 +51,7 @@ const BonusAberto: React.FC = () => {
     }
 
     loadDiverg();
-  }, [paramBonus, user.filial, history]);
+  }, [paramBonus, usuario.filial, history]);
 
   const confirmarBonus = useCallback(
     (retorno: boolean) => {

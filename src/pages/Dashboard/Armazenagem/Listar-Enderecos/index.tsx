@@ -9,6 +9,7 @@ import * as Yup from 'yup';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { createMessage } from '../../../../components/Toast';
+import { useAuth } from '../../../../hooks/auth';
 import validaSenhaListagem from '../../../../utils/validaSenhaListagem';
 
 import Dialog from '../../../../components/Dialog';
@@ -41,7 +42,7 @@ interface ProdutoPicking {
 }
 
 const ListarEnderecos: React.FC = () => {
-  const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
+  const { usuario } = useAuth();
   const history = useHistory();
   const formRef = useRef<FormHandles>(null);
   const [inputProduto, setInputProduto] = useState(0);
@@ -54,7 +55,7 @@ const ListarEnderecos: React.FC = () => {
 
     api
       .get<ProdutoPicking[]>(
-        `PesquisaProduto/getListaReposicaoAberta/${user.code}`,
+        `PesquisaProduto/getListaReposicaoAberta/${usuario.code}`,
       )
       .then((response) => {
         setListaProdutos(response.data);
@@ -67,7 +68,7 @@ const ListarEnderecos: React.FC = () => {
         });
         history.push('/');
       });
-  }, [user.code, history]);
+  }, [usuario.code, history]);
 
   const buscarPicking = useCallback(
     async (codprod) => {
@@ -82,7 +83,7 @@ const ListarEnderecos: React.FC = () => {
         });
 
         const response = await api.get<ProdutoPicking>(
-          `PesquisaProduto/getEnderecoProdutoPicking/${inputProduto}/${user.filial}`,
+          `PesquisaProduto/getEnderecoProdutoPicking/${inputProduto}/${usuario.filial}`,
         );
 
         const pickingProduto = response.data;
@@ -134,7 +135,7 @@ const ListarEnderecos: React.FC = () => {
         }
       }
     },
-    [user.filial, listaProdutos, inputProduto],
+    [usuario.filial, listaProdutos, inputProduto],
   );
 
   const limparListagem = useCallback(
@@ -197,7 +198,7 @@ const ListarEnderecos: React.FC = () => {
       if (numRequisicao !== 0) {
         listaProdutos.map((lista) => {
           lista.numreposicao = numRequisicao;
-          lista.codfunc = user.code;
+          lista.codfunc = usuario.code;
           return lista;
         });
 
@@ -224,7 +225,7 @@ const ListarEnderecos: React.FC = () => {
     } else {
       history.push('listar-enderecos/endereco-inventario', listaProdutos);
     }
-  }, [history, listaProdutos, user.code]);
+  }, [history, listaProdutos, usuario.code]);
 
   return (
     <>

@@ -17,9 +17,8 @@ interface NavBarProps {
 }
 
 const NavBar: React.FC<NavBarProps> = (props) => {
-  const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
   const history = useHistory();
-  const { signOut } = useAuth();
+  const { signOut, usuario } = useAuth();
   const {
     numInvent,
     numCarregamento,
@@ -45,7 +44,7 @@ const NavBar: React.FC<NavBarProps> = (props) => {
           </button>
           <div id="info">
             <p>
-              {user.code} - {user.nome} F{user.filial}
+              {usuario.code} - {usuario.nome} F{usuario.filial}
             </p>
             {numInvent ? <p>INVENTÁRIO {numInvent}</p> : ''}
             {numCarregamento ? <p>CARGA: {numCarregamento}</p> : ''}
@@ -76,7 +75,7 @@ const NavBar: React.FC<NavBarProps> = (props) => {
           </button>
           <div id="info">
             <p>
-              {user.code} - {user.nome} F{user.filial}
+              {usuario.code} - {usuario.nome} F{usuario.filial}
             </p>
             {numInvent ? <p>INVENTÁRIO {numInvent}</p> : ''}
             {numCarregamento ? <p>CARGA: {numCarregamento}</p> : ''}

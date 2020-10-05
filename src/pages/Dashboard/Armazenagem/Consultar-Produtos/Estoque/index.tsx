@@ -6,6 +6,7 @@ import ReactLoading from 'react-loading';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 
+import { useAuth } from '../../../../../hooks/auth';
 import NavBar from '../../../../../components/NavBar';
 
 import api from '../../../../../services/api';
@@ -25,7 +26,7 @@ interface Produto {
 }
 
 const Estoque: React.FC = () => {
-  const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
+  const { usuario } = useAuth();
   const history = useHistory();
   const produto = history.location.state as DataProduct;
   const [loading, setLoading] = useState(false);
@@ -35,7 +36,7 @@ const Estoque: React.FC = () => {
     setLoading(true);
     async function loadProducts(): Promise<void> {
       const response = await api.get<Produto[]>(
-        `PesquisaProduto/getEstoqueProduto/${produto.codprod}/${user.code}`,
+        `PesquisaProduto/getEstoqueProduto/${produto.codprod}/${usuario.code}`,
       );
 
       setEstoqueProd(response.data);
@@ -43,7 +44,7 @@ const Estoque: React.FC = () => {
     }
 
     loadProducts();
-  }, [produto, user.code]);
+  }, [produto, usuario.code]);
 
   return (
     <>

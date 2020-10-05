@@ -7,6 +7,7 @@ import { FormHandles } from '@unform/core';
 import * as Yup from 'yup';
 
 import { createMessage } from '../../../../components/Toast';
+import { useAuth } from '../../../../hooks/auth';
 import api from '../../../../services/api';
 import getValidationErrors from '../../../../utils/getValidationErros';
 import quebraOs from '../../../../utils/quebraOs';
@@ -17,7 +18,7 @@ import Input from '../../../../components/Input';
 import { Container, Content, Loading } from './styles';
 
 const CaixaPlastica: React.FC = () => {
-  const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
+  const { usuario } = useAuth();
   const formRef = useRef<FormHandles>(null);
   const [numos, setNumos] = useState<string | null>();
   const [loading, setLoading] = useState(false);
@@ -40,7 +41,7 @@ const CaixaPlastica: React.FC = () => {
         const { numos: numOs, numvol: numVol } = quebraOs(numos as string);
 
         const response = await api.put(
-          `Entrada/ConfereCxPlastica/${numOs}/${numVol}/${user.code}`,
+          `Entrada/ConfereCxPlastica/${numOs}/${numVol}/${usuario.code}`,
         );
 
         const conferiu = response.data;
@@ -74,7 +75,7 @@ const CaixaPlastica: React.FC = () => {
         setLoading(false);
       }
     },
-    [numos, user],
+    [numos, usuario],
   );
 
   return (

@@ -12,6 +12,7 @@ import { Column } from 'primereact/column';
 import api from '../../../../../services/api';
 
 import { createMessage } from '../../../../../components/Toast';
+import { useAuth } from '../../../../../hooks/auth';
 import getValidationErrors from '../../../../../utils/getValidationErros';
 import validaSenhaBonus from '../../../../../utils/validaSenhaListagem';
 import formataData from '../../../../../utils/formataData';
@@ -64,7 +65,7 @@ interface DTOConferencia {
 }
 
 const ConferenciaBonus: React.FC = () => {
-  const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
+  const { usuario } = useAuth();
   const history = useHistory();
   const numbonus = history.location.state as number;
   const [confirmado, setConfirmado] = useState<ConfirmadoEnderecado[]>([]);
@@ -290,7 +291,7 @@ const ConferenciaBonus: React.FC = () => {
 
         try {
           const response = await api.put<string>(
-            `Entrada/EnderecaBonus/${numbonus}/${user.filial}/${user.code}`,
+            `Entrada/EnderecaBonus/${numbonus}/${usuario.filial}/${usuario.code}`,
           );
 
           const enderecou = response.data;
@@ -332,7 +333,7 @@ const ConferenciaBonus: React.FC = () => {
         setMostrarDialogEnderecar(false);
       }
     },
-    [user, numbonus, atualizaConfEnd, limparTelaConf],
+    [usuario, numbonus, atualizaConfEnd, limparTelaConf],
   );
 
   const calcTotal = useCallback(() => {
@@ -414,7 +415,7 @@ const ConferenciaBonus: React.FC = () => {
                 codprod: produtoConf.codprod,
                 qtconf: total,
                 qtavaria: qtAvaria,
-                codfuncconf: user.code,
+                codfuncconf: usuario.code,
                 dtvalidade: dataFormatada,
                 codauxiliar: produtoConf.codauxiliar,
                 qtnf: produtoConf.qtnf,
@@ -523,7 +524,7 @@ const ConferenciaBonus: React.FC = () => {
       dtValidade,
       produtoConf,
       limparTelaConf,
-      user.code,
+      usuario.code,
       numbonus,
       qtAvaria,
       validaValidade,
@@ -578,7 +579,7 @@ const ConferenciaBonus: React.FC = () => {
               codprod: produtoConf.codprod,
               qtconf: total,
               qtavaria: qtAvaria,
-              codfuncconf: user.code,
+              codfuncconf: usuario.code,
               dtvalidade: dataFormatada,
               codauxiliar: produtoConf.codauxiliar,
               qtnf: produtoConf.qtnf,
@@ -656,7 +657,7 @@ const ConferenciaBonus: React.FC = () => {
       total,
       camada,
       lastro,
-      user.code,
+      usuario.code,
       atualizaConfEnd,
       enderecaConfirmados,
     ],

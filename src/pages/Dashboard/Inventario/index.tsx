@@ -8,6 +8,7 @@ import { FormHandles } from '@unform/core';
 import * as Yup from 'yup';
 
 import { createMessage } from '../../../components/Toast';
+import { useAuth } from '../../../hooks/auth';
 import api from '../../../services/api';
 import getValidationErrors from '../../../utils/getValidationErros';
 
@@ -38,7 +39,7 @@ interface OsInventario {
 
 const Inventario: React.FC = () => {
   const formRef = useRef<FormHandles>(null);
-  const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
+  const { usuario } = useAuth();
   const [endereco, setEndereco] = useState('');
   const history = useHistory();
   const location = history.location.pathname;
@@ -59,7 +60,7 @@ const Inventario: React.FC = () => {
 
         setLoading(true);
         const response = await api.get<OsInventario[]>(
-          `Inventario/getProxOs/${user.code}/${endereco}`,
+          `Inventario/getProxOs/${usuario.code}/${endereco}`,
         );
 
         const encontrouEndereco = response.data;
@@ -93,7 +94,7 @@ const Inventario: React.FC = () => {
         setLoading(false);
       }
     },
-    [endereco, user.code, history, location],
+    [endereco, usuario.code, history, location],
   );
 
   return (

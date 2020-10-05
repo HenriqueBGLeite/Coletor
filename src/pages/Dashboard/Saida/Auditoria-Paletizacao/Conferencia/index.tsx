@@ -10,6 +10,7 @@ import quebraOs from '../../../../../utils/quebraOs';
 import api from '../../../../../services/api';
 
 import { createMessage } from '../../../../../components/Toast';
+import { useAuth } from '../../../../../hooks/auth';
 import NavBar from '../../../../../components/NavBar';
 import Input from '../../../../../components/Input';
 
@@ -66,7 +67,7 @@ interface DataFormOs17 {
 }
 
 const Conferencia: React.FC = () => {
-  const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
+  const { usuario } = useAuth();
   const history = useHistory();
   const dadosCarga = history.location.state as DTOCarga;
   const formRef = useRef<FormHandles>(null);
@@ -93,7 +94,7 @@ const Conferencia: React.FC = () => {
 
       api
         .get<DTOCliente[]>(
-          `AuditoriaPaletiza/ProximoCliente/${dadosCarga.numcar}/${user.code}`,
+          `AuditoriaPaletiza/ProximoCliente/${dadosCarga.numcar}/${usuario.code}`,
         )
         .then((response) => {
           setProxCli(response.data[0]);
@@ -111,7 +112,7 @@ const Conferencia: React.FC = () => {
       setPendencia(dadosCarga.pendencia);
       setLoading(false);
     }
-  }, [dadosCarga, user.code]);
+  }, [dadosCarga, usuario.code]);
 
   const limpaTela = useCallback(() => {
     setDataForm({} as DataForm);
@@ -129,7 +130,7 @@ const Conferencia: React.FC = () => {
   const atualizaCliPalete = useCallback(async () => {
     api
       .get<DTOCliente[]>(
-        `AuditoriaPaletiza/ProximoCliente/${dadosCarga.numcar}/${user.code}`,
+        `AuditoriaPaletiza/ProximoCliente/${dadosCarga.numcar}/${usuario.code}`,
       )
       .then((response) => {
         setProxCli(response.data[0]);
@@ -142,7 +143,7 @@ const Conferencia: React.FC = () => {
 
         setLoading(false);
       });
-  }, [dadosCarga, user]);
+  }, [dadosCarga, usuario]);
 
   const validaOs = useCallback(async () => {
     setLoading(true);
@@ -155,8 +156,8 @@ const Conferencia: React.FC = () => {
         numPalete: proxCli.palete,
         numOs,
         numVol,
-        codFilial: user.filial,
-        codFunc: user.code,
+        codFilial: usuario.filial,
+        codFunc: usuario.code,
         tipoConferencia: dadosCarga.proxTela,
       } as DTOCabecalhoOs;
 
@@ -238,7 +239,7 @@ const Conferencia: React.FC = () => {
               if (dadosCarga.proxTela === 'A' && cabOs.reconferido === 'N') {
                 if (cabOs.tipoos === 13) {
                   const responseAudita = await api.put(
-                    `AuditoriaPaletiza/AuditaVolumeOs/${cabOs.numos}/${cabOs.numvol}/${user.code}`,
+                    `AuditoriaPaletiza/AuditaVolumeOs/${cabOs.numos}/${cabOs.numvol}/${usuario.code}`,
                   );
                   const gravou = responseAudita.data;
 
@@ -332,7 +333,15 @@ const Conferencia: React.FC = () => {
       limpaTela();
       setLoading(false);
     }
-  }, [numos, dadosCarga, user, proxCli, limpaTela, history, atualizaCliPalete]);
+  }, [
+    numos,
+    dadosCarga,
+    usuario,
+    proxCli,
+    limpaTela,
+    history,
+    atualizaCliPalete,
+  ]);
 
   const chamaValidaOs = useCallback(
     async (event) => {
@@ -358,7 +367,7 @@ const Conferencia: React.FC = () => {
       if (dataForm.tipoos === 20) {
         try {
           const response = await api.put(
-            `AuditoriaPaletiza/AuditaVolumeOs/${dataForm.numos}/${dataForm.numvol}/${user.code}`,
+            `AuditoriaPaletiza/AuditaVolumeOs/${dataForm.numos}/${dataForm.numvol}/${usuario.code}`,
           );
           const gravou = response.data;
 
@@ -413,13 +422,13 @@ const Conferencia: React.FC = () => {
       formRef.current?.setFieldValue('codbarra', null);
       document.getElementById('codbarra')?.focus();
     }
-  }, [dataForm, user, limpaTela, dun, dadosCarga, history]);
+  }, [dataForm, usuario, limpaTela, dun, dadosCarga, history]);
 
   const validaProdutoOs17 = useCallback(async () => {
     if (dataForm.qtconferida === total) {
       try {
         const response = await api.put(
-          `AuditoriaPaletiza/AuditaVolumeOs/${dataForm.numos}/${dataForm.numvol}/${user.code}`,
+          `AuditoriaPaletiza/AuditaVolumeOs/${dataForm.numos}/${dataForm.numvol}/${usuario.code}`,
         );
         const gravou = response.data;
 
@@ -468,7 +477,7 @@ const Conferencia: React.FC = () => {
       setLoading(false);
       document.getElementById('numos')?.focus();
     }
-  }, [dataForm, user, limpaTela, dadosCarga, history, total]);
+  }, [dataForm, usuario, limpaTela, dadosCarga, history, total]);
 
   const chamaValidaProduto = useCallback(
     async (event) => {
