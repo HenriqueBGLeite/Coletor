@@ -72,11 +72,7 @@ const Entrada: React.FC = () => {
                 <> </>
               )}
               {usuario.acessoConferirUma === 'S' ? (
-                <button
-                  type="button"
-                  onClick={() => validaTelaSeguinte('U')}
-                  disabled
-                >
+                <button type="button" onClick={() => validaTelaSeguinte('U')}>
                   CONF. U.M.A.
                   <FiEdit3 />
                 </button>
