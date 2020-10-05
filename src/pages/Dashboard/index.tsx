@@ -5,6 +5,7 @@ import { FiTruck, FiPackage, FiBox, FiLayers } from 'react-icons/fi';
 
 // import NavBar from '@componentes/NavBar';
 
+import { useAuth } from '../../hooks/auth';
 import { createMessage } from '../../components/Toast';
 import api from '../../services/api';
 // import apiRelatorio from '../../services/relatorios';
@@ -12,7 +13,7 @@ import api from '../../services/api';
 
 import NavBar from '../../components/NavBar';
 
-import { Container, Content, Loading } from './style';
+import { Container, Content, Loading, MensagemAcesso } from './style';
 
 interface EnderecoInventario {
   codendereco: number;
@@ -32,18 +33,16 @@ interface EnderecoInventario {
 }
 
 const Dashboard: React.FC = () => {
-  const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
   const [loading, setLoading] = useState(false);
   const history = useHistory();
+  const { usuario } = useAuth();
 
   const validaTelaSeguinteInventario = useCallback(async () => {
-    const { usaWms } = user;
     setLoading(true);
-
-    if (usaWms === 'S') {
+    if (usuario.usaWms === 'S') {
       try {
         const response = await api.get<EnderecoInventario[]>(
-          `Inventario/getProxOs/${user.code}`,
+          `Inventario/getProxOs/${usuario.code}`,
         );
 
         const enderecoOs = response.data;
@@ -71,7 +70,7 @@ const Dashboard: React.FC = () => {
           'Ops... Não foi possível acessar o recurso. Tela em desenvolvimento.',
       });
     }
-  }, [user, history]);
+  }, [usuario, history]);
 
   // const convertBase64 = useCallback(async () => {
   //   try {
@@ -100,29 +99,52 @@ const Dashboard: React.FC = () => {
         <Loading>
           {!loading ? (
             <Content>
-              {user.code === 1219 ? (
+              {usuario.acessoEntrada === 'S' ? (
                 <button type="button" onClick={() => history.push('entrada')}>
                   ENTRADA
                   <FiTruck />
                 </button>
               ) : (
-                <button type="button" disabled>
-                  ENTRADA
-                  <FiTruck />
-                </button>
+                <> </>
               )}
-              <button type="button" onClick={() => history.push('saida')}>
-                SAÍDA
-                <FiBox />
-              </button>
-              <button type="button" onClick={() => history.push('armazenagem')}>
-                ARMAZENAGEM
-                <FiLayers />
-              </button>
-              <button type="button" onClick={validaTelaSeguinteInventario}>
-                INVENTÁRIO
-                <FiPackage />
-              </button>
+              {usuario.acessoSaida === 'S' ? (
+                <button type="button" onClick={() => history.push('saida')}>
+                  SAÍDA
+                  <FiBox />
+                </button>
+              ) : (
+                <> </>
+              )}
+              {usuario.acessoArmazenagem === 'S' ? (
+                <button
+                  type="button"
+                  onClick={() => history.push('armazenagem')}
+                >
+                  ARMAZENAGEM
+                  <FiLayers />
+                </button>
+              ) : (
+                <> </>
+              )}
+              {usuario.acessoInventario === 'S' ? (
+                <button type="button" onClick={validaTelaSeguinteInventario}>
+                  INVENTÁRIO
+                  <FiPackage />
+                </button>
+              ) : (
+                <> </>
+              )}
+              {usuario.acessoEntrada === 'N' &&
+              usuario.acessoSaida === 'N' &&
+              usuario.acessoArmazenagem === 'N' &&
+              usuario.acessoInventario === 'N' ? (
+                <MensagemAcesso>
+                  <h1>Usuário não possui nenhum acesso</h1>
+                </MensagemAcesso>
+              ) : (
+                <> </>
+              )}
+
               {/* <button type="button" onClick={convertBase64}>
                 BASE 64
                 <FiPackage />

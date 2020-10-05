@@ -13,7 +13,29 @@ interface SignInCredentials {
 }
 
 interface AuthContextData {
-  usuario: object;
+  usuario: {
+    filial: number;
+    code: number;
+    nome: string;
+    usaWms: string;
+    acessoSistema: string;
+    acessoEntrada: string;
+    acessoConferirBonusEntrada: string;
+    acessoConferirBonusDevolucao: string;
+    acessoConferirUma: string;
+    acessoConferirCaixaPlastica: string;
+    acessoSaida: string;
+    acessoConferirOs: string;
+    acessoPaletizarCarga: string;
+    acessoAuditarCarregamento: string;
+    acessoArmazenagem: string;
+    acessoOperadorTranspalete: string;
+    acessoOperadorEmpilhadeira: string;
+    acessoRepositorMercadoria: string;
+    acessoDadosProduto: string;
+    acessoListarEnderecos: string;
+    acessoInventario: string;
+  };
   signIn(credentials: SignInCredentials): Promise<void>;
   signOut(): void;
 }
@@ -39,6 +61,7 @@ const AuthProvider: React.FC = ({ children }) => {
         password,
         base,
       });
+
       const { erro, warning, mensagemErroWarning } = response.data;
 
       if (erro === 'N' && warning === 'N') {

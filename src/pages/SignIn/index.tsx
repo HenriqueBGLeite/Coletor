@@ -87,7 +87,7 @@ const SignIn: React.FC = () => {
     <Container>
       <Content>
         <AnimationContainer>
-          <p>Versão: 01.10.20.03</p>
+          <p>Versão: 05.10.20.01</p>
           <img src={logoImg} alt="Projeto Coletor" />
 
           <Form ref={formRef} onSubmit={handleSubmit}>

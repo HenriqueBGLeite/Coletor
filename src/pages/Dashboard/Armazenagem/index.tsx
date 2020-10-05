@@ -10,9 +10,10 @@ import {
 } from 'react-icons/fi';
 import api from '../../../services/api';
 
+import { useAuth } from '../../../hooks/auth';
 import NavBar from '../../../components/NavBar';
 import { createMessage } from '../../../components/Toast';
-import { Container, Loanding, Content } from './style';
+import { Container, Loanding, Content, MensagemAcesso } from './style';
 
 interface DTOResposta {
   codbox: number;
@@ -25,7 +26,7 @@ interface DTOResposta {
 }
 
 const Armazenagem: React.FC = () => {
-  const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
+  const { usuario } = useAuth();
   const history = useHistory();
   const [loading, setLoading] = useState(false);
 
@@ -33,7 +34,7 @@ const Armazenagem: React.FC = () => {
     setLoading(true);
     try {
       const response = await api.get<DTOResposta[]>(
-        `Armazenagem/BuscarProxBox/${user.code}`,
+        `Armazenagem/BuscarProxBox/${usuario.code}`,
       );
 
       if (response.data.length > 0) {
@@ -52,13 +53,12 @@ const Armazenagem: React.FC = () => {
       });
       setLoading(false);
     }
-  }, [history, user.code]);
+  }, [history, usuario]);
 
   const validaTelaSeguinteListagem = useCallback(async () => {
-    const { usaWms } = user;
     setLoading(true);
 
-    if (usaWms === 'S') {
+    if (usuario.usaWms === 'S') {
       history.push('listar-enderecos');
     } else {
       setLoading(false);
@@ -68,7 +68,7 @@ const Armazenagem: React.FC = () => {
           'Ops... Não foi possível acessar o recurso. Tela em desenvolvimento.',
       });
     }
-  }, [user, history]);
+  }, [usuario, history]);
 
   return (
     <>
@@ -77,50 +77,60 @@ const Armazenagem: React.FC = () => {
         <Loanding>
           {!loading ? (
             <Content>
-              {user.acessoArmazenagemTranspalete === 'S' ? (
+              {usuario.acessoOperadorTranspalete === 'S' ? (
                 <button type="button" onClick={convocacaoAtiva}>
                   OPERADOR TRANSPALETE
                   <FiRepeat />
                 </button>
               ) : (
-                <button type="button" disabled>
-                  OPERADOR TRANSPALETE
-                  <FiRepeat />
-                </button>
+                <> </>
               )}
-              {user.acessoArmazenagemEmpilhadeira === 'S' ? (
-                <button type="button" onClick={() => null}>
-                  OPERADOR EMPILHADEIRA
-                  <FiRefreshCcw />
-                </button>
-              ) : (
+              {usuario.acessoOperadorEmpilhadeira === 'S' ? (
                 <button type="button" disabled>
                   OPERADOR EMPILHADEIRA
                   <FiRefreshCcw />
                 </button>
-              )}
-              {user.acessoArmazenagemRepositor === 'S' ? (
-                <button type="button" onClick={() => null}>
-                  REPOSITOR MERCADÓRIA
-                  <FiShoppingCart />
-                </button>
               ) : (
+                <> </>
+              )}
+              {usuario.acessoRepositorMercadoria === 'S' ? (
                 <button type="button" disabled>
                   REPOSITOR MERCADÓRIA
                   <FiShoppingCart />
                 </button>
+              ) : (
+                <> </>
               )}
-              <button
-                type="button"
-                onClick={() => history.push('consultar-produtos')}
-              >
-                DADOS PRODUTO
-                <FiEdit />
-              </button>
-              <button type="button" onClick={validaTelaSeguinteListagem}>
-                LISTAR ENDEREÇOS
-                <FiList />
-              </button>
+              {usuario.acessoDadosProduto === 'S' ? (
+                <button
+                  type="button"
+                  onClick={() => history.push('consultar-produtos')}
+                >
+                  DADOS PRODUTO
+                  <FiEdit />
+                </button>
+              ) : (
+                <> </>
+              )}
+              {usuario.acessoListarEnderecos === 'S' ? (
+                <button type="button" onClick={validaTelaSeguinteListagem}>
+                  LISTAR ENDEREÇOS
+                  <FiList />
+                </button>
+              ) : (
+                <> </>
+              )}
+              {usuario.acessoOperadorTranspalete === 'N' &&
+              usuario.acessoOperadorEmpilhadeira === 'N' &&
+              usuario.acessoRepositorMercadoria === 'N' &&
+              usuario.acessoDadosProduto === 'N' &&
+              usuario.acessoListarEnderecos === 'N' ? (
+                <MensagemAcesso>
+                  <h1>Usuário não possui nenhum acesso</h1>
+                </MensagemAcesso>
+              ) : (
+                <> </>
+              )}
             </Content>
           ) : (
             <ReactLoading

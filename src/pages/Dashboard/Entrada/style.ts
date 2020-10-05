@@ -63,3 +63,16 @@ export const Loanding = styled.div`
     justify-content: center;
   }
 `;
+
+export const MensagemAcesso = styled.div`
+  border: 2px solid;
+  background: #c53030;
+  color: #fff;
+  border-radius: 8px;
+  border-color: #c53030;
+
+  h1 {
+    text-align: center;
+    font-weight: bold;
+  }
+`;

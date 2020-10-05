@@ -3,20 +3,20 @@ import { useHistory } from 'react-router-dom';
 import ReactLoading from 'react-loading';
 import { FiCheckSquare, FiBox, FiLayers } from 'react-icons/fi';
 
+import { useAuth } from '../../../hooks/auth';
 import NavBar from '../../../components/NavBar';
 import { createMessage } from '../../../components/Toast';
-import { Container, Loanding, Content } from './style';
+import { Container, Loanding, Content, MensagemAcesso } from './style';
 
 const Saida: React.FC = () => {
-  const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
+  const { usuario } = useAuth();
   const history = useHistory();
   const [loading, setLoading] = useState(false);
 
   const validaTelaSeguinteConferencia = useCallback(async () => {
-    const { usaWms } = user;
     setLoading(true);
 
-    if (usaWms === 'S') {
+    if (usuario.usaWms === 'S') {
       history.push('conferencia-saida');
     } else {
       setLoading(false);
@@ -26,14 +26,13 @@ const Saida: React.FC = () => {
           'Ops... Não foi possível acessar o recurso. Tela em desenvolvimento.',
       });
     }
-  }, [user, history]);
+  }, [usuario, history]);
 
   const validaTelaSeguinte = useCallback(
     async (proxTela: string) => {
-      const { usaWms } = user;
       setLoading(true);
 
-      if (usaWms === 'S') {
+      if (usuario.usaWms === 'S') {
         history.push('/auditoria-paletizacao', proxTela);
       } else {
         setLoading(false);
@@ -44,7 +43,7 @@ const Saida: React.FC = () => {
         });
       }
     },
-    [user, history],
+    [usuario, history],
   );
 
   return (
@@ -54,18 +53,39 @@ const Saida: React.FC = () => {
         <Loanding>
           {!loading ? (
             <Content>
-              <button type="button" onClick={validaTelaSeguinteConferencia}>
-                CONFERÊNCIA
-                <FiBox />
-              </button>
-              <button type="button" onClick={() => validaTelaSeguinte('P')}>
-                PALETIZAÇÃO (F25)
-                <FiLayers />
-              </button>
-              <button type="button" onClick={() => validaTelaSeguinte('A')}>
-                AUDITORIA
-                <FiCheckSquare />
-              </button>
+              {usuario.acessoConferirOs === 'S' ? (
+                <button type="button" onClick={validaTelaSeguinteConferencia}>
+                  CONFERÊNCIA
+                  <FiBox />
+                </button>
+              ) : (
+                <> </>
+              )}
+              {usuario.acessoPaletizarCarga === 'S' ? (
+                <button type="button" onClick={() => validaTelaSeguinte('P')}>
+                  PALETIZAÇÃO (F25)
+                  <FiLayers />
+                </button>
+              ) : (
+                <> </>
+              )}
+              {usuario.acessoAuditarCarregamento === 'S' ? (
+                <button type="button" onClick={() => validaTelaSeguinte('A')}>
+                  AUDITORIA
+                  <FiCheckSquare />
+                </button>
+              ) : (
+                <> </>
+              )}
+              {usuario.acessoConferirOs === 'N' &&
+              usuario.acessoPaletizarCarga === 'N' &&
+              usuario.acessoAuditarCarregamento === 'N' ? (
+                <MensagemAcesso>
+                  <h1>Usuário não possui nenhum acesso</h1>
+                </MensagemAcesso>
+              ) : (
+                <> </>
+              )}
             </Content>
           ) : (
             <ReactLoading

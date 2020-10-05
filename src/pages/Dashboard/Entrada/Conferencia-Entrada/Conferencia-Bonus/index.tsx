@@ -83,6 +83,7 @@ const ConferenciaBonus: React.FC = () => {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [mostrarDialog, setMostrarDialog] = useState(false);
+  const [mostrarDialogEnderecar, setMostrarDialogEnderecar] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -248,8 +249,6 @@ const ConferenciaBonus: React.FC = () => {
         const achouProduto = response.data[0];
 
         if (achouProduto) {
-          console.log(achouProduto);
-
           setProdutoConf(achouProduto);
           setLoading(false);
 
@@ -283,41 +282,58 @@ const ConferenciaBonus: React.FC = () => {
     [numbonus],
   );
 
-  const enderecaConfirmados = useCallback(async () => {
-    setLoading(true);
+  const enderecaConfirmados = useCallback(
+    async (retorno: boolean) => {
+      if (retorno) {
+        setMostrarDialogEnderecar(false);
+        setLoading(true);
 
-    try {
-      const response = await api.put<string>(
-        `Entrada/EnderecaBonus/${numbonus}/${user.filial}/${user.code}`,
-      );
+        try {
+          const response = await api.put<string>(
+            `Entrada/EnderecaBonus/${numbonus}/${user.filial}/${user.code}`,
+          );
 
-      const enderecou = response.data;
+          const enderecou = response.data;
 
-      if (enderecou === 'Endeçamento realizado com Sucesso!') {
-        createMessage({
-          type: 'success',
-          message: enderecou,
-        });
+          if (enderecou === 'Endeçamento realizado com Sucesso!') {
+            createMessage({
+              type: 'success',
+              message: enderecou,
+            });
+            limparTelaConf();
+            await atualizaConfEnd();
+            setLoading(false);
+          } else {
+            createMessage({
+              type: 'alert',
+              message: enderecou,
+            });
 
-        await atualizaConfEnd();
-        setLoading(false);
+            limparTelaConf();
+            await atualizaConfEnd();
+            setLoading(false);
+          }
+        } catch (err) {
+          createMessage({
+            type: 'error',
+            message: `Erro: ${err.message}`,
+          });
+
+          limparTelaConf();
+          await atualizaConfEnd();
+          setLoading(false);
+        }
       } else {
         createMessage({
-          type: 'alert',
-          message: enderecou,
+          type: 'info',
+          message: 'Operação abortada pelo usuário.',
         });
 
-        setLoading(false);
+        setMostrarDialogEnderecar(false);
       }
-    } catch (err) {
-      createMessage({
-        type: 'error',
-        message: `Erro: ${err.message}`,
-      });
-
-      setLoading(false);
-    }
-  }, [user, numbonus, atualizaConfEnd]);
+    },
+    [user, numbonus, atualizaConfEnd, limparTelaConf],
+  );
 
   const calcTotal = useCallback(() => {
     setTotal(
@@ -381,8 +397,7 @@ const ConferenciaBonus: React.FC = () => {
 
           if (
             ((lastro > 0 || camada > 0) &&
-              lastro === produtoConf.lastro &&
-              camada === produtoConf.camada) ||
+              total / produtoConf.qtunitcx <= produtoConf.norma) ||
             (total !== 0 && total < produtoConf.norma && produtoConf.resto > 0)
           ) {
             const dataVal = `${dtValidade}T00:00:00`;
@@ -414,7 +429,7 @@ const ConferenciaBonus: React.FC = () => {
 
               if (salvou) {
                 if (total / produtoConf.qtunitcx === produtoConf.norma) {
-                  await enderecaConfirmados();
+                  await enderecaConfirmados(true);
                 }
 
                 limparTelaConf();
@@ -578,7 +593,7 @@ const ConferenciaBonus: React.FC = () => {
 
             if (salvou) {
               if (total / produtoConf.qtunitcx === produtoConf.norma) {
-                await enderecaConfirmados();
+                await enderecaConfirmados(true);
               }
               limparTelaConf();
               await atualizaConfEnd();
@@ -689,6 +704,15 @@ const ConferenciaBonus: React.FC = () => {
                   ) : (
                     <> </>
                   )}
+                  {mostrarDialogEnderecar ? (
+                    <Dialog
+                      title={`Endereçamento do Bônus: ${numbonus}.`}
+                      message="Deseja realmente endereçar o bônus?"
+                      executar={enderecaConfirmados}
+                    />
+                  ) : (
+                    <> </>
+                  )}
                   <Form ref={formRefProd} onSubmit={buscaProdutoBonus}>
                     <Input
                       icon={FiSearch}
@@ -784,7 +808,7 @@ const ConferenciaBonus: React.FC = () => {
                             />
                             <p>=</p>
                             <Input
-                              percWidth={31}
+                              percWidth={30.5}
                               id="total"
                               name="total"
                               type="number"
@@ -861,7 +885,10 @@ const ConferenciaBonus: React.FC = () => {
                 </DataTable>
                 <Button>
                   {confirmado.length > 0 ? (
-                    <button type="button" onClick={enderecaConfirmados}>
+                    <button
+                      type="button"
+                      onClick={() => setMostrarDialogEnderecar(true)}
+                    >
                       Endereçar
                     </button>
                   ) : (

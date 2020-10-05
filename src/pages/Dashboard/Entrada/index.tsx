@@ -3,21 +3,21 @@ import ReactLoading from 'react-loading';
 import { useHistory } from 'react-router-dom';
 import { FiEdit, FiArchive, FiEdit3 } from 'react-icons/fi';
 
+import { useAuth } from '../../../hooks/auth';
 import NavBar from '../../../components/NavBar';
 import { createMessage } from '../../../components/Toast';
-import { Container, Loanding, Content } from './style';
+import { Container, Loanding, Content, MensagemAcesso } from './style';
 
 const Entrada: React.FC = () => {
-  const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
+  const { usuario } = useAuth();
   const history = useHistory();
   const [loading, setLoading] = useState(false);
 
   const validaTelaSeguinte = useCallback(
     async (proxTela: string, tipoBonus?: string) => {
-      const { usaWms } = user;
       setLoading(true);
 
-      if (usaWms === 'S') {
+      if (usuario.usaWms === 'S') {
         if (proxTela === 'B') {
           if (tipoBonus === 'E') {
             history.push('/entrada/conferencia-bonus', 'E');
@@ -39,7 +39,7 @@ const Entrada: React.FC = () => {
       }
       setLoading(false);
     },
-    [user, history],
+    [usuario, history],
   );
 
   return (
@@ -49,32 +49,58 @@ const Entrada: React.FC = () => {
         <Loanding>
           {!loading ? (
             <Content>
-              <button
-                type="button"
-                onClick={() => validaTelaSeguinte('B', 'E')}
-              >
-                CONF. BÔNUS ENTRADA
-                <FiEdit />
-              </button>
-              <button
-                type="button"
-                onClick={() => validaTelaSeguinte('B', 'D')}
-              >
-                CONF. BÔNUS DEVOLUÇÃO
-                <FiEdit />
-              </button>
-              <button
-                type="button"
-                onClick={() => validaTelaSeguinte('U')}
-                disabled
-              >
-                CONF. U.M.A.
-                <FiEdit3 />
-              </button>
-              <button type="button" onClick={() => validaTelaSeguinte('P')}>
-                CONF. CX. PLÁSTICA
-                <FiArchive />
-              </button>
+              {usuario.acessoConferirBonusEntrada === 'S' ? (
+                <button
+                  type="button"
+                  onClick={() => validaTelaSeguinte('B', 'E')}
+                >
+                  CONF. BÔNUS ENTRADA
+                  <FiEdit />
+                </button>
+              ) : (
+                <> </>
+              )}
+              {usuario.acessoConferirBonusDevolucao === 'S' ? (
+                <button
+                  type="button"
+                  onClick={() => validaTelaSeguinte('B', 'D')}
+                >
+                  CONF. BÔNUS DEVOLUÇÃO
+                  <FiEdit />
+                </button>
+              ) : (
+                <> </>
+              )}
+              {usuario.acessoConferirUma === 'S' ? (
+                <button
+                  type="button"
+                  onClick={() => validaTelaSeguinte('U')}
+                  disabled
+                >
+                  CONF. U.M.A.
+                  <FiEdit3 />
+                </button>
+              ) : (
+                <> </>
+              )}
+              {usuario.acessoConferirCaixaPlastica === 'S' ? (
+                <button type="button" onClick={() => validaTelaSeguinte('P')}>
+                  CONF. CX. PLÁSTICA
+                  <FiArchive />
+                </button>
+              ) : (
+                <> </>
+              )}
+              {usuario.acessoConferirBonusEntrada === 'N' &&
+              usuario.acessoConferirBonusDevolucao === 'N' &&
+              usuario.acessoConferirUma === 'N' &&
+              usuario.acessoConferirCaixaPlastica === 'N' ? (
+                <MensagemAcesso>
+                  <h1>Usuário não possui nenhum acesso</h1>
+                </MensagemAcesso>
+              ) : (
+                <> </>
+              )}
             </Content>
           ) : (
             <ReactLoading
