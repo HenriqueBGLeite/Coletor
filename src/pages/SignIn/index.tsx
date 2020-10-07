@@ -63,7 +63,7 @@ const SignIn: React.FC = () => {
 
           createMessage({
             type: 'error',
-            message: `Erro ao realizar Login. ${err.message}.`,
+            message: `Erro ao realizar Login. ${err.message}`,
           });
 
           formRef.current?.setFieldValue('password', null);
@@ -87,7 +87,7 @@ const SignIn: React.FC = () => {
     <Container>
       <Content>
         <AnimationContainer>
-          <p>Versão: 05.10.20.01</p>
+          <p>Versão: 07.10.20.01</p>
           <img src={logoImg} alt="Projeto Coletor" />
 
           <Form ref={formRef} onSubmit={handleSubmit}>

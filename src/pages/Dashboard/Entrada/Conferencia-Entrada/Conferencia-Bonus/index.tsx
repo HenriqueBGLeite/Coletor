@@ -343,30 +343,32 @@ const ConferenciaBonus: React.FC = () => {
     );
   }, [lastro, camada, produtoConf, un, cx]);
 
-  const validaValidade = useCallback(
-    (dataValidade: string): boolean => {
-      // Calculo do shelflife do produto em dias
-      const validadeInformada = new Date(dataValidade);
-      const dataRecebimento = new Date();
-      const diasAceitaValidade =
-        produtoConf.diasvalidade * (produtoConf.shelflife / 100);
+  // COMENTADO SOLIC. ADILES (AJUSTANDO O CADADSTRO)
+  // const validaValidade = useCallback(
+  //   (dataValidade: string): boolean => {
+  //     // Calculo do shelflife do produto em dias
+  //     const validadeInformada = new Date(dataValidade);
+  //     const dataRecebimento = new Date();
+  //     const diasAceitaValidade =
+  //       produtoConf.diasvalidade * (produtoConf.shelflife / 100);
 
-      const diferenca = Math.abs(
-        dataRecebimento.getTime() - validadeInformada.getTime(),
-      ); // Subtrai uma data pela outra
-      const diasDiferenca = Math.ceil(diferenca / (1000 * 60 * 60 * 24)); // Divide o total pelo total de milisegundos correspondentes a 1 dia. (1000 milisegundos = 1 segundo).
+  //     const diferenca = Math.abs(
+  //       dataRecebimento.getTime() - validadeInformada.getTime(),
+  //     ); // Subtrai uma data pela outra
 
-      if (
-        diasDiferenca >= diasAceitaValidade &&
-        diasDiferenca <= produtoConf.diasvalidade
-      ) {
-        return true;
-      }
+  //     const diasDiferenca = Math.ceil(diferenca / (1000 * 60 * 60 * 24)); // Divide o total pelo total de milisegundos correspondentes a 1 dia. (1000 milisegundos = 1 segundo).
 
-      return false;
-    },
-    [produtoConf],
-  );
+  //     if (
+  //       diasDiferenca >= diasAceitaValidade &&
+  //       diasDiferenca <= produtoConf.diasvalidade
+  //     ) {
+  //       return true;
+  //     }
+
+  //     return false;
+  //   },
+  //   [produtoConf],
+  // );
 
   const gravarConferencia = useCallback(
     async (data) => {
@@ -403,7 +405,7 @@ const ConferenciaBonus: React.FC = () => {
           ) {
             const dataVal = `${dtValidade}T00:00:00`;
 
-            const validaDataValidade = validaValidade(dataVal);
+            const validaDataValidade = true; // validaValidade(dataVal); COMENTADO SOLIC. ADILES (AJUSTANDO O CADADSTRO)
 
             if (validaDataValidade) {
               setLoading(true);
@@ -429,11 +431,8 @@ const ConferenciaBonus: React.FC = () => {
               const salvou = response.data;
 
               if (salvou) {
-                if (total / produtoConf.qtunitcx === produtoConf.norma) {
-                  await enderecaConfirmados(true);
-                }
-
                 limparTelaConf();
+                await enderecaConfirmados(true);
                 await atualizaConfEnd();
                 setLoading(false);
                 document.getElementById('produto')?.focus();
@@ -527,7 +526,6 @@ const ConferenciaBonus: React.FC = () => {
       usuario.code,
       numbonus,
       qtAvaria,
-      validaValidade,
       camada,
       lastro,
       atualizaConfEnd,

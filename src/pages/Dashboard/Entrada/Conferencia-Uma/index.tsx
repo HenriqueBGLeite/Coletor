@@ -94,6 +94,7 @@ const ConferenciaUma: React.FC = () => {
 
               limparTela();
               setLoading(false);
+              document.getElementById('uma')?.focus();
             }
           } catch (err) {
             createMessage({
@@ -103,6 +104,7 @@ const ConferenciaUma: React.FC = () => {
 
             limparTela();
             setLoading(false);
+            document.getElementById('codbarra')?.focus();
           }
         } else {
           createMessage({
