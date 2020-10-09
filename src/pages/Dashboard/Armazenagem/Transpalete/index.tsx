@@ -228,7 +228,7 @@ const ConfirmarEnderecoTranspalete: React.FC = () => {
 
   return (
     <>
-      <NavBar caminho="/armazenagem" numBox={endereco?.codbox} simpleNav />
+      <NavBar caminho="/armazenagem" numBox={endereco?.codbox} />
       <Loanding>
         {!loading ? (
           <Container>

@@ -28,9 +28,20 @@ interface DTOUma {
   ean: number;
   dun: number;
   qt: number;
+  qtunitcx: number;
   dtvalidade: string;
   dataconf: string;
   codfuncconf: number;
+}
+
+interface DTOConfUma {
+  numbonus: number;
+  codigouma: number;
+  codprod: number;
+  qtconf: number;
+  datavalidade: string;
+  numbox: number;
+  conferente: number;
 }
 
 const ConferenciaUma: React.FC = () => {
@@ -42,6 +53,7 @@ const ConferenciaUma: React.FC = () => {
   const [dtValidade, setDtValidade] = useState('');
   const [lastro, setLastro] = useState(0);
   const [camada, setCamada] = useState(0);
+  const [numBox, setNumBox] = useState(0);
   const [cx, setCx] = useState(0);
   const [un, setUn] = useState(0);
   const [total, setTotal] = useState(0);
@@ -53,6 +65,8 @@ const ConferenciaUma: React.FC = () => {
 
   const limparTela = useCallback(() => {
     setDataUma({} as DTOUma);
+    setTotal(0);
+    setDtValidade('');
     formRef.current?.reset();
     document.getElementById('uma')?.focus();
   }, []);
@@ -169,8 +183,11 @@ const ConferenciaUma: React.FC = () => {
   }, []);
 
   const calcTotal = useCallback(() => {
-    setTotal(lastro * camada * 12 + (Number(un) + Number(cx) * 12));
-  }, [lastro, camada, un, cx]);
+    setTotal(
+      lastro * camada * dataUma.qtunitcx +
+        (Number(un) + Number(cx) * dataUma.qtunitcx),
+    );
+  }, [lastro, camada, un, cx, dataUma]);
 
   const gravaConfUma = useCallback(async () => {
     if (window.document.activeElement?.tagName === 'BUTTON') {
@@ -181,41 +198,76 @@ const ConferenciaUma: React.FC = () => {
         const dataUmaFormatada = formataData(dataUma.dtvalidade);
 
         if (dataInformadaFormatada === dataUmaFormatada) {
-          setLoading(true);
+          if (numBox > 0) {
+            try {
+              setLoading(true);
 
-          const response = await api.post(
-            `Entrada/ConfereUma/${dataUma.numbonus}/${codigouma}/${dataUma.codprod}/${total}/${dataInformadaFormatada}/${usuario.code}`,
-          );
+              const dataConfUma = {
+                numbonus: dataUma.numbonus,
+                codigouma,
+                codprod: dataUma.codprod,
+                qtconf: total,
+                datavalidade: dataInformadaFormatada,
+                numbox: numBox,
+                conferente: usuario.code,
+              } as DTOConfUma;
 
-          const salvouConferencia = response.data;
+              const response = await api.post(
+                'Entrada/ConfereUma/',
+                dataConfUma,
+              );
 
-          if (salvouConferencia) {
-            limparTela();
-            setLoading(false);
-            document.getElementById('uma')?.focus();
+              const salvouConferencia = response.data;
+
+              if (salvouConferencia) {
+                limparTela();
+                setLoading(false);
+                document.getElementById('uma')?.focus();
+              } else {
+                createMessage({
+                  type: 'error',
+                  message:
+                    'Erro ao salvar conferência. Por favor, tente mais tarde.',
+                });
+
+                setLoading(false);
+              }
+            } catch (err) {
+              createMessage({
+                type: 'error',
+                message: `Erro: ${err.message}`,
+              });
+
+              limparTela();
+              setLoading(false);
+            }
           } else {
             createMessage({
-              type: 'error',
-              message:
-                'Erro ao salvar conferência. Por favor, tente mais tarde.',
+              type: 'alert',
+              message: 'Box não informado. Informe o número do box.',
             });
 
-            setLoading(false);
+            formRef.current?.setFieldValue('codbox', null);
+            document.getElementById('codbox')?.focus();
           }
         } else {
           createMessage({
             type: 'alert',
             message: 'Data de validade não confere com a informada na U.M.A.',
           });
+
+          document.getElementById('dtvalidade')?.focus();
         }
       } else {
         createMessage({
           type: 'alert',
           message: 'Quantidade total não confere com a quantidade da U.M.A.',
         });
+
+        document.getElementById('qtun')?.focus();
       }
     }
-  }, [total, dataUma, dtValidade, codigouma, usuario.code, limparTela]);
+  }, [total, dataUma, dtValidade, codigouma, usuario.code, limparTela, numBox]);
 
   return (
     <>
@@ -252,6 +304,7 @@ const ConferenciaUma: React.FC = () => {
                       name="codbox"
                       type="number"
                       description="Box"
+                      onChange={(e) => setNumBox(Number(e.target.value))}
                       onKeyPress={(e) => focusCampo(e)}
                     />
                     <p />

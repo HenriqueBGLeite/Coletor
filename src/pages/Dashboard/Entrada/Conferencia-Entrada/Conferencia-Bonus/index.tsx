@@ -47,10 +47,12 @@ interface ProdutoConf {
   camada: number;
   norma: number;
   resto: number;
+  qtresto: number;
   diasvalidade: number;
   shelflife: number;
   codauxiliar: number;
   qtnf: number;
+  fechado: string;
 }
 
 interface DTOConferencia {
@@ -250,10 +252,19 @@ const ConferenciaBonus: React.FC = () => {
         const achouProduto = response.data[0];
 
         if (achouProduto) {
-          setProdutoConf(achouProduto);
-          setLoading(false);
+          if (achouProduto.fechado === 'N') {
+            setProdutoConf(achouProduto);
+            setLoading(false);
+            document.getElementById('lastro')?.focus();
+          } else {
+            createMessage({
+              type: 'alert',
+              message: `Bônus: ${numbonus} endereçado e finalizado.`,
+            });
 
-          document.getElementById('lastro')?.focus();
+            setLoading(false);
+            document.getElementById('produto')?.focus();
+          }
         } else {
           createMessage({
             type: 'alert',
@@ -401,7 +412,9 @@ const ConferenciaBonus: React.FC = () => {
           if (
             ((lastro > 0 || camada > 0) &&
               total / produtoConf.qtunitcx <= produtoConf.norma) ||
-            (total !== 0 && total < produtoConf.norma && produtoConf.resto > 0)
+            (total !== 0 &&
+              total < produtoConf.norma * produtoConf.qtunitcx &&
+              total === produtoConf.qtresto)
           ) {
             const dataVal = `${dtValidade}T00:00:00`;
 
@@ -452,7 +465,7 @@ const ConferenciaBonus: React.FC = () => {
             } else {
               setMostrarDialog(true);
             }
-          } else if (total < produtoConf.norma) {
+          } else if (total < produtoConf.norma * produtoConf.qtunitcx) {
             if (produtoConf.resto === 0) {
               createMessage({
                 type: 'alert',
@@ -465,7 +478,7 @@ const ConferenciaBonus: React.FC = () => {
 
             createMessage({
               type: 'alert',
-              message: 'Quantidade total não bate com o resto do produto.',
+              message: `Quantidade total: ${total} não bate com o resto do produto.`,
             });
             setTotal(0);
             document.getElementById('qtun')?.focus();
