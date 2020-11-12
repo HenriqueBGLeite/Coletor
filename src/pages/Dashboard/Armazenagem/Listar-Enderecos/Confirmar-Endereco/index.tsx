@@ -51,6 +51,32 @@ const ConfirmarEndereco: React.FC = () => {
     setEndereco(listaEndereco[0]);
   }, [endOrig, listaEndereco]);
 
+  const validaListagem = useCallback(async () => {
+    try {
+      setLoading(true);
+      const retornoListagem = await api.get(
+        `PesquisaProduto/VerificaListagem/${endereco?.numreposicao}`,
+      );
+
+      if (retornoListagem.data) {
+        setLoading(false);
+        setMostrarDialog(true);
+      } else {
+        createMessage({
+          type: 'info',
+          message: `Listagem: ${endereco?.numreposicao} já finalizada.`,
+        });
+        history.push('/listar-enderecos');
+      }
+    } catch (err) {
+      createMessage({
+        type: 'error',
+        message: `Erro: ${err.message}`,
+      });
+      setLoading(false);
+    }
+  }, [endereco, history]);
+
   const validaProxEndereco = useCallback(async () => {
     if (endereco) {
       setLoading(true);
@@ -93,25 +119,40 @@ const ConfirmarEndereco: React.FC = () => {
   const handleValidateAddress = useCallback(
     async (data) => {
       try {
-        formRef.current?.setErrors({});
+        setLoading(true);
+        const retornoListagem = await api.get(
+          `PesquisaProduto/VerificaListagem/${endereco?.numreposicao}`,
+        );
 
-        const schema = Yup.object().shape({
-          codEndereco: Yup.string().required('Código obrigatório.'),
-        });
+        if (retornoListagem.data) {
+          setLoading(false);
 
-        await schema.validate(data, {
-          abortEarly: false,
-        });
+          formRef.current?.setErrors({});
 
-        if (endereco?.codendereco !== Number(enderecoDigitado)) {
-          formRef.current?.setFieldValue('codEndereco', null);
-
-          createMessage({
-            type: 'alert',
-            message: 'Código informado não confere com o esperado.',
+          const schema = Yup.object().shape({
+            codEndereco: Yup.string().required('Código obrigatório.'),
           });
+
+          await schema.validate(data, {
+            abortEarly: false,
+          });
+
+          if (endereco?.codendereco !== Number(enderecoDigitado)) {
+            formRef.current?.setFieldValue('codEndereco', null);
+
+            createMessage({
+              type: 'alert',
+              message: 'Código informado não confere com o esperado.',
+            });
+          } else {
+            validaProxEndereco();
+          }
         } else {
-          validaProxEndereco();
+          createMessage({
+            type: 'info',
+            message: `Listagem: ${endereco?.numreposicao} já finalizada.`,
+          });
+          history.push('/listar-enderecos');
         }
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
@@ -130,7 +171,7 @@ const ConfirmarEndereco: React.FC = () => {
         formRef.current?.setFieldValue('codEndereco', null);
       }
     },
-    [endereco, enderecoDigitado, validaProxEndereco],
+    [endereco, enderecoDigitado, validaProxEndereco, history],
   );
 
   const cancelarEstocagem = useCallback(
@@ -216,7 +257,7 @@ const ConfirmarEndereco: React.FC = () => {
               />
             </Form>
             <Button>
-              <button type="button" onClick={() => setMostrarDialog(true)}>
+              <button type="button" onClick={validaListagem}>
                 Desistir da estocagem
               </button>
             </Button>

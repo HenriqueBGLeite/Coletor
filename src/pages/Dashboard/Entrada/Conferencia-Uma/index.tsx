@@ -65,6 +65,8 @@ const ConferenciaUma: React.FC = () => {
 
   const limparTela = useCallback(() => {
     setDataUma({} as DTOUma);
+    setUn(0);
+    setCx(0);
     setTotal(0);
     setDtValidade('');
     formRef.current?.reset();

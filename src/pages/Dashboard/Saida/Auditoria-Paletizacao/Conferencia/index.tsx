@@ -6,6 +6,7 @@ import { FormHandles } from '@unform/core';
 import ReactLoading from 'react-loading';
 
 import quebraOs from '../../../../../utils/quebraOs';
+import { formataValor } from '../../../../../utils/formataValor';
 
 import api from '../../../../../services/api';
 
@@ -31,6 +32,8 @@ interface DTODivergPend {
 interface DTOCliente {
   letra: string;
   palete: number;
+  totpesopalete: number;
+  pesopaleteformatado: string;
 }
 
 interface DTOCabecalhoOs {
@@ -97,7 +100,11 @@ const Conferencia: React.FC = () => {
           `AuditoriaPaletiza/ProximoCliente/${dadosCarga.numcar}/${usuario.code}`,
         )
         .then((response) => {
-          setProxCli(response.data[0]);
+          const dadosCli = response.data[0];
+
+          dadosCli.pesopaleteformatado = formataValor(dadosCli.totpesopalete);
+
+          setProxCli(dadosCli);
           setLoading(false);
         })
         .catch((err) => {
@@ -133,7 +140,11 @@ const Conferencia: React.FC = () => {
         `AuditoriaPaletiza/ProximoCliente/${dadosCarga.numcar}/${usuario.code}`,
       )
       .then((response) => {
-        setProxCli(response.data[0]);
+        const dadosCli = response.data[0];
+
+        dadosCli.pesopaleteformatado = formataValor(dadosCli.totpesopalete);
+
+        setProxCli(dadosCli);
       })
       .catch((err) => {
         createMessage({
@@ -315,10 +326,21 @@ const Conferencia: React.FC = () => {
             setLoading(false);
           }
         } else {
-          createMessage({
-            type: 'error',
-            message: `Nenhum registro foi localizado para O.S: ${numOs}.`,
-          });
+          const cortesOs = await api.get(
+            `AuditoriaPaletiza/ConsultaCorte/${numOs}`,
+          );
+
+          if (cortesOs.data) {
+            createMessage({
+              type: 'alert',
+              message: `O.S: ${numOs} possui corte. Favor verificar.`,
+            });
+          } else {
+            createMessage({
+              type: 'error',
+              message: `Nenhum registro foi localizado para O.S: ${numOs}.`,
+            });
+          }
 
           limpaTela();
           setLoading(false);
@@ -544,9 +566,13 @@ const Conferencia: React.FC = () => {
           {!loading ? (
             <Content>
               {dadosCarga.proxTela === 'P' ? (
-                <h1>
-                  CLIENTE: {proxCli.letra} - PALETE: {proxCli.palete}
-                </h1>
+                <>
+                  <h1>CLIENTE: {proxCli.letra}</h1>
+                  <h1>
+                    PALETE: {proxCli.palete} - PESO:
+                    {proxCli.pesopaleteformatado}
+                  </h1>
+                </>
               ) : (
                 <> </>
               )}

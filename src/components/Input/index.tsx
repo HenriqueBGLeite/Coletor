@@ -16,6 +16,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   percWidth?: number;
   marginRight?: number;
   description?: string;
+  disabled?: boolean;
   focus?: boolean;
   icon?: React.ComponentType<IconBaseProps>;
 }
@@ -24,6 +25,7 @@ const Input: React.FC<InputProps> = ({
   name,
   percWidth,
   marginRight,
+  disabled,
   focus,
   description,
   icon: Icon,
@@ -61,6 +63,7 @@ const Input: React.FC<InputProps> = ({
       isErrored={!!error}
       isFilled={isFilled}
       isFocused={isFocused}
+      isDisabled={disabled || false}
       width={percWidth || 100}
       marginRight={marginRight || 16}
     >
@@ -70,6 +73,7 @@ const Input: React.FC<InputProps> = ({
           onFocus={handleInputFocus}
           onBlur={handleInputBlur}
           defaultValue={defaultValue}
+          disabled={disabled}
           ref={inputRef}
           placeholder=" "
           {...rest}

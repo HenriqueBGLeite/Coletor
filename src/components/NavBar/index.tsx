@@ -8,6 +8,7 @@ import { Container } from './style';
 
 interface NavBarProps {
   numInvent?: number;
+  contagem?: number;
   numCarregamento?: number;
   numBonus?: number;
   numBox?: number;
@@ -21,6 +22,7 @@ const NavBar: React.FC<NavBarProps> = (props) => {
   const { signOut, usuario } = useAuth();
   const {
     numInvent,
+    contagem,
     numCarregamento,
     numBonus,
     numBox,
@@ -46,7 +48,13 @@ const NavBar: React.FC<NavBarProps> = (props) => {
             <p>
               {usuario.code} - {usuario.nome} F{usuario.filial}
             </p>
-            {numInvent ? <p>INVENTÁRIO {numInvent}</p> : ''}
+            {numInvent ? (
+              <p>
+                INVENT: {numInvent} CONT: {contagem}
+              </p>
+            ) : (
+              ''
+            )}
             {numCarregamento ? <p>CARGA: {numCarregamento}</p> : ''}
             {numBonus ? <p>BÔNUS: {numBonus}</p> : ''}
             {numBox ? <p>BOX: {numBox}</p> : ''}
@@ -77,7 +85,13 @@ const NavBar: React.FC<NavBarProps> = (props) => {
             <p>
               {usuario.code} - {usuario.nome} F{usuario.filial}
             </p>
-            {numInvent ? <p>INVENTÁRIO {numInvent}</p> : ''}
+            {numInvent ? (
+              <p>
+                INVENT: {numInvent} CONT: {contagem}
+              </p>
+            ) : (
+              ''
+            )}
             {numCarregamento ? <p>CARGA: {numCarregamento}</p> : ''}
             {numBonus ? <p>BÔNUS: {numBonus}</p> : ''}
             {numBox ? <p>BOX: {numBox}</p> : ''}

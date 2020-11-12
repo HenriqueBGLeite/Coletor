@@ -94,7 +94,11 @@ const Endereco: React.FC = () => {
 
   return (
     <>
-      <NavBar caminho="/inventario" numInvent={endereco?.numinvent} />
+      <NavBar
+        caminho="/inventario"
+        numInvent={endereco?.numinvent}
+        contagem={endereco?.contagem}
+      />
 
       <Container>
         <Content>

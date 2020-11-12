@@ -92,6 +92,28 @@ const ConferenciaOs: React.FC = () => {
     formRef.current?.setFieldValue('codbarra', null);
   }, []);
 
+  const alimentaDivergenciaPendecia = useCallback(
+    (numCarPesquisa: number, numOsPesquisa: number): void => {
+      api
+        .get(
+          `ConferenciaSaida/BuscaPendDiverg/${numCarPesquisa}/${numOsPesquisa}`,
+        )
+        .then((response) => {
+          const dataPendenciaDiverg = response.data;
+
+          setQtOsPend(dataPendenciaDiverg.pendencia);
+          setQtDivergenciaOs(dataPendenciaDiverg.divergencia);
+        })
+        .catch((err) => {
+          createMessage({
+            type: 'error',
+            message: err,
+          });
+        });
+    },
+    [],
+  );
+
   const validaOs = useCallback(async () => {
     setLoading(true);
     try {
@@ -127,13 +149,22 @@ const ConferenciaOs: React.FC = () => {
 
             setNumCar(cabOs.numcar);
             setDataForm(cabOs);
-            setQtOsPend(cabOs.qtospendente);
-            setQtDivergenciaOs(cabOs.pendencia);
+
+            // Alimenta Divergência e Pendência
+            alimentaDivergenciaPendecia(
+              Number(cabOs.numcar),
+              Number(cabOs.numos),
+            );
+
             formRef.current?.setFieldValue('numos', null);
             setLoading(false);
           } else if (cabOs.tipoos === 20 || cabOs.tipoos === 17) {
-            setQtOsPend(cabOs.qtospendente);
-            setQtDivergenciaOs(cabOs.pendencia);
+            // Alimenta Divergência e Pendência
+            alimentaDivergenciaPendecia(
+              Number(cabOs.numcar),
+              Number(cabOs.numos),
+            );
+
             setMostrarProduto(true);
             setNumCar(cabOs.numcar);
             setDataForm(cabOs);
@@ -182,12 +213,18 @@ const ConferenciaOs: React.FC = () => {
     } catch (err) {
       createMessage({
         type: 'error',
-        message: err,
+        message: `Error: ${err.message}`,
       });
 
       setLoading(false);
     }
-  }, [numos, dataConf.boxOrig, usuario, limparTela]);
+  }, [
+    numos,
+    dataConf.boxOrig,
+    usuario,
+    limparTela,
+    alimentaDivergenciaPendecia,
+  ]);
 
   const chamaValidaOs = useCallback(
     async (event) => {
@@ -508,6 +545,7 @@ const ConferenciaOs: React.FC = () => {
                   <> </>
                 )}
               </Form>
+
               <Button>
                 {(dataForm.numos || numos) && qtdDivergenciaOs > 0 ? (
                   <button type="button" onClick={telaDivergencia}>

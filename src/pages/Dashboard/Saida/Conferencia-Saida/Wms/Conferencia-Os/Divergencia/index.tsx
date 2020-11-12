@@ -55,12 +55,20 @@ const Divergencia: React.FC = () => {
   useEffect(() => {
     setLoading(true);
     async function loadDiverg(): Promise<void> {
-      const response = await api.get<DataDivergencia[]>(
-        `ConferenciaSaida/DivergenciaOs/${dataOs.numos}`,
-      );
+      try {
+        const response = await api.get<DataDivergencia[]>(
+          `ConferenciaSaida/DivergenciaOs/${dataOs.numos}`,
+        );
 
-      setDivergencia(response.data);
-      setLoading(false);
+        setDivergencia(response.data);
+        setLoading(false);
+      } catch (err) {
+        createMessage({
+          type: 'error',
+          message: `Error: ${err.message}`,
+        });
+        setLoading(false);
+      }
     }
 
     loadDiverg();

@@ -49,12 +49,20 @@ const OsPendente: React.FC = () => {
   useEffect(() => {
     setLoading(true);
     async function loadDiverg(): Promise<void> {
-      const response = await api.get<DataPendencia[]>(
-        `ConferenciaSaida/PendenciaOsCarregamento/${dataOs.numcar}`,
-      );
+      try {
+        const response = await api.get<DataPendencia[]>(
+          `ConferenciaSaida/PendenciaOsCarregamento/${dataOs.numcar}`,
+        );
 
-      setPendencia(response.data);
-      setLoading(false);
+        setPendencia(response.data);
+        setLoading(false);
+      } catch (err) {
+        createMessage({
+          type: 'error',
+          message: `Error: ${err.message}`,
+        });
+        setLoading(false);
+      }
     }
 
     if (dataOs.numcar) {
@@ -102,6 +110,11 @@ const OsPendente: React.FC = () => {
 
         formRef.current?.setErrors(errors);
       }
+
+      createMessage({
+        type: 'error',
+        message: `Error: ${err.message}`,
+      });
       setLoading(false);
     }
   }, []);

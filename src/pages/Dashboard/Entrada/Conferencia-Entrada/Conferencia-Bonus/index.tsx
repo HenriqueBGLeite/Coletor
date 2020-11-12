@@ -197,6 +197,8 @@ const ConferenciaBonus: React.FC = () => {
     setProdutoConf({} as ProdutoConf);
     formRef.current?.reset();
     formRefProd.current?.reset();
+    setUn(0);
+    setCx(0);
     setTotal(0);
     setDtValidade('');
   }, []);
@@ -483,11 +485,19 @@ const ConferenciaBonus: React.FC = () => {
             setTotal(0);
             document.getElementById('qtun')?.focus();
           } else {
-            createMessage({
-              type: 'alert',
-              message:
-                'Lastro/Camada informado não confere com o cadastro do produto.',
-            });
+            if (total === produtoConf.norma) {
+              createMessage({
+                type: 'alert',
+                message:
+                  'Quantidade total igual a norma do produto. Favor conferir pelo lastro e camada.',
+              });
+            } else {
+              createMessage({
+                type: 'alert',
+                message:
+                  'Lastro/Camada informado não confere com o cadastro do produto.',
+              });
+            }
             setTotal(0);
             if (lastro > 0 && camada > 0) {
               formRef.current?.setFieldValue('lastro', produtoConf.lastro);
@@ -731,7 +741,7 @@ const ConferenciaBonus: React.FC = () => {
                       type="number"
                       id="produto"
                       name="produto"
-                      value={produtoConf.codprod}
+                      defaultValue={produtoConf.codprod}
                       description="EAN/DUN/CODPROD"
                     />
                   </Form>

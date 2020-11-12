@@ -6,6 +6,7 @@ import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 
 import api from '../../../../../../services/api';
+import { formataValor } from '../../../../../../utils/formataValor';
 import NavBar from '../../../../../../components/NavBar';
 
 import { Loanding } from './styles';
@@ -18,6 +19,7 @@ interface DTOCarga {
 
 interface DataPendencia {
   letra: string;
+  codbox: number;
   numpalete: number;
   numos: number;
   numvol: number;
@@ -29,6 +31,9 @@ interface DataPendencia {
   apto: number;
   tipoos: string;
   separador: string;
+  rota: string;
+  pesototal: number;
+  pesototalFormatado: string;
 }
 
 const OsPendenteReconferencia: React.FC = () => {
@@ -45,7 +50,17 @@ const OsPendenteReconferencia: React.FC = () => {
         `AuditoriaPaletiza/PendenciaCarregamento/${dataCarga.numcar}/${dataCarga.proxTela}`,
       );
 
-      setPendencia(response.data);
+      const pendencias = response.data;
+
+      pendencias.map((pend) => {
+        const totalFormatado = formataValor(pend.pesototal);
+
+        pend.pesototalFormatado = totalFormatado;
+
+        return pend;
+      });
+
+      setPendencia(pendencias);
       setLoading(false);
     }
 
@@ -62,7 +77,15 @@ const OsPendenteReconferencia: React.FC = () => {
       <Loanding>
         {!loading ? (
           <DataTable
-            header={`Pendências da carga: ${dataCarga.numcar}`}
+            header={( //eslint-disable-line
+              <>
+                <p>Pendências da carga: {dataCarga.numcar}</p>
+                <p>
+                  Rota: {pendencia[0]?.rota} - Peso:{' '}
+                  {pendencia[0]?.pesototalFormatado} Kg
+                </p>
+              </>
+            )} //eslint-disable-line
             value={pendencia}
             scrollable
             paginator
@@ -71,6 +94,7 @@ const OsPendenteReconferencia: React.FC = () => {
             style={{ width: '100%' }}
           >
             <Column field="letra" header="Cli" style={{ width: '55px' }} />
+            <Column field="codbox" header="Box" style={{ width: '55px' }} />
             <Column field="numpalete" header="Pal" style={{ width: '45px' }} />
             <Column field="numos" header="O.S" style={{ width: '90px' }} />
             <Column field="numvol" header="Vol" style={{ width: '45px' }} />

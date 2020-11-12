@@ -17,6 +17,8 @@ interface DataInfoBonus {
   numbonus: number;
   placa: string;
   fornecedor: string;
+  codconf: number;
+  nomeconferente: string;
 }
 
 const BonusAberto: React.FC = () => {
@@ -33,17 +35,26 @@ const BonusAberto: React.FC = () => {
   useEffect(() => {
     setLoading(true);
     async function loadDiverg(): Promise<void> {
-      const response = await api.get<DataInfoBonus[]>(
-        `Entrada/BuscaCabBonus/${paramBonus}/${usuario.filial}`,
-      );
+      try {
+        const response = await api.get<DataInfoBonus[]>(
+          `Entrada/BuscaCabBonus/${paramBonus}/${usuario.filial}`,
+        );
 
-      if (response.data.length > 0) {
-        setBonusAberto(response.data);
-        setLoading(false);
-      } else {
+        if (response.data.length > 0) {
+          setBonusAberto(response.data);
+          setLoading(false);
+        } else {
+          createMessage({
+            type: 'info',
+            message: 'Nenhum bônus em aberto foi encontrado.',
+          });
+
+          history.push('/entrada');
+        }
+      } catch (err) {
         createMessage({
-          type: 'info',
-          message: 'Nenhum bônus em aberto foi encontrado.',
+          type: 'error',
+          message: `Error: ${err.message}`,
         });
 
         history.push('/entrada');
@@ -56,7 +67,19 @@ const BonusAberto: React.FC = () => {
   const confirmarBonus = useCallback(
     (retorno: boolean) => {
       if (retorno) {
-        history.push('/entrada/equipe-bonus', bonusSelecionado?.numbonus);
+        if (
+          bonusSelecionado.codconf === null ||
+          bonusSelecionado.codconf === usuario.code
+        ) {
+          history.push('/entrada/equipe-bonus', bonusSelecionado?.numbonus);
+        } else {
+          createMessage({
+            type: 'alert',
+            message: `Bônus vinculado ao conferente: ${bonusSelecionado.nomeconferente}.`,
+          });
+          setBonusSelecionado({} as DataInfoBonus);
+          setMostrarDialog(false);
+        }
       } else {
         createMessage({
           type: 'info',
@@ -67,7 +90,7 @@ const BonusAberto: React.FC = () => {
       }
       setMostrarDialog(false);
     },
-    [history, bonusSelecionado],
+    [history, bonusSelecionado, usuario.code],
   );
   return (
     <>

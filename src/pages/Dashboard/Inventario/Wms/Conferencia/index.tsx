@@ -11,16 +11,14 @@ import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
 import ReactLoading from 'react-loading';
 import * as Yup from 'yup';
+import { InputMask } from 'primereact/inputmask';
 import api from '../../../../../services/api';
 import getValidationErrors from '../../../../../utils/getValidationErros';
-import formataValidade from '../../../../../utils/formataData';
 
 import Dialog from '../../../../../components/Dialog';
 import Input from '../../../../../components/Input';
 import { createMessage } from '../../../../../components/Toast';
-import { useAuth } from '../../../../../hooks/auth';
 import NavBar from '../../../../../components/NavBar';
-
 import { Container, Content } from './style';
 
 interface Props {
@@ -56,26 +54,6 @@ interface Props {
     numinvent: number;
     inventos: number;
   };
-}
-
-interface OsInventario {
-  codendereco: number;
-  inventos: number;
-  tipoender: string;
-  numinvent: number;
-  status: string;
-  codprod: number;
-  ean: number;
-  dun: number;
-  qtunitcx: number;
-  descricao: string;
-  qt: number;
-  contagem: number;
-  deposito: number;
-  rua: number;
-  predio: number;
-  nivel: number;
-  apto: number;
 }
 
 interface EndAtualProps {
@@ -114,12 +92,10 @@ interface SubmitForm {
   qtcx: number;
   qtun: number;
   total: number;
-  datavalidade: string;
-  alteravalidade: boolean;
 }
 
 const ConferenciaWms: React.FC = () => {
-  const { usuario } = useAuth();
+  const user = JSON.parse(localStorage.getItem('@EpocaColetor:user') as string);
   const history = useHistory();
   const endAtual = history.location.state as Props;
   const formRefProd = useRef<FormHandles>(null);
@@ -138,7 +114,6 @@ const ConferenciaWms: React.FC = () => {
 
   const [loading, setLoanding] = useState(false);
   const [buscaProduto, setBuscaProduto] = useState(false);
-  const [trocouProduto, setTrocouProduto] = useState(false);
 
   useEffect(() => {
     setEndereco(endAtual.endereco);
@@ -174,13 +149,12 @@ const ConferenciaWms: React.FC = () => {
   const trocaProdutoAereo = useCallback(async () => {
     setLoanding(true);
     const response = await api.get<ProdutoInventario>(
-      `Inventario/getProdutoInventario/${produto}/${usuario.filial}`,
+      `Inventario/getProdutoInventario/${produto}/${user.filial}`,
     );
 
     const { erro, warning } = response.data;
 
     if (warning === 'N' && erro === 'N') {
-      setTrocouProduto(true);
       const { codprod, descricao, qtunitcx } = response.data;
 
       setEndereco({ ...endereco, codprod, descricao, qtunitcx });
@@ -195,7 +169,7 @@ const ConferenciaWms: React.FC = () => {
       setLoanding(false);
       document.getElementById('produto')?.focus();
     }
-  }, [endereco, produto, usuario.filial]);
+  }, [endereco, produto, user.filial]);
 
   const chamaBuscaProduto = useCallback(
     (retorno: boolean, tipoEndereco: string, trocarProduto: boolean) => {
@@ -287,35 +261,23 @@ const ConferenciaWms: React.FC = () => {
     [endereco, produto],
   );
 
-  const focusCampo = useCallback(
-    (event) => {
-      if (event.target.id === 'lastro' && event.key === 'Enter') {
-        document.getElementById('camada')?.focus();
-      }
-      if (trocouProduto) {
-        if (event.target.id === 'camada' && event.key === 'Enter') {
-          document.getElementById('dtvalidade')?.focus();
-        }
-        if (event.target.id === 'dtvalidade' && event.key === 'Enter') {
-          document.getElementById('qtcx')?.focus();
-        }
-      } else if (!trocouProduto) {
-        if (event.target.id === 'camada' && event.key === 'Enter') {
-          document.getElementById('qtcx')?.focus();
-        }
-      }
-      if (event.target.id === 'qtcx' && event.key === 'Enter') {
-        document.getElementById('qtun')?.focus();
-      }
-      if (event.target.id === 'qtun' && event.key === 'Enter') {
-        document.getElementById('total')?.focus();
-      }
-      if (event.target.id === 'total' && event.key === 'Enter') {
-        document.getElementById('enviar')?.focus();
-      }
-    },
-    [trocouProduto],
-  );
+  const focusCampo = useCallback((event) => {
+    if (event.target.id === 'lastro' && event.key === 'Enter') {
+      document.getElementById('camada')?.focus();
+    }
+    if (event.target.id === 'camada' && event.key === 'Enter') {
+      document.getElementById('qtcx')?.focus();
+    }
+    if (event.target.id === 'qtcx' && event.key === 'Enter') {
+      document.getElementById('qtun')?.focus();
+    }
+    if (event.target.id === 'qtun' && event.key === 'Enter') {
+      document.getElementById('total')?.focus();
+    }
+    if (event.target.id === 'total' && event.key === 'Enter') {
+      document.getElementById('gravar')?.focus();
+    }
+  }, []);
 
   const handleCalcTotal = useCallback(() => {
     setTotal(
@@ -327,128 +289,95 @@ const ConferenciaWms: React.FC = () => {
   const handleSubmitForm = useCallback(
     async (data: SubmitForm) => {
       if (window.document.activeElement?.tagName === 'BUTTON') {
-        if (!trocouProduto || (trocouProduto && date)) {
-          setLoanding(true);
+        setLoanding(true);
 
-          if (
-            (endereco.tipoender === 'AP' || endereco.tipoender === 'AE') &&
-            produto !== 0 &&
-            total === 0
-          ) {
-            createMessage({
-              type: 'error',
-              message: 'Não é possível salvar o item sem quantidade.',
-            });
-            setLoanding(false);
-            document.getElementById('lastro')?.focus();
-          } else {
-            const dataVal = `${date}T00:00:00`;
-            const dataFormatada = formataValidade(dataVal);
+        if (
+          (endereco.tipoender === 'AP' || endereco.tipoender === 'AE') &&
+          produto !== 0 &&
+          total === 0
+        ) {
+          createMessage({
+            type: 'error',
+            message: 'Não é possível salvar o item sem quantidade.',
+          });
+          setLoanding(false);
+          document.getElementById('lastro')?.focus();
+        } else {
+          const {
+            numinvent,
+            inventos,
+            codendereco,
+            codprod,
+            contagem,
+            qtunitcx,
+          } = endereco;
 
-            const {
-              numinvent,
-              inventos,
-              codendereco,
-              codprod,
-              contagem,
-              qtunitcx,
-            } = endereco;
+          data.codendereco = codendereco;
+          data.status = endereco.status;
+          data.matdig = user.code;
+          data.inventos = inventos;
+          data.numinvent = numinvent;
+          data.codprod = codprod;
+          data.contagem = contagem;
+          data.qtunitcx = qtunitcx;
 
-            data.codendereco = codendereco;
-            data.status = endereco.status;
-            data.matdig = usuario.code;
-            data.inventos = inventos;
-            data.numinvent = numinvent;
-            data.codprod = codprod;
-            data.contagem = contagem;
-            data.qtunitcx = qtunitcx;
-            if (trocouProduto) {
-              data.datavalidade = dataFormatada;
-              data.alteravalidade = true;
-            }
+          try {
+            const salvou = await api.post(
+              'Inventario/gravaProdutoInventario',
+              data,
+            );
 
-            try {
-              const salvou = await api.post(
-                'Inventario/gravaProdutoInventario',
-                data,
+            if (salvou.data) {
+              const excludeEndereco = endAtual.enderecoOrig.findIndex(
+                (end) => end.codendereco === endereco.codendereco,
               );
 
-              if (salvou.data) {
-                const excludeEndereco = endAtual.enderecoOrig.findIndex(
-                  (end) => end.codendereco === endereco.codendereco,
+              if (excludeEndereco >= 0) {
+                const filteredEndereco = endAtual.enderecoOrig.filter(
+                  (end) => end.codendereco !== endereco.codendereco,
                 );
-
-                if (excludeEndereco >= 0) {
-                  const filteredEndereco = endAtual.enderecoOrig.filter(
-                    (end) => end.codendereco !== endereco.codendereco,
+                if (filteredEndereco.length > 0) {
+                  history.push('endereco-inventario', filteredEndereco);
+                } else {
+                  const response = await api.get(
+                    `Inventario/getProxOs/${user.code}/${endereco.codendereco}/${endereco.contagem}`,
                   );
 
-                  if (filteredEndereco.length > 0) {
-                    history.push('endereco-inventario', filteredEndereco);
+                  const encontrouEndereco = response.data;
+                  if (encontrouEndereco !== null) {
+                    history.push('endereco-inventario', encontrouEndereco);
                   } else {
-                    const response = await api.get<OsInventario[]>(
-                      `Inventario/getProxOs/${usuario.code}/${endereco.codendereco}/${endereco.contagem}`,
-                    );
-
-                    const encontrouEndereco = response.data;
-
-                    if (encontrouEndereco !== null) {
-                      history.push('endereco-inventario', encontrouEndereco);
-                    } else {
-                      history.push('/inventario');
-                    }
+                    history.push('/inventario');
                   }
                 }
-              } else {
-                createMessage({
-                  type: 'error',
-                  message: 'Erro ao salvar conferência. Tente novamente.',
-                });
-                setLoanding(false);
               }
-            } catch (err) {
-              if (err.message === 'Network Error') {
-                createMessage({
-                  type: 'error',
-                  message: 'Erro de internet ao salvar a conferência.',
-                });
-                setLoanding(false);
-                return;
-              }
-
+            } else {
               createMessage({
                 type: 'error',
-                message: `Erro: ${err.message}`,
+                message: 'Erro ao salvar conferência. Tente novamente.',
               });
               setLoanding(false);
             }
+          } catch (err) {
+            if (err.message === 'Network Error') {
+              createMessage({
+                type: 'error',
+                message: 'Erro de internet ao salvar a conferência.',
+              });
+            }
+            setLoanding(false);
           }
-        } else {
-          createMessage({
-            type: 'alert',
-            message: `Data de validade obrigatória na troca de produto no endereço.`,
-          });
-
-          document.getElementById('dtvalidade')?.focus();
         }
       }
     },
-    [
-      history,
-      produto,
-      total,
-      usuario.code,
-      endereco,
-      endAtual.enderecoOrig,
-      trocouProduto,
-      date,
-    ],
+    [history, produto, total, user.code, endereco, endAtual.enderecoOrig],
   );
 
   return (
     <>
       <NavBar
         numInvent={endereco?.numinvent}
+        contagem={endereco.contagem}
         caminho="/inventario/endereco-inventario"
         params={endAtual.enderecoOrig}
       />
@@ -554,28 +483,19 @@ const ConferenciaWms: React.FC = () => {
                     onKeyPress={(e) => focusCampo(e)}
                     onKeyUp={handleCalcTotal}
                   />
-                  {trocouProduto ? (
-                    <Input
-                      icon={FiCalendar}
+                  <div className="inputmask">
+                    <FiCalendar />
+                    <InputMask
                       id="dtvalidade"
                       name="dtvalidade"
-                      type="date"
+                      mask="99/99/9999"
                       value={date}
-                      onChange={(e) => setDate(e.target.value)}
-                      description="Data de validade"
-                    />
-                  ) : (
-                    <Input
-                      icon={FiCalendar}
-                      id="dtvalidade"
-                      name="dtvalidade"
-                      type="date"
-                      value={date}
-                      onChange={(e) => setDate(e.target.value)}
-                      description="Data de validade"
+                      slotChar="DD/MM/AAAA"
+                      onChange={(e) => setDate(e.value)}
+                      placeholder="Data de validade"
                       disabled
                     />
-                  )}
+                  </div>
                   <Content>
                     <Input
                       percWidth={30}
@@ -615,7 +535,7 @@ const ConferenciaWms: React.FC = () => {
                       CONFIRMAR
                     </button>
                   ) : (
-                    <button id="enviar" type="submit">
+                    <button id="gravar" type="submit">
                       CONFIRMAR
                     </button>
                   )}

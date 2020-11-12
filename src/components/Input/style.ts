@@ -6,6 +6,7 @@ interface ContainerProps {
   isFocused: boolean;
   isFilled: boolean;
   isErrored: boolean;
+  isDisabled?: boolean;
   width: number;
   marginRight: number;
 }
@@ -24,6 +25,12 @@ export const Container = styled.div<ContainerProps>`
   & + div {
     margin-top: 8px;
   }
+
+  ${(props) =>
+    props.isDisabled &&
+    css`
+      background: #bfbfc7;
+    `}
 
   ${(props) =>
     props.width &&

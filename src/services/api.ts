@@ -31,6 +31,13 @@ api.interceptors.response.use(
         return Promise.reject(err);
       }
     }
+
+    if (err.message === 'Network Error') {
+      err.message =
+        'Não foi possível conectar com o banco de dados. Verifique sua conexão e tente novamente.';
+      return Promise.reject(err);
+    }
+
     return Promise.reject(err);
   },
 );
