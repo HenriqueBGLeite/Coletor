@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import ReactLoading from 'react-loading';
 
 import { Form } from '@unform/web';
@@ -23,11 +23,35 @@ interface SignInFormData {
   base: string;
 }
 
+interface BaseLista {
+  value: string;
+  label: string;
+}
+
 const SignIn: React.FC = () => {
   const formRef = useRef<FormHandles>(null);
+  const base = localStorage.getItem('@EpocaColetor:base');
   const { signIn } = useAuth();
+  const [baseLista, setBaseLista] = useState<BaseLista[]>([]);
 
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setBaseLista([
+      {
+        value: 'EPOCA',
+        label: 'EPOCA',
+      },
+      {
+        value: 'MRURAL',
+        label: 'MINAS RURAL',
+      },
+      {
+        value: 'TESTE-EPOCA',
+        label: 'EPOCA TESTE',
+      },
+    ]);
+  }, []);
 
   const handleSubmit = useCallback(
     async (data: SignInFormData) => {
@@ -80,14 +104,14 @@ const SignIn: React.FC = () => {
       document.getElementById('password')?.focus();
     }
     if (event.target.id === 'password' && event.key === 'Enter') {
-      document.getElementById('base')?.focus();
+      document.getElementById('entrar')?.focus();
     }
   }, []);
   return (
     <Container>
       <Content>
         <AnimationContainer>
-          <p>Versão: 11.11.20.01</p>
+          <p>Versão: 26.11.20.01</p>
           <img src={logoImg} alt="Projeto Coletor" />
 
           <Form ref={formRef} onSubmit={handleSubmit}>
@@ -109,15 +133,27 @@ const SignIn: React.FC = () => {
               onKeyPress={(e) => focusCampo(e)}
             />
             <Select id="base" name="base" icon={FiHome}>
-              <option value="">Selecione sua base...</option>
-              <option value="EPOCA">Época</option>
-              <option value="MRURAL">Minas Rural</option>
-              <option value="TESTE-EPOCA">Época Teste</option>
+              {baseLista
+                .filter((ba) => ba.value === String(base))
+                .map((ba) => (
+                  <option key={ba.value} value={ba.value}>
+                    {ba.label}
+                  </option>
+                ))}
+              {baseLista
+                .filter((ba) => ba.value !== String(base))
+                .map((ba) => (
+                  <option key={ba.value} value={ba.value}>
+                    {ba.label}
+                  </option>
+                ))}
             </Select>
 
             <Loanding>
               {!loading ? (
-                <button type="submit">Entrar</button>
+                <button id="entrar" type="submit">
+                  Entrar
+                </button>
               ) : (
                 <ReactLoading
                   className="loading"

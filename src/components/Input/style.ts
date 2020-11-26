@@ -67,6 +67,15 @@ export const Container = styled.div<ContainerProps>`
     &::placeholder {
       color: #878787;
     }
+
+  }
+
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active  {
+      -webkit-box-shadow: 0 0 0 30px #dcdce6 inset;
+              box-shadow: 0 0 0 30px #dcdce6 inset;
   }
 
   svg {

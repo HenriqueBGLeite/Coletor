@@ -8,6 +8,7 @@ import { Column } from 'primereact/column';
 import api from '../../../../../../services/api';
 import { formataValor } from '../../../../../../utils/formataValor';
 import NavBar from '../../../../../../components/NavBar';
+import { createMessage } from '../../../../../../components/Toast';
 
 import { Loanding } from './styles';
 
@@ -46,22 +47,30 @@ const OsPendenteReconferencia: React.FC = () => {
     setLoading(true);
 
     async function loadDiverg(): Promise<void> {
-      const response = await api.get<DataPendencia[]>(
-        `AuditoriaPaletiza/PendenciaCarregamento/${dataCarga.numcar}/${dataCarga.proxTela}`,
-      );
+      try {
+        const response = await api.get<DataPendencia[]>(
+          `AuditoriaPaletiza/PendenciaCarregamento/${dataCarga.numcar}/${dataCarga.proxTela}`,
+        );
 
-      const pendencias = response.data;
+        const pendencias = response.data;
 
-      pendencias.map((pend) => {
-        const totalFormatado = formataValor(pend.pesototal);
+        pendencias.map((pend) => {
+          const totalFormatado = formataValor(pend.pesototal);
 
-        pend.pesototalFormatado = totalFormatado;
+          pend.pesototalFormatado = totalFormatado;
 
-        return pend;
-      });
+          return pend;
+        });
 
-      setPendencia(pendencias);
-      setLoading(false);
+        setPendencia(pendencias);
+        setLoading(false);
+      } catch (err) {
+        createMessage({
+          type: 'error',
+          message: `Erro: ${err.message}`,
+        });
+        setLoading(false);
+      }
     }
 
     loadDiverg();

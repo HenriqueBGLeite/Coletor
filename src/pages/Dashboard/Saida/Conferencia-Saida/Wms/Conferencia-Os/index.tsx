@@ -85,6 +85,8 @@ const ConferenciaOs: React.FC = () => {
     setDataFormOs17({} as DataFormOs17);
     setQtOsPend(0);
     setQtDivergenciaOs(0);
+    setLastro(0);
+    setCamada(0);
     setTotal(0);
     setMostrarProduto(false);
     setMostrarDadosOs17(false);
@@ -174,6 +176,7 @@ const ConferenciaOs: React.FC = () => {
           } else {
             const dataUpdateOs13 = {
               numos: cabOs.numos,
+              tipoos: cabOs.tipoos,
               numvol: cabOs.numvol,
               codFuncConf: usuario.code,
             };
@@ -271,6 +274,7 @@ const ConferenciaOs: React.FC = () => {
         } else if (dataForm.tipoos === 20) {
           const dataUpdateOs = {
             numos: dataForm.numos,
+            tipoos: dataForm.tipoos,
             numvol: dataForm.numvol,
             codFuncConf: usuario.code,
             codprod: dataProduto.codprod,
@@ -330,6 +334,7 @@ const ConferenciaOs: React.FC = () => {
     setLoading(true);
     const dataUpdateOs = {
       numos: dataForm.numos,
+      tipoos: dataForm.tipoos,
       numvol: dataForm.numvol,
       codFuncConf: usuario.code,
       codprod: dataFormOs17.codprod,
@@ -376,42 +381,23 @@ const ConferenciaOs: React.FC = () => {
   );
 
   const telaDivergencia = useCallback(() => {
-    if (dataForm.numos) {
-      const dataOs = {
-        numos: dataForm.numos,
-        boxOrig: dataForm.numbox,
-        numcar,
-        qtPend: dataForm.qtospendente,
-      };
-      history.push(`/conferencia-saida/divergencia`, dataOs);
-    } else {
-      const dataOs = {
-        numos,
-        boxOrig: dataForm.numbox,
-        numcar,
-        qtPend: qtOsPend,
-      };
-      history.push(`/conferencia-saida/divergencia`, dataOs);
-    }
-  }, [history, dataForm, numcar, numos, qtOsPend]);
+    const dataOs = {
+      numos: dataForm.numos,
+      boxOrig: dataForm.numbox,
+      numcar,
+      qtPend: qtOsPend,
+    };
+    history.push(`/conferencia-saida/divergencia`, dataOs);
+  }, [history, dataForm, numcar, qtOsPend]);
 
   const telaOsPendente = useCallback(() => {
-    if (dataForm.qtospendente) {
-      const dataOs = {
-        numcar,
-        boxOrig: dataConf.boxOrig,
-        qtPend: dataForm.qtospendente,
-      } as Props;
-      history.push(`/conferencia-saida/os-pendente`, dataOs);
-    } else {
-      const dataOs = {
-        numcar,
-        boxOrig: dataConf.boxOrig,
-        qtPend: qtOsPend,
-      } as Props;
-      history.push(`/conferencia-saida/os-pendente`, dataOs);
-    }
-  }, [history, dataConf.boxOrig, numcar, dataForm.qtospendente, qtOsPend]);
+    const dataOs = {
+      numcar,
+      boxOrig: dataConf.boxOrig,
+      qtPend: qtOsPend,
+    } as Props;
+    history.push(`/conferencia-saida/os-pendente`, dataOs);
+  }, [history, dataConf.boxOrig, numcar, qtOsPend]);
 
   const alimentaQtConfOs17 = useCallback(() => {
     setDataFormOs17({ ...dataFormOs17, qt: total * dataFormOs17.qtunitcx });

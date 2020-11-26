@@ -127,8 +127,10 @@ const Conferencia: React.FC = () => {
     setMostrarDadosOs17(false);
     setDun(undefined);
     setNumOs(undefined);
-    setTotal(0);
     setDivergencia(0);
+    setLastro(0);
+    setCamada(0);
+    setTotal(0);
     formRef.current?.setFieldValue('numos', null);
     formRef.current?.setFieldValue('codbarra', null);
     formRef.current?.setFieldValue('volume', null);
@@ -281,9 +283,6 @@ const Conferencia: React.FC = () => {
                     });
                   }
                 } else {
-                  if (cabOs.tipoos === 17) {
-                    setMostrarDadosOs17(true);
-                  }
                   setDataForm(cabOs);
                   setDivergencia(cabOs.divergencia);
                   setPendencia(cabOs.qtospendente);
@@ -404,6 +403,7 @@ const Conferencia: React.FC = () => {
               setPendencia(resultado.pendencia);
               limpaTela();
               setLoading(false);
+              document.getElementById('numos')?.focus();
             } else {
               createMessage({
                 type: 'success',
@@ -431,7 +431,7 @@ const Conferencia: React.FC = () => {
       } else {
         setLoading(false);
         setNumOs(undefined);
-        document.getElementById('lastro')?.focus();
+        setMostrarDadosOs17(true);
       }
     } else {
       createMessage({
@@ -447,59 +447,68 @@ const Conferencia: React.FC = () => {
   }, [dataForm, usuario, limpaTela, dun, dadosCarga, history]);
 
   const validaProdutoOs17 = useCallback(async () => {
-    if (dataForm.qtconferida === total) {
-      try {
-        const response = await api.put(
-          `AuditoriaPaletiza/AuditaVolumeOs/${dataForm.numos}/${dataForm.numvol}/${usuario.code}`,
-        );
-        const gravou = response.data;
-
-        if (gravou) {
-          const atualizaDivergPend = await api.get<DTODivergPend[]>(
-            `AuditoriaPaletiza/AtualizaDivergPend/${dadosCarga.numcar}/${dataForm.numos}/${dadosCarga.proxTela}`,
+    if (dun === dataForm.dun) {
+      if (dataForm.qtconferida === total) {
+        try {
+          const response = await api.put(
+            `AuditoriaPaletiza/AuditaVolumeOs/${dataForm.numos}/${dataForm.numvol}/${usuario.code}`,
           );
+          const gravou = response.data;
 
-          const resultado = atualizaDivergPend.data[0];
+          if (gravou) {
+            const atualizaDivergPend = await api.get<DTODivergPend[]>(
+              `AuditoriaPaletiza/AtualizaDivergPend/${dadosCarga.numcar}/${dataForm.numos}/${dadosCarga.proxTela}`,
+            );
 
-          if (resultado.pendencia > 0) {
-            setPendencia(resultado.pendencia);
-            limpaTela();
-            setLoading(false);
+            const resultado = atualizaDivergPend.data[0];
+
+            if (resultado.pendencia > 0) {
+              setPendencia(resultado.pendencia);
+              limpaTela();
+              setLoading(false);
+              document.getElementById('numos')?.focus();
+            } else {
+              createMessage({
+                type: 'success',
+                message: `Carga: ${dadosCarga.numcar} totalmente recoferida.`,
+              });
+
+              history.push('/saida');
+            }
           } else {
             createMessage({
-              type: 'success',
-              message: `Carga: ${dadosCarga.numcar} totalmente recoferida.`,
+              type: 'error',
+              message:
+                'Ocorreu um ao erro ao tentar gravar o registro, por favor tente mais tarde.',
             });
-
-            history.push('/saida');
           }
-        } else {
+        } catch (err) {
           createMessage({
             type: 'error',
-            message:
-              'Ocorreu um ao erro ao tentar gravar o registro, por favor tente mais tarde.',
+            message: `Erro: ${err.response.data}`,
           });
+
+          limpaTela();
+          setLoading(false);
         }
-      } catch (err) {
+      } else {
         createMessage({
           type: 'error',
-          message: `Erro: ${err.response.data}`,
+          message: `Não foi possível realizar a conferência. Quantidade difere da 1ª conferência.`,
         });
-
-        limpaTela();
-        setLoading(false);
       }
     } else {
       createMessage({
         type: 'error',
-        message: `Não foi possível realizar a conferência. Quantidade difere da 1ª conferência.`,
+        message: `Cód.Barra ${dun} não pertence a O.S: ${dataForm.numos} volume: ${dataForm.numvol}. Confira pelo código de barra master!`,
       });
 
-      limpaTela();
       setLoading(false);
-      document.getElementById('numos')?.focus();
+      setNumOs(undefined);
+      formRef.current?.setFieldValue('codbarra', null);
+      document.getElementById('codbarra')?.focus();
     }
-  }, [dataForm, usuario, limpaTela, dadosCarga, history, total]);
+  }, [dun, dataForm, usuario, limpaTela, dadosCarga, history, total]);
 
   const chamaValidaProduto = useCallback(
     async (event) => {
@@ -523,11 +532,11 @@ const Conferencia: React.FC = () => {
     const data = {
       numcar: dadosCarga.numcar,
       pendencia,
-      numos,
+      numos: dataForm.numos,
       proxTela: dadosCarga.proxTela,
     };
     history.push('/auditoria-paletizacao/divergencia', data);
-  }, [numos, pendencia, history, dadosCarga]);
+  }, [pendencia, history, dadosCarga, dataForm.numos]);
 
   const telaPendencia = useCallback(() => {
     const data = {
@@ -606,6 +615,7 @@ const Conferencia: React.FC = () => {
                         {mostrarDadosOs17 ? (
                           <ContentOs17>
                             <Input
+                              focus
                               percWidth={30}
                               id="lastro"
                               name="lastro"

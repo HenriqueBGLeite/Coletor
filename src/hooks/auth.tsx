@@ -16,6 +16,7 @@ interface AuthContextData {
   usuario: {
     filial: number;
     code: number;
+    base: string;
     nome: string;
     usaWms: string;
     acessoSistema: string;
@@ -69,6 +70,7 @@ const AuthProvider: React.FC = ({ children }) => {
         const { token } = usuario;
 
         localStorage.setItem('@EpocaColetor:token', token);
+        localStorage.setItem('@EpocaColetor:base', base);
         localStorage.setItem('@EpocaColetor:user', JSON.stringify(usuario));
 
         setData({ token, usuario });
