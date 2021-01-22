@@ -22,6 +22,7 @@ interface DataOs {
   boxOrig: number;
   numcar: number;
   qtPend: number;
+  numeroPalete: number;
 }
 
 interface DataPendencia {

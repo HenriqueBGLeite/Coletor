@@ -17,6 +17,7 @@ interface DataOs {
   numos: number;
   numbox: number;
   qtPend: number;
+  numeroPalete: number;
 }
 
 interface DataOsRetorno {

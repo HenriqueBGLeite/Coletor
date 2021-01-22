@@ -52,6 +52,7 @@ interface DataForm {
   numpalete: number;
   numos: number | undefined;
   dun: number | undefined;
+  qtunitcx: number;
   numvol: number;
   tipoos: number;
   pertencecarga: string;
@@ -429,6 +430,11 @@ const Conferencia: React.FC = () => {
           setLoading(false);
         }
       } else {
+        setDataFormOs17({
+          ...dataFormOs17,
+          qtunitcx: dataForm.qtunitcx,
+        });
+
         setLoading(false);
         setNumOs(undefined);
         setMostrarDadosOs17(true);
@@ -444,11 +450,11 @@ const Conferencia: React.FC = () => {
       formRef.current?.setFieldValue('codbarra', null);
       document.getElementById('codbarra')?.focus();
     }
-  }, [dataForm, usuario, limpaTela, dun, dadosCarga, history]);
+  }, [dataForm, dataFormOs17, usuario, limpaTela, dun, dadosCarga, history]);
 
   const validaProdutoOs17 = useCallback(async () => {
     if (dun === dataForm.dun) {
-      if (dataForm.qtconferida === total) {
+      if (dataForm.qtconferida === total * dataFormOs17.qtunitcx) {
         try {
           const response = await api.put(
             `AuditoriaPaletiza/AuditaVolumeOs/${dataForm.numos}/${dataForm.numvol}/${usuario.code}`,
@@ -508,7 +514,16 @@ const Conferencia: React.FC = () => {
       formRef.current?.setFieldValue('codbarra', null);
       document.getElementById('codbarra')?.focus();
     }
-  }, [dun, dataForm, usuario, limpaTela, dadosCarga, history, total]);
+  }, [
+    dun,
+    dataForm,
+    usuario,
+    limpaTela,
+    dadosCarga,
+    history,
+    total,
+    dataFormOs17,
+  ]);
 
   const chamaValidaProduto = useCallback(
     async (event) => {

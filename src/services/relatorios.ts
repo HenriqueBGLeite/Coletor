@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const urlRelatorio = axios.create({
-  baseURL: 'http://192.168.0.232:40083/servdw/',
+  baseURL: 'http://192.168.0.232:40083/',
 });
 
 urlRelatorio.interceptors.request.use(async (config) => {

@@ -8,8 +8,6 @@ import { FiTruck, FiPackage, FiBox, FiLayers } from 'react-icons/fi';
 import { useAuth } from '../../hooks/auth';
 import { createMessage } from '../../components/Toast';
 import api from '../../services/api';
-// import apiRelatorio from '../../services/relatorios';
-// import formataRelatorio from '../../utils/formataRelatorioPdf';
 
 import NavBar from '../../components/NavBar';
 
@@ -72,26 +70,6 @@ const Dashboard: React.FC = () => {
     }
   }, [usuario, history]);
 
-  // const convertBase64 = useCallback(async () => {
-  //   try {
-  //     setLoading(true);
-  //     const base64 = await apiRelatorio.post(
-  //       'relatorio?matricula=9316&nrorel=9005',
-  //     );
-
-  //     const relatorio = formataRelatorio(base64.data);
-
-  //     window.open(relatorio);
-  //     setLoading(false);
-  //   } catch (err) {
-  //     createMessage({
-  //       type: 'error',
-  //       message: `Error: ${err.message}`,
-  //     });
-  //     setLoading(false);
-  //   }
-  // }, []);
-
   return (
     <>
       <NavBar />
@@ -144,11 +122,6 @@ const Dashboard: React.FC = () => {
               ) : (
                 <> </>
               )}
-
-              {/* <button type="button" onClick={convertBase64}>
-                BASE 64
-                <FiPackage />
-              </button> */}
             </Content>
           ) : (
             <ReactLoading

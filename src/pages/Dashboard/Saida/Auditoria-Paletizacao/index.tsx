@@ -8,6 +8,7 @@ import { FormHandles } from '@unform/core';
 import * as Yup from 'yup';
 
 import { createMessage } from '../../../../components/Toast';
+import Dialog from '../../../../components/Dialog';
 import api from '../../../../services/api';
 import getValidationErrors from '../../../../utils/getValidationErros';
 
@@ -21,7 +22,46 @@ const AuditoriaPaletizacao: React.FC = () => {
   const history = useHistory();
   const proxTela = history.location.state as string;
   const [numcar, setNumcar] = useState(0);
+  const [dialog, setDialog] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const reabreAuditoria = useCallback(
+    async (retorno: boolean) => {
+      if (retorno) {
+        setLoading(true);
+
+        await api
+          .put(`AuditoriaPaletiza/ReabreAuditoriaCarga/${numcar}`)
+          .then(async (response) => {
+            const reabriu = response.data;
+
+            if (reabriu) {
+              const responsePend = await api.get<number>(
+                `AuditoriaPaletiza/PendenciasCarga/${numcar}/${proxTela}`,
+              );
+
+              const pendCarga = responsePend.data;
+
+              const dataCarga = { numcar, pendencia: pendCarga, proxTela };
+              history.push('/auditoria-paletizacao/conferencia', dataCarga);
+            }
+          })
+          .catch((err) => {
+            createMessage({
+              type: 'error',
+              message: `Erro: ${err.message}`,
+            });
+
+            formRef.current?.setFieldValue('numcar', null);
+            setLoading(false);
+          });
+      } else {
+        setDialog(false);
+        document.getElementById('numcar')?.focus();
+      }
+    },
+    [history, numcar, proxTela],
+  );
 
   const validaCarregamento = useCallback(
     async (data) => {
@@ -54,12 +94,8 @@ const AuditoriaPaletizacao: React.FC = () => {
             const dataCarga = { numcar, pendencia: pendCarga, proxTela };
             history.push('/auditoria-paletizacao/conferencia', dataCarga);
           } else {
-            createMessage({
-              type: 'alert',
-              message: `Nenhuma pendência foi encontrada para o carregamento: ${numcar}`,
-            });
-            formRef.current?.setFieldValue('numcar', null);
             setLoading(false);
+            setDialog(true);
           }
         } else {
           createMessage({
@@ -101,12 +137,22 @@ const AuditoriaPaletizacao: React.FC = () => {
                 <Input
                   focus
                   icon={FiTruck}
+                  id="numcar"
                   name="numcar"
                   type="number"
                   description="Informe o carregamento"
                   onChange={(e) => setNumcar(Number(e.target.value))}
                 />
               </Form>
+              {dialog ? (
+                <Dialog
+                  title="Auditoria Carga"
+                  message={`Nenhuma pendência foi encontrada para o carregamento: ${numcar}, deseja reabrir a auditoria?`}
+                  executar={reabreAuditoria}
+                />
+              ) : (
+                <> </>
+              )}
             </Content>
           ) : (
             <ReactLoading

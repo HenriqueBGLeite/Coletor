@@ -14,11 +14,6 @@ import NavBar from '../../../../../components/NavBar';
 
 import { Container, Content } from './styles';
 
-interface Props {
-  boxOrig: number;
-  numcar: number;
-}
-
 const ConferenciaSaida: React.FC = () => {
   const history = useHistory();
   const formRef = useRef<FormHandles>(null);
@@ -54,8 +49,8 @@ const ConferenciaSaida: React.FC = () => {
           posicao[1] = numBox.substring(7, 9);
 
           const numeroBox = Number(posicao[0].concat(posicao[1]));
-          const dataOs = { boxOrig: numeroBox, numcar: 0 } as Props;
-          history.push('/conferencia-saida/conferencia-os', dataOs);
+
+          history.push('/conferencia-saida/confirma-palete', numeroBox);
         } else {
           createMessage({
             type: 'error',

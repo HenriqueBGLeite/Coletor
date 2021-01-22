@@ -10,6 +10,7 @@ import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 
 import api from '../../../../../services/api';
+import apiRelatorios from '../../../../../services/relatorios';
 
 import { createMessage } from '../../../../../components/Toast';
 import { useAuth } from '../../../../../hooks/auth';
@@ -197,6 +198,8 @@ const ConferenciaBonus: React.FC = () => {
     setProdutoConf({} as ProdutoConf);
     formRef.current?.reset();
     formRefProd.current?.reset();
+    setLastro(0);
+    setCamada(0);
     setUn(0);
     setCx(0);
     setTotal(0);
@@ -296,6 +299,60 @@ const ConferenciaBonus: React.FC = () => {
     [numbonus],
   );
 
+  const enviaUmaImpressora = useCallback(
+    (dados: [{ codigo: number }]): void => {
+      const paramsImpressao = {
+        app: 'EPCWMS',
+        tipousu: 'U',
+        matricula: usuario.code,
+        tamanho: 'G',
+        nrorel: 9044,
+        pCodUma: 0,
+      };
+
+      dados.map((codUma) => {
+        paramsImpressao.pCodUma = Number(codUma);
+
+        // Envia U.M.A direto na impressora padrão da API
+        apiRelatorios
+          .get('servdw/REL/relatorio', { params: paramsImpressao })
+          .then(async (responseBase64) => {
+            const parametrosImpressao = {
+              base64: responseBase64.data,
+              codUma: Number(codUma),
+            };
+
+            await api
+              .put('Entrada/ChamaImpressao/', parametrosImpressao)
+              .catch((err) => {
+                createMessage({
+                  type: 'error',
+                  message: `Error: ${err.response.data}`,
+                });
+              });
+          })
+          .catch((err) => {
+            if (
+              err.response.data ===
+              `Access violation at address 0000000000B6B802 in module 'RDWService.exe'. Read of address 0000000000000019`
+            ) {
+              createMessage({
+                type: 'error',
+                message: 'Nenhum registro encontrado para impressão.',
+              });
+            } else {
+              createMessage({
+                type: 'error',
+                message: `Error: ${err.response.data}`,
+              });
+            }
+          });
+        return codUma;
+      });
+    },
+    [usuario.code],
+  );
+
   const enderecaConfirmados = useCallback(
     async (retorno: boolean) => {
       if (retorno) {
@@ -310,12 +367,24 @@ const ConferenciaBonus: React.FC = () => {
           const enderecou = response.data;
 
           if (enderecou === 'Endeçamento realizado com Sucesso!') {
-            createMessage({
-              type: 'success',
-              message: enderecou,
-            });
+            const responseUma = await api.get<[{ codigo: number }]>(
+              `Entrada/BuscaDadosImpressao/${numbonus}`,
+            );
+
+            const achouDados = responseUma.data;
+
+            if (achouDados.length > 0) {
+              enviaUmaImpressora(achouDados);
+
+              createMessage({
+                type: 'success',
+                message: enderecou,
+              });
+            }
+
             limparTelaConf();
             await atualizaConfEnd();
+
             setLoading(false);
           } else {
             createMessage({
@@ -346,7 +415,7 @@ const ConferenciaBonus: React.FC = () => {
         setMostrarDialogEnderecar(false);
       }
     },
-    [usuario, numbonus, atualizaConfEnd, limparTelaConf],
+    [usuario, numbonus, atualizaConfEnd, limparTelaConf, enviaUmaImpressora],
   );
 
   const calcTotal = useCallback(() => {

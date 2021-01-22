@@ -1,5 +1,4 @@
 import styled from 'styled-components';
-import { shade } from 'polished';
 
 export const Container = styled.div`
   height: 100%;
@@ -27,7 +26,7 @@ export const Content = styled.div`
     font-family: 'Roboto Slab', sans-serif;
     font-weight: 700;
     font-style: italic;
-    font-size: 30px;
+    font-size: 40px;
     color: #363636;
   }
 
@@ -43,29 +42,12 @@ export const Content = styled.div`
   }
 `;
 
-export const Loading = styled.div`
+export const Loanding = styled.div`
   width: 100%;
 
   display: flex;
   align-items: center;
   justify-content: center;
-
-  button {
-    background: #c22e2c;
-    color: #fff;
-    height: 40px;
-    border-radius: 10px;
-    border: 0;
-    padding: 0 16px;
-    width: 100%;
-    font-weight: bold;
-    margin-top: 16px;
-    transition: background-color 0.2s;
-
-    &:hover {
-      background: ${shade(0.2, '#c84241')};
-    }
-  }
 
   .loading {
     border-radius: 10px;

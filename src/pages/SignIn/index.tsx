@@ -47,7 +47,7 @@ const SignIn: React.FC = () => {
         label: 'MINAS RURAL',
       },
       {
-        value: 'TESTE-EPOCA',
+        value: 'EPOCATST',
         label: 'EPOCA TESTE',
       },
     ]);
@@ -111,7 +111,7 @@ const SignIn: React.FC = () => {
     <Container>
       <Content>
         <AnimationContainer>
-          <p>Versão: 26.11.20.01</p>
+          <p>Versão: 22.01.21.01</p>
           <img src={logoImg} alt="Projeto Coletor" />
 
           <Form ref={formRef} onSubmit={handleSubmit}>

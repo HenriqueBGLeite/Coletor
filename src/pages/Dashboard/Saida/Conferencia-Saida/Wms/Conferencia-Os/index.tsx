@@ -19,6 +19,7 @@ interface Props {
   boxOrig: number;
   numcar: number;
   qtPend: number;
+  numeroPalete: number;
 }
 
 interface DataForm {
@@ -102,8 +103,11 @@ const ConferenciaOs: React.FC = () => {
         )
         .then((response) => {
           const dataPendenciaDiverg = response.data;
-
-          setQtOsPend(dataPendenciaDiverg.pendencia);
+          if (numCarPesquisa === 0) {
+            setQtOsPend(0);
+          } else {
+            setQtOsPend(dataPendenciaDiverg.pendencia);
+          }
           setQtDivergenciaOs(dataPendenciaDiverg.divergencia);
         })
         .catch((err) => {
@@ -139,61 +143,70 @@ const ConferenciaOs: React.FC = () => {
         }
 
         if (dataConf.boxOrig === cabOs.numbox) {
-          if (cabOs.codfuncconf && cabOs.dtconf) {
-            createMessage({
-              type: 'alert',
-              message: `O.S: ${cabOs.numos} Volume: ${cabOs.numvol} já finalizada. Conferente: ${cabOs.codfuncconf}`,
-            });
-
-            setNumOs(String(cabOs.numos));
-
-            cabOs.numos = undefined;
-
-            setNumCar(cabOs.numcar);
-            setDataForm(cabOs);
-
-            // Alimenta Divergência e Pendência
-            alimentaDivergenciaPendecia(
-              Number(cabOs.numcar),
-              Number(cabOs.numos),
-            );
-
-            formRef.current?.setFieldValue('numos', null);
-            setLoading(false);
-          } else if (cabOs.tipoos === 20 || cabOs.tipoos === 17) {
-            // Alimenta Divergência e Pendência
-            alimentaDivergenciaPendecia(
-              Number(cabOs.numcar),
-              Number(cabOs.numos),
-            );
-
-            setMostrarProduto(true);
-            setNumCar(cabOs.numcar);
-            setDataForm(cabOs);
-            setLoading(false);
-            setNumOs(undefined);
-            document.getElementById('codbarra')?.focus();
-          } else {
-            const dataUpdateOs13 = {
-              numos: cabOs.numos,
-              tipoos: cabOs.tipoos,
-              numvol: cabOs.numvol,
-              codFuncConf: usuario.code,
-            };
-
-            const updateOs13 = await api.put(
-              'ConferenciaSaida/ConfereVolumeCheckout',
-              dataUpdateOs13,
-            );
-
-            const sucessoConferencia = updateOs13.data;
-
-            if (!sucessoConferencia) {
+          if (dataConf.numeroPalete === cabOs.numpalete) {
+            if (cabOs.codfuncconf && cabOs.dtconf) {
               createMessage({
-                type: 'error',
-                message: `Erro ao finalizar a O.S: ${numOs}. Por favor tente mais tarde.`,
+                type: 'alert',
+                message: `O.S: ${cabOs.numos} Volume: ${cabOs.numvol} já finalizada. Conferente: ${cabOs.codfuncconf}`,
               });
+
+              setNumOs(String(cabOs.numos));
+
+              setNumCar(cabOs.numcar);
+              setDataForm(cabOs);
+
+              // Alimenta Divergência e Pendência
+              alimentaDivergenciaPendecia(
+                Number(cabOs.numcar),
+                Number(cabOs.numos),
+              );
+
+              cabOs.numos = undefined;
+
+              formRef.current?.setFieldValue('numos', null);
+              setLoading(false);
+            } else if (cabOs.tipoos === 20 || cabOs.tipoos === 17) {
+              // Alimenta Divergência e Pendência
+              alimentaDivergenciaPendecia(
+                Number(cabOs.numcar),
+                Number(cabOs.numos),
+              );
+
+              setMostrarProduto(true);
+              setNumCar(cabOs.numcar);
+              setDataForm(cabOs);
+              setLoading(false);
+              setNumOs(undefined);
+              document.getElementById('codbarra')?.focus();
+            } else {
+              const dataUpdateOs13 = {
+                numos: cabOs.numos,
+                tipoos: cabOs.tipoos,
+                numvol: cabOs.numvol,
+                codFuncConf: usuario.code,
+              };
+
+              const updateOs13 = await api.put(
+                'ConferenciaSaida/ConfereVolumeCheckout',
+                dataUpdateOs13,
+              );
+
+              const sucessoConferencia = updateOs13.data;
+
+              if (!sucessoConferencia) {
+                createMessage({
+                  type: 'error',
+                  message: `Erro ao finalizar a O.S: ${numOs}. Por favor tente mais tarde.`,
+                });
+              }
+              limparTela();
+              setLoading(false);
             }
+          } else {
+            createMessage({
+              type: 'error',
+              message: `O.S: ${numOs} pertence ao palete: ${cabOs.numpalete}.`,
+            });
             limparTela();
             setLoading(false);
           }
@@ -224,6 +237,7 @@ const ConferenciaOs: React.FC = () => {
   }, [
     numos,
     dataConf.boxOrig,
+    dataConf.numeroPalete,
     usuario,
     limparTela,
     alimentaDivergenciaPendecia,
@@ -332,34 +346,44 @@ const ConferenciaOs: React.FC = () => {
 
   const validaProdutoOs17 = useCallback(async () => {
     setLoading(true);
-    const dataUpdateOs = {
-      numos: dataForm.numos,
-      tipoos: dataForm.tipoos,
-      numvol: dataForm.numvol,
-      codFuncConf: usuario.code,
-      codprod: dataFormOs17.codprod,
-      numbox: dataConf.boxOrig,
-      qtconf: dataFormOs17.qt,
-    };
 
-    const updateOs = await api.put(
-      'ConferenciaSaida/ConfereVolumeCaixaFechada',
-      dataUpdateOs,
-    );
+    try {
+      const dataUpdateOs = {
+        numos: dataForm.numos,
+        tipoos: dataForm.tipoos,
+        numvol: dataForm.numvol,
+        codFuncConf: usuario.code,
+        codprod: dataFormOs17.codprod,
+        numbox: dataConf.boxOrig,
+        qtconf: dataFormOs17.qt,
+      };
 
-    const sucessoConferencia = updateOs.data;
+      const updateOs = await api.put(
+        'ConferenciaSaida/ConfereVolumeCaixaFechada',
+        dataUpdateOs,
+      );
 
-    if (sucessoConferencia) {
+      const sucessoConferencia = updateOs.data;
+
+      if (sucessoConferencia) {
+        limparTela();
+        setLoading(false);
+      } else {
+        createMessage({
+          type: 'error',
+          message: `Erro ao conferir a O.S: ${dataForm.numos}. Por favor tente mais tarde.`,
+        });
+      }
       limparTela();
       setLoading(false);
-    } else {
+    } catch (err) {
       createMessage({
         type: 'error',
-        message: `Erro ao conferir a O.S: ${dataForm.numos}. Por favor tente mais tarde.`,
+        message: `Erro: ${err.message}`,
       });
+      limparTela();
+      setLoading(false);
     }
-    limparTela();
-    setLoading(false);
   }, [dataConf.boxOrig, dataForm, limparTela, usuario.code, dataFormOs17]);
 
   const chamaValidaProduto = useCallback(
@@ -381,23 +405,38 @@ const ConferenciaOs: React.FC = () => {
   );
 
   const telaDivergencia = useCallback(() => {
-    const dataOs = {
-      numos: dataForm.numos,
-      boxOrig: dataForm.numbox,
-      numcar,
-      qtPend: qtOsPend,
-    };
+    let dataOs;
+
+    if (dataForm.numos === undefined) {
+      dataOs = {
+        numos,
+        boxOrig: dataForm.numbox,
+        numcar,
+        qtPend: qtOsPend,
+        numeroPalete: dataConf.numeroPalete,
+      };
+    } else {
+      dataOs = {
+        numos: dataForm.numos,
+        boxOrig: dataForm.numbox,
+        numcar,
+        qtPend: qtOsPend,
+        numeroPalete: dataConf.numeroPalete,
+      };
+    }
+
     history.push(`/conferencia-saida/divergencia`, dataOs);
-  }, [history, dataForm, numcar, qtOsPend]);
+  }, [history, dataForm, numcar, qtOsPend, dataConf.numeroPalete, numos]);
 
   const telaOsPendente = useCallback(() => {
     const dataOs = {
       numcar,
       boxOrig: dataConf.boxOrig,
       qtPend: qtOsPend,
+      numeroPalete: dataConf.numeroPalete,
     } as Props;
     history.push(`/conferencia-saida/os-pendente`, dataOs);
-  }, [history, dataConf.boxOrig, numcar, qtOsPend]);
+  }, [history, dataConf, numcar, qtOsPend]);
 
   const alimentaQtConfOs17 = useCallback(() => {
     setDataFormOs17({ ...dataFormOs17, qt: total * dataFormOs17.qtunitcx });
@@ -421,7 +460,11 @@ const ConferenciaOs: React.FC = () => {
 
   return (
     <>
-      <NavBar caminho="/conferencia-saida" numCarregamento={numcar} />
+      <NavBar
+        caminho="/conferencia-saida/confirma-palete"
+        numCarregamento={numcar}
+        params={dataConf.boxOrig}
+      />
       <Container>
         <Loanding>
           {!loading ? (
@@ -544,7 +587,11 @@ const ConferenciaOs: React.FC = () => {
                     <p>({qtdDivergenciaOs})</p>
                   </button>
                 )}
-                <button type="button" onClick={telaOsPendente}>
+                <button
+                  type="button"
+                  onClick={telaOsPendente}
+                  disabled={numcar === 0}
+                >
                   <p>O.S. Pendente</p>
                   <p>({qtOsPend})</p>
                 </button>

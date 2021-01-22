@@ -22,7 +22,7 @@ import {
 } from './styles';
 
 interface DTOUma {
-  numbonus: number;
+  numbonus?: number;
   codigouma: number;
   codprod: number;
   ean: number;
@@ -35,7 +35,7 @@ interface DTOUma {
 }
 
 interface DTOConfUma {
-  numbonus: number;
+  numbonus?: number;
   codigouma: number;
   codprod: number;
   qtconf: number;
@@ -67,6 +67,8 @@ const ConferenciaUma: React.FC = () => {
     setDataUma({} as DTOUma);
     setUn(0);
     setCx(0);
+    setLastro(0);
+    setCamada(0);
     setTotal(0);
     setDtValidade('');
     formRef.current?.reset();

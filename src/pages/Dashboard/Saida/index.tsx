@@ -63,7 +63,7 @@ const Saida: React.FC = () => {
               )}
               {usuario.acessoPaletizarCarga === 'S' ? (
                 <button type="button" onClick={() => validaTelaSeguinte('P')}>
-                  PALETIZAÇÃO (F25)
+                  PALETIZAÇÃO
                   <FiLayers />
                 </button>
               ) : (
