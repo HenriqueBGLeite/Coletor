@@ -107,11 +107,12 @@ const SignIn: React.FC = () => {
       document.getElementById('entrar')?.focus();
     }
   }, []);
+
   return (
     <Container>
       <Content>
         <AnimationContainer>
-          <p>Versão: 22.01.21.01</p>
+          <p>Versão: 17.02.21.01</p>
           <img src={logoImg} alt="Projeto Coletor" />
 
           <Form ref={formRef} onSubmit={handleSubmit}>

@@ -343,7 +343,7 @@ const ConferenciaBonus: React.FC = () => {
             } else {
               createMessage({
                 type: 'error',
-                message: `Error: ${err.response.data}`,
+                message: `Error Impressão da U.M.A: ${err.response.data}`,
               });
             }
           });
@@ -399,7 +399,7 @@ const ConferenciaBonus: React.FC = () => {
         } catch (err) {
           createMessage({
             type: 'error',
-            message: `Erro: ${err.message}`,
+            message: `Erro Endereça Bônus: ${err.message}`,
           });
 
           limparTelaConf();
@@ -567,10 +567,18 @@ const ConferenciaBonus: React.FC = () => {
                   'Lastro/Camada informado não confere com o cadastro do produto.',
               });
             }
+
             setTotal(0);
+            setUn(0);
+            formRef.current?.setFieldValue('qtun', null);
+            setCx(0);
+            formRef.current?.setFieldValue('qtcx', null);
+
             if (lastro > 0 && camada > 0) {
-              formRef.current?.setFieldValue('lastro', produtoConf.lastro);
-              formRef.current?.setFieldValue('camada', produtoConf.camada);
+              setLastro(0);
+              formRef.current?.setFieldValue('lastro', null);
+              setCamada(0);
+              formRef.current?.setFieldValue('camada', null);
             }
             document.getElementById('lastro')?.focus();
           }
@@ -599,7 +607,7 @@ const ConferenciaBonus: React.FC = () => {
 
           createMessage({
             type: 'error',
-            message: `Erro: ${err.message}`,
+            message: `Erro Geral - Gravar conferência: ${err.message}`,
           });
 
           if (lastro > 0 && camada > 0) {

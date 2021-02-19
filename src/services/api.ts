@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  // Teste
+  // Desenvolvimento
   // baseURL: 'https://localhost:44319/api/',
   // Homologação
   // baseURL: 'http://192.168.0.118:86/api/',
