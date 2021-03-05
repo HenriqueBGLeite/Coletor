@@ -300,55 +300,52 @@ const ConferenciaBonus: React.FC = () => {
   );
 
   const enviaUmaImpressora = useCallback(
-    (dados: [{ codigo: number }]): void => {
+    (dados: [number]): void => {
+      const placas = dados.toString();
+
       const paramsImpressao = {
         app: 'EPCWMS',
         tipousu: 'U',
         matricula: usuario.code,
         tamanho: 'G',
         nrorel: 9044,
-        pCodUma: 0,
+        pCodUma: placas,
       };
 
-      dados.map((codUma) => {
-        paramsImpressao.pCodUma = Number(codUma);
+      // Envia U.M.A direto na impressora padrão da API
+      apiRelatorios
+        .get('servdw/REL/relatorio', { params: paramsImpressao })
+        .then((responseBase64) => {
+          const parametrosImpressao = {
+            base64: responseBase64.data,
+            codUma: placas,
+          };
 
-        // Envia U.M.A direto na impressora padrão da API
-        apiRelatorios
-          .get('servdw/REL/relatorio', { params: paramsImpressao })
-          .then(async (responseBase64) => {
-            const parametrosImpressao = {
-              base64: responseBase64.data,
-              codUma: Number(codUma),
-            };
-
-            await api
-              .put('Entrada/ChamaImpressao/', parametrosImpressao)
-              .catch((err) => {
-                createMessage({
-                  type: 'error',
-                  message: `Error: ${err.response.data}`,
-                });
-              });
-          })
-          .catch((err) => {
-            if (
-              err.response.data ===
-              `Access violation at address 0000000000B6B802 in module 'RDWService.exe'. Read of address 0000000000000019`
-            ) {
+          api
+            .put('Entrada/ChamaImpressao/', parametrosImpressao)
+            .catch((err) => {
               createMessage({
                 type: 'error',
-                message: 'Nenhum registro encontrado para impressão.',
+                message: `Error: ${err.response.data}`,
               });
-            } else {
-              createMessage({
-                type: 'error',
-                message: `Error Impressão da U.M.A: ${err.response.data}`,
-              });
-            }
-          });
-        return codUma;
-      });
+            });
+        })
+        .catch((err) => {
+          if (
+            err.response.data ===
+            `Access violation at address 0000000000B6B802 in module 'RDWService.exe'. Read of address 0000000000000019`
+          ) {
+            createMessage({
+              type: 'error',
+              message: 'Nenhum registro encontrado para impressão.',
+            });
+          } else {
+            createMessage({
+              type: 'error',
+              message: `Error Impressão da U.M.A: ${err.response.data}`,
+            });
+          }
+        });
     },
     [usuario.code],
   );
@@ -367,7 +364,7 @@ const ConferenciaBonus: React.FC = () => {
           const enderecou = response.data;
 
           if (enderecou === 'Endeçamento realizado com Sucesso!') {
-            const responseUma = await api.get<[{ codigo: number }]>(
+            const responseUma = await api.get<[number]>(
               `Entrada/BuscaDadosImpressao/${numbonus}`,
             );
 
